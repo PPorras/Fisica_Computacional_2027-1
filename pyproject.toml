@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fiscomp"
+version = "0.1.0"
+description = "Libreria de metodos numericos construida durante el curso de Fisica Computacional."
+requires-python = ">=3.9"
+
+[tool.setuptools]
+packages = ["fiscomp"]

@@ -1,0 +1,34 @@
+# --- Entorno virtual (ver README.md, sección de instalación) ---
+.venv/
+venv/
+env/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# --- Salidas de simulaciones y gráficas ---
+# Cada unidad genera datos (csv, txt, npy, ...) con Python y figuras
+# (png, pdf, eps, svg) con gnuplot; no hace falta versionarlas porque
+# se regeneran corriendo el código y los scripts .gp de la unidad.
+unidades/*/datos/*
+unidades/*/figuras/*
+!unidades/*/datos/.gitkeep
+!unidades/*/figuras/.gitkeep
+
+# --- Editores ---
+*.swp
+*.swo
+*~
+.netrwhist
+
+# --- Sistema operativo ---
+.DS_Store
+Thumbs.db

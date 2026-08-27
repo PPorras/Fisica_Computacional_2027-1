@@ -1,0 +1,53 @@
+call plug#begin('~/.vim/plugged')
+
+" Plugins que puedes instalar
+Plug 'junegunn/goyo.vim'           " Modo zen para escritura
+Plug 'kamykn/spelunker.vim'        " Mejora ortografía en tiempo real
+Plug 'morhetz/gruvbox'             " Tema gruvbox
+Plug 'vim-airline/vim-airline'     " Barra de estado mejorada
+
+call plug#end()
+
+" Mostrar números de línea
+set number
+
+" Activar el uso del mouse
+set mouse=a
+
+" Usar espacios en lugar de tabs
+set expandtab
+set tabstop=4
+set shiftwidth=4
+
+" Activar sintaxis y coloreado
+syntax on
+set background=dark
+colorscheme desert " Puedes cambiar a 'elflord', 'murphy', etc.
+
+" Habilitar corrector ortográfico
+set spell
+set spelllang=es,en
+
+" Resaltar la línea actual
+set cursorline
+
+" Mostrar coincidencias al buscar
+set hlsearch
+set incsearch
+
+" Ajuste de texto automático
+set wrap
+set linebreak
+
+" Desactivar sonidos molestos
+set noerrorbells
+set visualbell
+
+" Mejoras visuales
+set showcmd
+set ruler
+set wildmenu
+
+" Guardar automáticamente al salir del modo insert
+" autocmd InsertLeave * write
+
