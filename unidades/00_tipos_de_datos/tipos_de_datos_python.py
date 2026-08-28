@@ -152,3 +152,17 @@ propiedades_pelota = {
 print(f"propiedades_pelota es del tipo {type(propiedades_pelota)}")
 print(f"Llaves: {list(propiedades_pelota.keys())}")
 print(f"Valores: {list(propiedades_pelota.values())}")
+
+###############################################
+# Buleanos
+###############################################
+
+si = True
+no = False
+
+print(f"La variable si es un:{si} y del tipo {type(si)} ademas en entero es{int(si)} ")
+print(f"La variable no es un:{no} y es del tipo {type(no)}")
+
+
+
+
