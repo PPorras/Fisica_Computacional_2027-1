@@ -45,6 +45,25 @@ print(f"int(tiempo_total) = {tiempo_total_entero}")
 print(f"float(numero_pasos) = {numero_pasos_flotante}")
 
 ###############################################
+# Operadores de comparación
+###############################################
+
+# Comparar dos flotantes regresa un valor booleano (True o False)
+cayo_mas_de_15_metros = altura_inicial > 15.0
+paso_muy_pequeno = paso_temporal <= 0.5
+mitad_menor_que_total = mitad_del_tiempo < tiempo_total
+energia_potencial_mayor_igual = energia_potencial >= energia_cinetica
+tiempo_total_es_3_segundos = tiempo_total == 3.0
+energias_distintas = energia_cinetica != energia_potencial
+
+print(f"¿altura_inicial > 15.0? {cayo_mas_de_15_metros}")
+print(f"¿paso_temporal <= 0.5? {paso_muy_pequeno}")
+print(f"¿mitad_del_tiempo < tiempo_total? {mitad_menor_que_total}")
+print(f"¿energia_potencial >= energia_cinetica? {energia_potencial_mayor_igual}")
+print(f"¿tiempo_total == 3.0? {tiempo_total_es_3_segundos}")
+print(f"¿energia_cinetica != energia_potencial? {energias_distintas}")
+
+###############################################
 # El tipo cadena (str) y sus operaciones
 ###############################################
 
@@ -163,6 +182,19 @@ no = False
 print(f"La variable si es un:{si} y del tipo {type(si)} ademas en entero es{int(si)} ")
 print(f"La variable no es un:{no} y es del tipo {type(no)}")
 
+# Operadores lógicos: and, or, not
+pelota_toco_el_suelo = trayectoria[-1] == 0.0
+hubo_energia_potencial = energia_potencial > 0.0
 
+experimento_valido = pelota_toco_el_suelo and hubo_energia_potencial
+print(f"¿pelota_toco_el_suelo and hubo_energia_potencial? {experimento_valido}")
 
+frecuencia_60hz_detectada = (60 in frecuencias_detector_1) or (60 in frecuencias_detector_2)
+print(f"¿60 Hz detectada por al menos un detector (or)? {frecuencia_60hz_detectada}")
 
+pelota_sigue_en_el_aire = not pelota_toco_el_suelo
+print(f"¿La pelota sigue en el aire (not)? {pelota_sigue_en_el_aire}")
+
+# Combinando comparadores y operadores lógicos
+medicion_confiable = (paso_temporal <= 0.5) and (numero_pasos > 5)
+print(f"¿La medición es confiable (paso pequeño y suficientes pasos)? {medicion_confiable}")
