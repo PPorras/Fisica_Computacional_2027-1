@@ -13,10 +13,6 @@ Incluye:
 - Suma, resta y multiplicación (escalar y matricial).
 - Transpuesta.
 - Métodos auxiliares para acceder a filas y columnas.
-
-Los métodos aritméticos (__add__, __sub__, __mul__) están marcados
-con TODO para completarse en clase (Práctica 2); el resto ya está
-implementado como base sobre la que se construyen.
 """
 
 
@@ -46,11 +42,11 @@ class Matrix:
     copy():
         Devuelve una copia independiente de la matriz.
     __add__(other):
-        Suma dos matrices del mismo tamaño. (TODO)
+        Suma dos matrices del mismo tamaño.
     __sub__(other):
-        Resta dos matrices del mismo tamaño. (TODO)
+        Resta dos matrices del mismo tamaño.
     __mul__(other):
-        Multiplica la matriz por un escalar o por otra matriz. (TODO)
+        Multiplica la matriz por un escalar o por otra matriz.
     """
 
     def __init__(self, data):
@@ -129,9 +125,14 @@ class Matrix:
         ValueError
             Si `self` y `other` no tienen las mismas dimensiones.
         """
-        # TODO: sumar elemento a elemento, checando antes que las
-        # dimensiones coincidan.
-        raise NotImplementedError("TODO: completar __add__")
+        if self.shape() != other.shape():
+            raise ValueError("Las matrices deben tener las mismas dimensiones.")
+        return Matrix(
+            [
+                [self.data[i][j] + other.data[i][j] for j in range(self.cols)]
+                for i in range(self.rows)
+            ]
+        )
 
     def __sub__(self, other):
         """
@@ -150,8 +151,9 @@ class Matrix:
         ValueError
             Si `self` y `other` no tienen las mismas dimensiones.
         """
-        # TODO: réstenlas.
-        raise NotImplementedError("TODO: completar __sub__")
+        if self.shape() != other.shape():
+            raise ValueError("Las matrices deben tener las mismas dimensiones.")
+        return self + other * -1
 
     def __mul__(self, other):
         """
@@ -175,13 +177,28 @@ class Matrix:
         TypeError
             Si el tipo de `other` no es soportado.
         """
-        # TODO: distingan (con isinstance) si `other` es un número o
-        # una Matrix, y actúen en consecuencia; para cualquier otro
-        # tipo, levanten TypeError.
-        raise NotImplementedError("TODO: completar __mul__")
+        if isinstance(other, (int, float)):
+            return Matrix(
+                [
+                    [self.data[i][j] * other for j in range(self.cols)]
+                    for i in range(self.rows)
+                ]
+            )
 
-    # Una vez completado __mul__, esta línea hace que `escalar * matriz`
-    # funcione igual que `matriz * escalar` (mismo truco que en VectorND).
+        if isinstance(other, Matrix):
+            if self.cols != other.rows:
+                raise ValueError("Dimensiones incompatibles para multiplicación.")
+            result = [
+                [
+                    sum(self.data[i][k] * other.data[k][j] for k in range(self.cols))
+                    for j in range(other.cols)
+                ]
+                for i in range(self.rows)
+            ]
+            return Matrix(result)
+
+        raise TypeError("Operación no soportada.")
+
     __rmul__ = __mul__
 
 
@@ -204,13 +221,13 @@ if __name__ == "__main__":
     print(B)
 
     print("\nA + B:")
-    print(A + B)  # TODO: implementar suma
+    print(A + B)
 
     print("\nA - B:")
-    print(A - B)  # TODO: implementar resta
+    print(A - B)
 
     print("\nA * 2 (escalar):")
-    print(A * 2)  # TODO: implementar multiplicación por escalar
+    print(A * 2)
     print("\n2 * A (escalar, del otro lado):")
     print(2 * A)
 
@@ -219,7 +236,7 @@ if __name__ == "__main__":
     print("\nC:")
     print(C)
     print("\nA * C (matricial):")
-    print(A * C)  # TODO: implementar multiplicación de matrices
+    print(A * C)
 
     print("\nTranspuesta de A:")
     print(A.transpose())
