@@ -1,153 +1,217 @@
 # Entorno virtual y el paquete `fiscomp`
 
-Estas notas explican cómo crear y usar el entorno virtual del curso,
-y cómo instalar en él el paquete `fiscomp` (el código que vamos
-construyendo juntos en `fiscomp/`) para poder hacer `import fiscomp`
-desde cualquier práctica, unidad o notebook sin trucos de rutas.
+El código que se reutiliza en todo el curso (por ejemplo
+`error_relativo`, `EPS`, `seno`, `coseno`…) vive en el paquete
+`fiscomp/`, en la raíz del repositorio. Para que cualquier script de
+una unidad o práctica pueda hacer
 
-## 1. ¿Qué es un entorno virtual y por qué lo usamos?
-
-Un entorno virtual es una copia aislada de Python con sus propios
-paquetes instalados, separada del Python del sistema. Sirve para que:
-
-- Lo que instalemos para el curso no choque con otras cosas que
-  tengas instaladas (o con las que necesite el propio sistema
-  operativo).
-- Todos en el curso tengamos exactamente las mismas versiones,
-  evitando el clásico "en mi máquina sí funciona".
-- Puedas borrar todo el entorno (`rm -rf .venv`) y volver a crearlo
-  desde cero sin miedo a romper nada más.
-
-Vive en la carpeta `.venv/` en la raíz del repositorio, y **no se
-sube a git** (ya está listado en [`.gitignore`](../.gitignore)) —
-cada quien lo crea una vez en su propia máquina.
-
-## 2. Crear el entorno virtual (una sola vez por máquina)
-
-Desde la raíz del repositorio (la carpeta que contiene `fiscomp/`,
-`practicas/`, `pyproject.toml`, etc.):
-
-| Sistema | Comando |
-|---|---|
-| Linux / macOS | `python3 -m venv .venv` |
-| Windows | `python -m venv .venv` |
-
-Esto crea la carpeta `.venv/` con una copia de Python adentro. No
-hace falta volver a correr este comando salvo que borres `.venv/` o
-quieras empezar de cero.
-
-## 3. Activar el entorno virtual
-
-| Sistema | Comando |
-|---|---|
-| Linux / macOS (bash o zsh) | `source .venv/bin/activate` |
-| Windows (PowerShell) | `.venv\Scripts\Activate.ps1` |
-| Windows (cmd.exe) | `.venv\Scripts\activate.bat` |
-
-Cuando está activado, el prompt de la terminal cambia y muestra
-`(.venv)` al inicio:
-
-```
-$ source .venv/bin/activate
-(.venv) $
+```python
+from fiscomp.precision_numerica import EPS, error_relativo
 ```
 
-Eso es lo que indica que los comandos `python3` y `pip` de ahora en
-adelante son los del entorno virtual, no los del sistema.
+sin importar en qué carpeta esté, `fiscomp` se instala dentro de un
+**entorno virtual**. Estas notas explican qué es eso, cómo crearlo y
+cómo usarlo en el día a día.
 
-> **Hay que activarlo en cada terminal nueva.** Activar el entorno no
-> es permanente: si cierras la terminal o abres una nueva, hay que
-> volver a correr `source .venv/bin/activate` (no hay que volver a
-> *crearlo*, solo a activarlo).
+## 1. ¿Qué es un entorno virtual?
 
-## 4. Instalar `fiscomp` en modo editable
+Es una carpeta (en el curso, `.venv/`) que contiene **su propia copia
+de Python y sus propios paquetes**, separados del Python del sistema.
+Sirve para:
 
-Con el entorno activado, y desde la raíz del repositorio:
+- Instalar paquetes (`fiscomp`, `matplotlib`, `numpy`…) sin permisos
+  de administrador y sin tocar el Python del sistema operativo.
+- Que cada proyecto tenga sus propias versiones de paquetes, sin
+  chocar con otros proyectos.
+- Poder borrarlo y volver a crearlo desde cero si algo se descompone.
+
+La carpeta `.venv/` **no se sube a git** (está en `.gitignore`): cada
+quien crea la suya en su computadora.
+
+## 2. Requisitos
+
+Python 3.9 o más reciente. Para verificarlo:
 
 ```bash
-pip install -e .
+python3 --version        # Linux / macOS
+python --version         # Windows
 ```
 
-El `-e` es por *editable*: instala el paquete `fiscomp` "apuntando"
-directamente a la carpeta `fiscomp/` del repositorio, en vez de
-copiarlo. Esto quiere decir que:
+Si no lo tienes:
 
-- Cualquier archivo `.py` que agreguemos o modifiquemos dentro de
-  `fiscomp/` se refleja de inmediato, sin volver a instalar nada.
-- Después de instalarlo, `import fiscomp` funciona desde cualquier
-  carpeta (una práctica, una unidad, un notebook), no solo desde la
-  raíz del repositorio.
+- **Linux:** normalmente ya viene instalado. En Ubuntu/Debian quizá
+  falte el módulo de entornos virtuales: `sudo apt install python3-venv`.
+- **macOS:** `brew install python`, o el instalador de
+  <https://www.python.org/downloads/>.
+- **Windows:** el instalador de <https://www.python.org/downloads/>.
+  Durante la instalación marca **"Add python.exe to PATH"**.
 
-Solo hay que correr `pip install -e .` una vez por máquina (a menos
-que borres y recrees `.venv/`).
+## 3. Crear el entorno (una sola vez)
 
-## 5. Comprobar que quedó bien
+Desde la **raíz del repositorio** (la carpeta que contiene
+`README.md` y `pyproject.toml`):
 
-| Sistema | Comando |
-|---|---|
-| Linux / macOS | `python3 -c "import fiscomp; print(fiscomp.__file__)"` |
-| Windows | `python -c "import fiscomp; print(fiscomp.__file__)"` |
+```bash
+python3 -m venv .venv          # Linux / macOS
+python -m venv .venv           # Windows
+```
 
-Debe imprimir una ruta dentro de tu copia del repositorio, algo como
-`/ruta/a/Cursos/fiscomp/__init__.py` (o `C:\ruta\a\Cursos\fiscomp\__init__.py`
-en Windows).
+Esto crea la carpeta `.venv/`. No hace falta repetirlo: el entorno se
+queda ahí hasta que lo borres.
 
-## 6. Desactivar el entorno virtual
+## 4. Activar el entorno (cada vez que abras una terminal)
+
+| Sistema                  | Comando                          |
+|--------------------------|----------------------------------|
+| Linux / macOS            | `source .venv/bin/activate`      |
+| Windows (PowerShell)     | `.venv\Scripts\Activate.ps1`     |
+| Windows (cmd.exe)        | `.venv\Scripts\activate.bat`     |
+
+Cuando está activado, el prompt empieza con `(.venv)`:
+
+```
+(.venv) usuario@maquina:~/Fisica_Computacional_2027-1$
+```
+
+Mientras está activado, los comandos `python3`, `python` y `pip`
+usan el Python del entorno, no el del sistema.
+
+> **Importante:** la activación solo dura en **esa** terminal. Si
+> abres una terminal nueva (o una pestaña nueva), tienes que volver a
+> activarlo. Es la causa más común de errores en el curso (ver
+> [`errores_comunes.md`](errores_comunes.md)).
+
+> **Windows:** si PowerShell dice que "la ejecución de scripts está
+> deshabilitada en este sistema", corre esto una vez y vuelve a
+> intentarlo:
+>
+> ```powershell
+> Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+> ```
+
+Se puede activar desde cualquier carpeta dando la ruta hacia `.venv`;
+por ejemplo, si estás en `unidades/08_diferencias_finitas/`:
+
+```bash
+source ../../.venv/bin/activate
+```
+
+### Desactivar
 
 ```bash
 deactivate
 ```
 
-Con esto el prompt vuelve a la normalidad (desaparece el `(.venv)`) y
-`python3`/`pip` vuelven a apuntar al Python del sistema. No borra
-nada — el entorno sigue ahí, listo para activarse de nuevo la
-próxima vez con `source .venv/bin/activate`.
+(o simplemente cierra la terminal).
 
-## 7. Resumen rápido
+## 5. Instalar `fiscomp` en modo editable (una sola vez)
 
-**Linux / macOS (bash o zsh):**
+Con el entorno activado y desde la raíz del repositorio:
 
 ```bash
-# Una sola vez por máquina
+python3 -m pip install -e .
+```
+
+- El `.` significa "el proyecto de esta carpeta": pip lee
+  `pyproject.toml` y encuentra el paquete `fiscomp/`.
+- El `-e` (**editable**) hace que pip no copie el código, sino que
+  apunte a la carpeta `fiscomp/` del repositorio. Así, cuando agregues
+  o cambies una función en `fiscomp/` (o hagas `git pull` y lleguen
+  funciones nuevas), el cambio se ve de inmediato, **sin reinstalar**.
+
+## 6. Verificar que todo quedó bien
+
+Con el entorno activado:
+
+```bash
+which python3        # Linux/macOS: debe terminar en .venv/bin/python3
+where python         # Windows: la primera línea debe estar en .venv\Scripts\
+python3 -c "import fiscomp; print(fiscomp.__file__)"
+```
+
+El último comando debe imprimir una ruta que termine en
+`fiscomp/__init__.py` **dentro de tu repositorio**. Si da
+`ModuleNotFoundError`, el entorno no está activado o falta el paso 5.
+
+Para ver todo lo instalado en el entorno:
+
+```bash
+python3 -m pip list
+```
+
+## 7. Instalar otros paquetes
+
+Algunos scripts del curso necesitan paquetes extra. Se instalan igual,
+con el entorno activado:
+
+```bash
+python3 -m pip install matplotlib
+```
+
+Se recomienda `python3 -m pip` en lugar de solo `pip`, porque
+garantiza que el paquete se instala en el mismo Python con el que vas
+a correr los scripts. Ver [`notas_matplotlib.md`](notas_matplotlib.md)
+para el caso de matplotlib.
+
+## 8. Resumen: el día a día
+
+La primera vez:
+
+```bash
+cd ruta/al/repositorio
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e .
+python3 -m pip install -e .
+```
 
-# Cada vez que abras una terminal nueva para trabajar en el curso
+Cada vez que abras una terminal para trabajar en el curso:
+
+```bash
+cd ruta/al/repositorio
 source .venv/bin/activate
-...
-deactivate    # al terminar, opcional
 ```
 
-**Windows (PowerShell):**
+(En Windows, cambia `python3` por `python` y
+`source .venv/bin/activate` por `.venv\Scripts\Activate.ps1`.)
 
-```powershell
-# Una sola vez por máquina
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-pip install -e .
+## 9. Problemas comunes
 
-# Cada vez que abras una terminal nueva para trabajar en el curso
-.venv\Scripts\Activate.ps1
-...
-deactivate    # al terminar, opcional
+### `ModuleNotFoundError: No module named 'fiscomp'`
+
+El entorno no está activado en esa terminal (revisa que el prompt
+muestre `(.venv)`), o no se hizo el paso 5. Detalle completo en
+[`errores_comunes.md`](errores_comunes.md).
+
+### `error: externally-managed-environment`
+
+Intentaste instalar con `pip` **fuera** del entorno virtual, en el
+Python del sistema. No uses `--break-system-packages`: activa el
+entorno y vuelve a instalar.
+
+### `The virtual environment was not created successfully because ensurepip is not available`
+
+En Ubuntu/Debian falta el módulo de entornos virtuales:
+
+```bash
+sudo apt install python3-venv
 ```
 
-**Windows (cmd.exe):**
+Borra la carpeta `.venv/` que quedó a medias y vuelve a crearla.
 
-```bat
-:: Una sola vez por máquina
-python -m venv .venv
-.venv\Scripts\activate.bat
-pip install -e .
+### Moví o renombré la carpeta del repositorio y el entorno dejó de funcionar
 
-:: Cada vez que abras una terminal nueva para trabajar en el curso
-.venv\Scripts\activate.bat
-...
-deactivate    :: al terminar, opcional
+Los entornos virtuales guardan rutas absolutas, así que no sobreviven
+a que se mueva la carpeta. Solución: bórralo y créalo de nuevo (pasos
+3 a 5). No se pierde nada de tu código; solo hay que reinstalar los
+paquetes.
+
+```bash
+rm -rf .venv                               # Linux / macOS
+Remove-Item -Recurse -Force .venv          # Windows (PowerShell)
 ```
 
-> **Consejo:** si algo se ve raro (`ModuleNotFoundError: No module
-> named 'fiscomp'`, o corre con una versión de Python que no
-> esperabas), lo primero que hay que revisar es si el entorno está
-> activado — busca el `(.venv)` al inicio del prompt.
+### El editor (VS Code, etc.) no encuentra `fiscomp`
+
+El editor también tiene que usar el Python del entorno. En VS Code:
+`Ctrl+Shift+P` → **Python: Select Interpreter** → elige el que dice
+`.venv`.
