@@ -5,13 +5,13 @@ La idea es construir, sin usar el módulo `math` de la librería
 estándar, aproximaciones numéricas de funciones como:
 
 - factorial(n)     -- iterativa
-- seno(x)          -- serie de Taylor
-- coseno(x)        -- serie de Taylor
+- seno(x)          -- serie de Taylor, con reducción de rango
+- coseno(x)        -- serie de Taylor, con reducción de rango
 - tangente(x)      -- seno(x) / coseno(x)
 - secante(x)       -- 1 / coseno(x)
 - cosecante(x)     -- 1 / seno(x)
 - cotangente(x)    -- coseno(x) / seno(x)
-- exponencial(x)   -- serie de Taylor
+- exponencial(x)   -- serie de Taylor (para x < 0, usa 1 / e^|x|)
 - ln(x)            -- serie de ln((1+y)/(1-y)), y = (x-1)/(x+1)
 - raiz_cuadrada(x) -- método de Newton-Raphson
 - arcotangente(x)  -- serie de Taylor, para |x| <= 1
@@ -44,6 +44,27 @@ def factorial(n):
     return resultado
 
 
+# Mayor x tal que e^x todavía cabe en un float de doble precisión
+# (e^709.78 ~ 1.8e308, el float más grande).
+MAXIMO_EXPONENTE = 709.78
+
+
+def reducir_angulo(x):
+    """Lleva el ángulo x (en radianes) al intervalo [-pi, pi],
+    restándole un múltiplo entero de 2 pi (seno y coseno son
+    periódicos, así que no cambian):
+
+        x_reducido = x - 2 pi * round(x / (2 pi))
+
+    La reducción no es perfecta: PI (calculada con la fórmula de
+    Machin) difiere de pi en ~1e-15, y ese error se multiplica por el
+    número de vueltas que se restan. Así que el error absoluto crece
+    con |x| (~1e-15 para x ~ 1, ~1e-11 para x ~ 1e5), aunque es muchísimo
+    menor que sin reducir (seno(36) se equivocaba en ~0.03).
+    """
+    return x - 2 * PI * round(x / (2 * PI))
+
+
 def seno(x, precision=EPS):
     """Aproxima sin(x) con la serie de Taylor alrededor de 0:
 
@@ -53,10 +74,12 @@ def seno(x, precision=EPS):
     `precision` (por default, el épsilon de la máquina); en cuanto un
     término es más chico, ya no cambia el resultado y se detiene la suma.
 
-    Nota: esta serie no hace reducción de rango (llevar x a [-pi, pi]
-    antes de sumar), así que para |x| grande la precisión se degrada
-    por cancelación entre términos grandes de signos alternados.
+    Antes de sumar, x se lleva a [-pi, pi] con reducir_angulo(): para
+    |x| grande, los términos de la serie serían enormes y de signos
+    alternados, y al sumarlos se perdería casi toda la precisión
+    (cancelación catastrófica, unidad 06).
     """
+    x = reducir_angulo(x)
     suma = 0.0
     k = 0
     while True:
@@ -73,9 +96,9 @@ def coseno(x, precision=EPS):
 
         cos(x) = suma_{k=0}^inf (-1)^k * x^(2k) / (2k)!
 
-    Mismo criterio de corte que `seno()`, y la misma nota sobre no
-    hacer reducción de rango.
+    Mismo criterio de corte y misma reducción de rango que `seno()`.
     """
+    x = reducir_angulo(x)
     suma = 0.0
     k = 0
     while True:
@@ -118,19 +141,35 @@ def exponencial(x, precision=EPS):
 
         e^x = suma_{k=0}^inf x^k / k!
 
-    A diferencia de seno/coseno, todos los términos suman en la misma
-    dirección cuando x > 0 (no hay cancelación); para x < 0 sí hay
-    signos alternados, con el mismo problema de precisión que en
-    seno/coseno para |x| grande.
+    Para x > 0 todos los términos son positivos y no hay cancelación.
+    Para x < 0 los términos alternan de signo y, si |x| es grande, se
+    pierde casi toda la precisión (por ejemplo, con x = -50 la suma
+    daba ~ -7000 en vez de ~2e-22). Por eso, para x < 0 se usa
+    e^x = 1 / e^|x|, que solo suma términos positivos.
+
+    Cada término se obtiene del anterior, termino_k = termino_(k-1) * (x / k),
+    en vez de calcular x**k / k! directo: para x grande, x**k se
+    desborda (no cabe en un float) mucho antes que el cociente.
+
+    Lanza OverflowError si x > 709.78, porque e^x ya no cabe en un
+    float; para x < -709.78, regresa 0.0.
     """
+    if x > MAXIMO_EXPONENTE:
+        raise OverflowError(f"exponencial({x}) no cabe en un float (x > {MAXIMO_EXPONENTE})")
+    if x < 0:
+        if -x > MAXIMO_EXPONENTE:
+            return 0.0
+        return 1.0 / exponencial(-x, precision)
+
     suma = 0.0
+    termino = 1.0  # el término k = 0, x^0 / 0!
     k = 0
-    while True:
-        termino = x**k / factorial(k)
-        if abs(termino) < precision:
-            break
+    while termino >= precision:
         suma += termino
         k += 1
+        # (x / k) primero: termino * x podría desbordarse aunque
+        # termino * x / k sí quepa en un float.
+        termino = termino * (x / k)
     return suma
 
 
