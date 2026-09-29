@@ -78,14 +78,18 @@ Los temas marcados como *(pendiente)* aún no se han visto en clase.
   [`simulaciones/energia_cinetica_local/`](simulaciones/energia_cinetica_local/)
 - Práctica: [práctica 3](practicas/practica_03.md)
 
-### 4. Matrices *(pendiente)*
+### 4. Matrices
 
-- Análisis de error (número de condición)
-- Solución de sistemas de ecuaciones lineales
-- Problemas de eigenvalores
-- Descomposición en valores singulares (SVD)
+- Motivación y análisis de error: normas, número de condición para
+  sistemas lineales y para eigenvalores, sensibilidad de los
+  eigenvectores — [unidad 09](unidades/09_matrices/)
+- Solución de sistemas de ecuaciones lineales: matrices triangulares
+  (sustitución hacia adelante y hacia atrás) — [unidad 09](unidades/09_matrices/);
+  eliminación gaussiana y LU *(pendiente)*
+- Problemas de eigenvalores *(pendiente)*
+- Descomposición en valores singulares (SVD) *(pendiente)*
 - **Proyecto:** la ecuación de Schrödinger como problema de
-  eigenvalores
+  eigenvalores *(pendiente)*
 
 ### 5. Ceros y mínimos *(pendiente)*
 
