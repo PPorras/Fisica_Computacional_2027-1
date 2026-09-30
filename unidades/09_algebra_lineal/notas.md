@@ -38,8 +38,7 @@ alrededor del origen da el punto $\mathbf{r}' = (x', y')^T$, con
 $$
 \begin{pmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}
 \begin{pmatrix} x \\ y \end{pmatrix}
-=
-\begin{pmatrix} x' \\ y' \end{pmatrix}.
+= \begin{pmatrix} x' \\ y' \end{pmatrix}.
 $$
 
 Si conocemos $\mathbf{r}'$ y queremos $\mathbf{r}$, hay que resolver
@@ -72,8 +71,7 @@ $$
 \frac{k}{|\mathbf{r}_3-\mathbf{R}_0|} & \frac{k}{|\mathbf{r}_3-\mathbf{R}_1|} & \frac{k}{|\mathbf{r}_3-\mathbf{R}_2|} & \frac{k}{|\mathbf{r}_3-\mathbf{R}_3|}
 \end{pmatrix}
 \begin{pmatrix} q_0 \\ q_1 \\ q_2 \\ q_3 \end{pmatrix}
-=
-\begin{pmatrix} \phi(\mathbf{r}_0) \\ \phi(\mathbf{r}_1) \\ \phi(\mathbf{r}_2) \\ \phi(\mathbf{r}_3) \end{pmatrix},
+= \begin{pmatrix} \phi(\mathbf{r}_0) \\ \phi(\mathbf{r}_1) \\ \phi(\mathbf{r}_2) \\ \phi(\mathbf{r}_3) \end{pmatrix},
 $$
 
 cuya matriz tampoco es simétrica en general.
@@ -117,8 +115,7 @@ A_{10} & A_{11} & \cdots & A_{1,n-1} \\
 A_{n-1,0} & A_{n-1,1} & \cdots & A_{n-1,n-1}
 \end{pmatrix}
 \begin{pmatrix} x_0 \\ x_1 \\ \vdots \\ x_{n-1} \end{pmatrix}
-=
-\begin{pmatrix} b_0 \\ b_1 \\ \vdots \\ b_{n-1} \end{pmatrix},
+= \begin{pmatrix} b_0 \\ b_1 \\ \vdots \\ b_{n-1} \end{pmatrix},
 \qquad\text{o sea}\qquad
 A\mathbf{x} = \mathbf{b}.
 $$
@@ -164,8 +161,8 @@ $$
 con $I$ la matriz identidad $n\times n$. Es un sistema lineal con
 coeficientes $A - \lambda I$ y lado derecho cero, pero con $n+1$
 incógnitas ($\lambda, v_0, \ldots, v_{n-1}$), así que no podemos
-esperar una solución única. La solución trivial $\mathbf{v} =
-\mathbf{0}$ siempre existe; para que haya una no trivial, la matriz
+esperar una solución única. La solución trivial $\mathbf{v} = \mathbf{0}$
+siempre existe; para que haya una no trivial, la matriz
 $A - \lambda I$ tiene que ser **singular**:
 
 $$
@@ -277,14 +274,17 @@ Una **norma de matriz** mide la magnitud de $A$ con un solo número. Se
 escribe con doble barra, $\|A\|$ (la barra sencilla $|A|$ es el
 determinante, o el valor absoluto de un número). Usaremos dos:
 
-- **Norma de Frobenius:**
-  $$
-  \|A\|_F = \sqrt{\sum_{i=0}^{n-1}\sum_{j=0}^{n-1} |A_{ij}|^2}.
-  $$
-- **Norma infinito** (máxima suma de renglón):
-  $$
-  \|A\|_\infty = \max_{0\le i\le n-1} \sum_{j=0}^{n-1} |A_{ij}|.
-  $$
+**Norma de Frobenius:**
+
+$$
+\|A\|_F = \sqrt{\sum_{i=0}^{n-1}\sum_{j=0}^{n-1} |A_{ij}|^2}.
+$$
+
+**Norma infinito** (máxima suma de renglón):
+
+$$
+\|A\|_\infty = \max_{0\le i\le n-1} \sum_{j=0}^{n-1} |A_{ij}|.
+$$
 
 Cualquier norma de matrices cuadradas cumple:
 
@@ -302,8 +302,8 @@ Una norma es un **número**, no una matriz (igual que el determinante).
 
 Para vectores usaremos:
 
-- **Norma euclídea:** $\|\mathbf{x}\|_E = \sqrt{\sum_{i=0}^{n-1} |x_i|^2}$.
-- **Norma infinito** (de máxima magnitud): $\|\mathbf{x}\|_\infty = \max_{0\le i\le n-1} |x_i|$.
+- **Norma euclídea:** $`\|\mathbf{x}\|_E = \sqrt{\sum_{i=0}^{n-1} |x_i|^2}`$.
+- **Norma infinito** (de máxima magnitud): $`\|\mathbf{x}\|_\infty = \max_{0\le i\le n-1} |x_i|`$.
 
 Todas están en [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py)
 (`norma_frobenius`, `norma_infinito`, `norma_euclidea`,
@@ -312,13 +312,13 @@ Todas están en [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py)
 ### ¿Determinante chico?
 
 Con normas, el criterio "determinante chico" se podría escribir
-$|\det(A)| \ll \|A\|$. En el ejemplo de Kahan,
-$|\det(A)| = 10^{-8} \ll \|A\|_\infty \approx 2.16$, y el problema sí
+$`|\det(A)| \ll \|A\|`$. En el ejemplo de Kahan,
+$`|\det(A)| = 10^{-8} \ll \|A\|_\infty \approx 2.16`$, y el problema sí
 está mal condicionado. **Pero el criterio es falso.** Tomemos
-$D = 0.1\, I$ de $20\times 20$: $\det(D) = 0.1^{20} = 10^{-20}$ y
-$\|D\|_\infty = 0.1$, así que $|\det(D)| \ll \|D\|$... y sin embargo
-$D\mathbf{x} = \mathbf{b}$ se resuelve trivialmente ($\mathbf{x} = 10\,
-\mathbf{b}$) y cambiar un poco $D$ o $\mathbf{b}$ cambia un poco
+$`D = 0.1\, I`$ de $20\times 20$: $`\det(D) = 0.1^{20} = 10^{-20}`$ y
+$`\|D\|_\infty = 0.1`$, así que $`|\det(D)| \ll \|D\|`$... y sin embargo
+$D\mathbf{x} = \mathbf{b}$ se resuelve trivialmente ($\mathbf{x} = 10\,\mathbf{b}$)
+y cambiar un poco $D$ o $\mathbf{b}$ cambia un poco
 $\mathbf{x}$. El determinante es sensible a la escala y a la dimensión
 de la matriz de una forma que no tiene nada que ver con el
 condicionamiento. Necesitamos otra medida.
@@ -398,7 +398,7 @@ Algunas observaciones:
   magnitud no.
 - Tiene algo de trampa: para calcular $\kappa(A)$ hace falta $A^{-1}$,
   que se calcula con los mismos métodos cuya confiabilidad queremos
-  evaluar, y que cuesta más ($O(n^3)$) que resolver el sistema. En la
+  evaluar, y que cuesta más ($`O(n^3)`$) que resolver el sistema. En la
   práctica se usan métodos que *estiman* $\kappa(A)$ (dentro de un
   factor de 10 o así) con solo $O(n^2)$ operaciones.
 - Se puede hacer lo mismo perturbando $\mathbf{b}$ en vez de $A$ (o
@@ -451,8 +451,8 @@ A\,\Delta\mathbf{v}_i + \Delta A\,\mathbf{v}_i = \lambda_i\,\Delta\mathbf{v}_i +
 $$
 
 Multiplicando por la izquierda por $\mathbf{u}_i^T$, el primer término
-de cada lado se cancela (porque $\mathbf{u}_i^T A = \lambda_i
-\mathbf{u}_i^T$), y queda
+de cada lado se cancela (porque
+$\mathbf{u}_i^T A = \lambda_i\mathbf{u}_i^T$), y queda
 
 $$
 \mathbf{u}_i^T\,\Delta A\,\mathbf{v}_i = \Delta\lambda_i\,\mathbf{u}_i^T\mathbf{v}_i
@@ -496,7 +496,7 @@ $\kappa^{ev} \gg 1$, mal condicionado. Tres observaciones:
   izquierdo y derecho pueden ser casi perpendiculares.
 
 Ejemplo (en `condicion_eigenvalores.py`): para
-$A = \begin{pmatrix}1 & 1000\\ 0 & 2\end{pmatrix}$, los eigenvalores
+$`A = \begin{pmatrix}1 & 1000\\ 0 & 2\end{pmatrix}`$, los eigenvalores
 son 1 y 2, y ambos tienen $\kappa^{ev} \approx 1000$. Sumar
 $10^{-6}$ a $A_{10}$ mueve cada eigenvalor $\approx 10^{-3}$.
 
@@ -560,10 +560,10 @@ coinciden, los eigenvectores no quedan determinados de forma única
 determinados, pero muy mal.
 
 Ejemplo (en `condicion_eigenvalores.py`): la matriz simétrica
-$\begin{pmatrix}1 & \epsilon\\ \epsilon & 1+\delta\end{pmatrix}$ con
-$\epsilon = 10^{-7}$. Si $\delta = 1$, el eigenvector de $\lambda
-\approx 1$ gira unos $10^{-5}$ grados respecto a $(1,0)$; si $\delta =
-10^{-9}$, gira más de 40 grados, mientras que el eigenvalor se mueve
+$`\begin{pmatrix}1 & \epsilon\\ \epsilon & 1+\delta\end{pmatrix}`$ con
+$\epsilon = 10^{-7}$. Si $\delta = 1$, el eigenvector de $\lambda \approx 1$
+gira unos $10^{-5}$ grados respecto a $(1,0)$; si $\delta = 10^{-9}$,
+gira más de 40 grados, mientras que el eigenvalor se mueve
 apenas $10^{-7}$.
 
 ## Matrices triangulares
@@ -601,8 +601,7 @@ L_{10} & L_{11} & 0 \\
 L_{20} & L_{21} & L_{22}
 \end{pmatrix}
 \begin{pmatrix} x_0 \\ x_1 \\ x_2 \end{pmatrix}
-=
-\begin{pmatrix} b_0 \\ b_1 \\ b_2 \end{pmatrix},
+= \begin{pmatrix} b_0 \\ b_1 \\ b_2 \end{pmatrix},
 \qquad\text{o sea}\qquad
 \begin{aligned}
 L_{00}x_0 &= b_0 \\
@@ -634,8 +633,8 @@ $i = 1$, etc.
 
 ### Sustitución hacia atrás
 
-Si en cambio $U$ es triangular superior (*upper*), $U\mathbf{x} =
-\mathbf{b}$ es, para $3\times 3$,
+Si en cambio $U$ es triangular superior (*upper*), $U\mathbf{x} = \mathbf{b}$
+es, para $3\times 3$,
 
 $$
 \begin{aligned}
@@ -735,7 +734,7 @@ costo crece muy rápido con $n$ (por ejemplo, exponencialmente), no
 podremos resolver problemas mucho más grandes que los actuales; si
 crece como una potencia baja, sí.
 
-Se usa la notación $O$ (unidad 08): un método $O(n^3)$ es mejor que
+Se usa la notación $O$ (unidad 08): un método $`O(n^3)`$ es mejor que
 uno $O(n^4)$ para $n$ grande, sin importar los prefactores. Cuando se
 cuenta con más cuidado interesa también el prefactor ($2n^3$ es mejor
 que $4n^3$), pero los términos de grado menor se suelen tirar:
@@ -771,9 +770,9 @@ operación, y mide el tiempo de la sustitución hacia adelante al
 duplicar $n$: como el costo es $\propto n^2$, el tiempo se cuadruplica.
 
 Para comparar: el producto de dos vectores es $O(n)$ y el de dos
-matrices $O(n^3)$ (calculen los prefactores exactos, junto con los
+matrices $`O(n^3)`$ (calculen los prefactores exactos, junto con los
 términos de grado menor). Y, como veremos, resolver un sistema general
-con eliminación gaussiana es $O(n^3)$: mucho más caro que resolver uno
+con eliminación gaussiana es $`O(n^3)`$: mucho más caro que resolver uno
 triangular.
 
 ## Contenido
@@ -802,4 +801,4 @@ triangular.
   soluciones, conteo de operaciones y medición de tiempos.
 
 Se corren desde la raíz del repositorio (con el `.venv` activado), por
-ejemplo `python3 unidades/09_matrices/triangulares.py`.
+ejemplo `python3 unidades/09_algebra_lineal/triangulares.py`.
