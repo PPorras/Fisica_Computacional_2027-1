@@ -9,8 +9,10 @@
   para sistemas lineales, número de condición para eigenvalores
   simples y sensibilidad de los eigenvectores; solución de sistemas
   triangulares (sustitución hacia adelante y hacia atrás) y conteo de
-  operaciones.
-- Corresponde a las secciones 4.1 a 4.3.1 del libro de Gezerlis.
+  operaciones; eliminación gaussiana y descomposición LU (Doolittle),
+  su costo, y cómo reutilizar LU para muchos lados derechos (la
+  inversa y el número de condición).
+- Corresponde a las secciones 4.1 a 4.3.3 del libro de Gezerlis.
 
 ## Notación
 
@@ -775,12 +777,524 @@ términos de grado menor). Y, como veremos, resolver un sistema general
 con eliminación gaussiana es $`O(n^3)`$: mucho más caro que resolver uno
 triangular.
 
+## Eliminación gaussiana
+
+Pasamos ahora al caso general: resolver $A\mathbf{x} = \mathbf{b}$
+cuando $A$ **no** es triangular. El primer método es la **eliminación
+gaussiana** (aunque se usaba en China dos mil años antes, y Newton la
+conocía más de un siglo antes que Gauss). Usa solo la tercera
+operación elemental de renglón de la sección "Sistemas de ecuaciones
+lineales": sustituir un renglón por ese renglón más un múltiplo de
+otro, que no cambia la solución.
+
+El método tiene dos fases:
+
+1. **Eliminación:** aplicar esa operación muchas veces, hasta que la
+   matriz de coeficientes quede triangular superior.
+2. **Sustitución hacia atrás:** resolver el sistema triangular que
+   quedó, con `sustitucion_atras`, que ya tenemos.
+
+### Ejemplo $3\times 3$
+
+Antes del caso general, resolvamos un ejemplo a mano:
+
+$$
+\begin{aligned}
+2x_0 + x_1 + x_2 &= 8 \\
+x_0 + x_1 - 2x_2 &= -2 \\
+5x_0 + 10x_1 + 5x_2 &= 10
+\end{aligned}
+\qquad\text{o sea}\qquad
+\begin{pmatrix} 2 & 1 & 1 \\ 1 & 1 & -2 \\ 5 & 10 & 5 \end{pmatrix}
+\begin{pmatrix} x_0 \\ x_1 \\ x_2 \end{pmatrix}
+= \begin{pmatrix} 8 \\ -2 \\ 10 \end{pmatrix}.
+$$
+
+Trabajamos con la matriz aumentada, que contiene todo lo que importa
+(la $\mathbf{x}$ queda implícita):
+
+$$
+(A|\mathbf{b}) = \left(\begin{array}{ccc|c}
+2 & 1 & 1 & 8 \\
+1 & 1 & -2 & -2 \\
+5 & 10 & 5 & 10
+\end{array}\right).
+$$
+
+Nótese que $A$ no es simétrica. La operación que vamos a repetir es
+
+$$
+\text{nuevo renglón } i = \text{renglón } i - \text{coeficiente} \times \text{renglón } j.
+$$
+
+El renglón $j$ se llama **renglón pivote**; el renglón $i$ es el que
+estamos transformando. El coeficiente se escoge para que el primer
+elemento distinto de cero del renglón $i$ se vuelva $0$.
+
+**Pivote $j = 0$.** Para $i = 1$ el coeficiente es $0.5$, porque
+$1 - 0.5\times 2 = 0$. La operación se hace con **todo** el renglón,
+incluyendo el elemento de $\mathbf{b}$:
+
+$$
+\left(\begin{array}{ccc|c}
+2 & 1 & 1 & 8 \\
+0 & 0.5 & -2.5 & -6 \\
+5 & 10 & 5 & 10
+\end{array}\right).
+$$
+
+Para $i = 2$ el coeficiente es $2.5$, porque $5 - 2.5\times 2 = 0$:
+
+$$
+\left(\begin{array}{ccc|c}
+2 & 1 & 1 & 8 \\
+0 & 0.5 & -2.5 & -6 \\
+0 & 7.5 & 2.5 & -10
+\end{array}\right).
+$$
+
+Ya terminamos con el pivote $j = 0$: la columna $0$ tiene ceros abajo
+de la diagonal.
+
+**Pivote $j = 1$.** Siempre se usa la versión **más reciente** de la
+matriz, así que el renglón pivote es $(0,\ 0.5,\ -2.5 \,|\, -6)$. Los
+renglones que se transforman están siempre abajo del pivote; aquí
+solo queda $i = 2$. El coeficiente es $15$, porque
+$7.5 - 15\times 0.5 = 0$:
+
+$$
+\left(\begin{array}{ccc|c}
+2 & 1 & 1 & 8 \\
+0 & 0.5 & -2.5 & -6 \\
+0 & 0 & 40 & 80
+\end{array}\right).
+$$
+
+La matriz de coeficientes ya es triangular superior: terminó la
+eliminación. Con la sustitución hacia atrás:
+
+$$
+x_2 = \frac{80}{40} = 2, \qquad
+x_1 = \frac{-6 - (-2.5)\times 2}{0.5} = -2, \qquad
+x_0 = \frac{8 - 1\times(-2) - 1\times 2}{2} = 4.
+$$
+
+`eliminacion_gaussiana_lu.py` repite este ejemplo e imprime la matriz
+aumentada después de cada paso.
+
+### Caso general
+
+Para una matriz $n\times n$, la eliminación modifica $A$ y
+$\mathbf{b}$ hasta que $A$ queda triangular. A media eliminación, justo
+cuando el renglón $j$ se convierte en pivote, la matriz aumentada se ve
+así (con $n = 5$ y $j = 2$; $*$ es un número cualquiera):
+
+$$
+\left(\begin{array}{ccccc|c}
+* & * & * & * & * & * \\
+0 & * & * & * & * & * \\
+0 & 0 & A_{22} & * & * & * \\
+0 & 0 & * & * & * & * \\
+0 & 0 & * & * & * & *
+\end{array}\right).
+$$
+
+Los renglones de arriba del pivote ya están listos y los de abajo
+todavía tienen que transformarse. (Los valores son los actuales, ya
+modificados por los pasos anteriores; el primer renglón nunca cambia.)
+
+- El renglón pivote recorre $j = 0, 1, \ldots, n-2$: el último renglón
+  que se transforma es el último, así que el último pivote es el
+  penúltimo renglón.
+- Para cada pivote, los renglones que se transforman son los de abajo:
+  $i = j+1, j+2, \ldots, n-1$.
+- El primer elemento distinto de cero del renglón $i$ es $A_{ij}$, y
+  el del renglón $j$ es $A_{jj}$. Como
+  $A_{ij} - (A_{ij}/A_{jj})\,A_{jj} = 0$, el coeficiente es
+
+$$
+\text{coeficiente} = \frac{A_{ij}}{A_{jj}}.
+$$
+
+$A_{jj}$ se llama **elemento pivote**: es el que se divide para
+eliminar los primeros elementos de los renglones de abajo. Con ese
+coeficiente, el renglón $i$ se actualiza elemento por elemento:
+
+$$
+\begin{aligned}
+A_{ik} &\leftarrow A_{ik} - \text{coeficiente}\times A_{jk}, \qquad k = j, j+1, \ldots, n-1, \\
+b_i &\leftarrow b_i - \text{coeficiente}\times b_j.
+\end{aligned}
+$$
+
+(Las columnas $k < j$ ya son cero en ambos renglones, así que no hace
+falta tocarlas.) Al final, $A$ es triangular superior y se aplica la
+sustitución hacia atrás.
+
+### Implementación
+
+En [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py):
+
+```python
+def eliminacion_gaussiana(A, b):
+    A = [renglon[:] for renglon in A]
+    b = b[:]
+    n = len(b)
+    for j in range(n - 1):
+        for i in range(j + 1, n):
+            coeficiente = A[i][j] / A[j][j]
+            for k in range(j, n):
+                A[i][k] -= coeficiente * A[j][k]
+            b[i] -= coeficiente * b[j]
+    return sustitucion_atras(A, b)
+```
+
+Algunos detalles:
+
+- Las dos primeras líneas hacen **copias** de `A` y de `b`. Sin ellas,
+  la función modificaría las listas de quien la llama (las listas se
+  pasan por referencia), y después de resolver el sistema ya no
+  tendríamos la matriz original. Es ineficiente, pero más seguro.
+- Los dos ciclos externos son exactamente $j = 0, \ldots, n-2$ e
+  $i = j+1, \ldots, n-1$. Aquí empieza a valer la pena haber numerado
+  todo desde $0$.
+- En el libro, con NumPy, el ciclo sobre `k` se escribe en una línea,
+  `A[i,j:] -= coeff*A[j,j:]`: se actualiza todo un pedazo del renglón
+  a la vez. Nosotros escribimos ese tercer ciclo explícitamente.
+- `k` empieza en `j`, no en `j + 1`: calculamos $A_{ij}$ aunque ya
+  sabemos que va a dar $0$. Es una operación de más por renglón, a
+  cambio de un código más parecido a la fórmula.
+- No revisamos si `A[i][j]` ya es cero para saltarnos el renglón:
+  estaríamos haciendo esa comparación todo el tiempo para un caso que
+  casi nunca ocurre (en matrices *ralas*, con muchos ceros, se usan
+  otros métodos).
+- Al final reutilizamos `sustitucion_atras`.
+
+Con la matriz de prueba del libro, $A_{ij} = \sqrt{21 + 4i + j}$ de
+$4\times 4$, el residuo es diminuto, del orden de $10^{-11}$. Pero si
+resolvemos un sistema con solución conocida, eligiendo
+$\mathbf{x} = (1, 2, 3, 4)$ y calculando $\mathbf{b} = A\mathbf{x}$,
+recuperamos $\mathbf{x}$ solo con unos 8 dígitos correctos, no 16. El
+libro lo deja como pregunta abierta; nosotros ya tenemos con qué
+contestarla: es el número de condición. En la sección "Descomposición
+LU" calculamos $A^{-1}$ y resulta $\kappa(A) \approx 4\times 10^{8}$.
+Como vimos en "Análisis de error", el error relativo en $\mathbf{x}$
+puede ser hasta $\kappa(A)$ veces el error relativo de los datos, que
+es del orden de $\epsilon_{\text{mach}} \approx 10^{-16}$:
+$`4\times 10^{8} \times 10^{-16} \approx 4\times 10^{-8}`$, justo lo que
+observamos. No es culpa del método, sino de la matriz: sus renglones
+son casi iguales.
+
+### Conteo de operaciones
+
+Separamos el costo en dos partes: (a) la eliminación, que convierte
+$A$ en triangular y modifica $\mathbf{b}$, y (b) la sustitución hacia
+atrás, que ya sabemos que cuesta $n^2$. Contemos (a).
+
+**Pivote $j = 0$.** Hay que modificar los $n-1$ renglones de abajo.
+Cada uno necesita:
+
+- una división, para el coeficiente $A_{i0}/A_{00}$;
+- $n$ multiplicaciones y $n$ restas, una por cada columna de $A$;
+- una multiplicación y una resta para $b_i$.
+
+En total, $(n-1) + 2(n+1)(n-1)$ operaciones.
+
+**Pivote $j = 1$.** Ahora son $n-2$ renglones, cada uno con una
+división, $n-1$ multiplicaciones y $n-1$ restas en $A$, y una de cada
+una en $\mathbf{b}$: $(n-2) + 2n(n-2)$ operaciones.
+
+**Pivote $j$ cualquiera.** El patrón es
+
+$$
+(n-1-j) + 2(n+1-j)(n-1-j).
+$$
+
+Sumando sobre todos los pivotes, con el cambio de variable
+$k = n-1-j$, que va de $n-1$ a $1$:
+
+$$
+N = \sum_{j=0}^{n-2}\left[(n-1-j) + 2(n+1-j)(n-1-j)\right]
+= \sum_{k=1}^{n-1}\left[k + 2(k+2)k\right]
+= \sum_{k=1}^{n-1}\left(2k^2 + 5k\right).
+$$
+
+Con las sumas conocidas
+$\sum_{k=0}^{n-1} k = \frac{(n-1)n}{2}$ y
+$\sum_{k=0}^{n-1} k^2 = \frac{(n-1)n(2n-1)}{6}$:
+
+$$
+N = 2\,\frac{(n-1)n(2n-1)}{6} + 5\,\frac{(n-1)n}{2}
+= \frac{2}{3}n^3 + \frac{3}{2}n^2 - \frac{13}{6}n
+\sim \frac{2}{3}n^3.
+$$
+
+Para $n = 3$ da $18 + 13.5 - 6.5 = 25$: compruébenlo contando las
+operaciones del ejemplo de arriba. La sustitución hacia atrás agrega
+$n^2$, pero para $n$ grande la eliminación domina por completo:
+
+$$
+\frac{2}{3}n^3 + n^2 \sim \frac{2}{3}n^3.
+$$
+
+Es decir: resolver un sistema general cuesta $`O(n^3)`$, mientras que uno
+triangular cuesta $n^2$. Para $n = 1000$, la eliminación es unas 670
+veces más cara que la sustitución. `eliminacion_gaussiana_lu.py`
+cuenta las operaciones con un contador, como `triangulares.py`, y
+coinciden exactamente con la fórmula.
+
+### Un pivote cero
+
+La fórmula del coeficiente divide entre $A_{jj}$. Si algún pivote vale
+cero, el método truena, **aunque la matriz no sea singular**. Por
+ejemplo,
+
+$$
+\begin{pmatrix} 0 & 1 \\ 1 & 1 \end{pmatrix}
+\begin{pmatrix} x_0 \\ x_1 \end{pmatrix}
+= \begin{pmatrix} 1 \\ 2 \end{pmatrix}
+$$
+
+tiene determinante $-1$ y solución $\mathbf{x} = (1, 1)$, pero
+`eliminacion_gaussiana` levanta `ZeroDivisionError` en el primer
+paso. La solución es obvia: intercambiar los dos renglones (la segunda
+operación elemental, el **pivoteo**). Lo veremos con cuidado más
+adelante; también resuelve un problema menos visible, el de los
+pivotes que no son cero pero sí muy chicos.
+
+## Descomposición LU
+
+La eliminación gaussiana funciona bien, pero tiene un defecto: si
+queremos resolver $A\mathbf{x} = \mathbf{b}$ con la **misma** $A$ y
+**otro** $\mathbf{b}$, hay que repetir toda la eliminación, que es la
+parte cara, $`\sim 2n^3/3`$, aunque $A$ no haya cambiado.
+
+¿Pasa eso en la práctica? Todo el tiempo:
+
+- Para calcular la inversa $A^{-1}$ hay que resolver $n$ sistemas con
+  la misma $A$ (abajo lo hacemos).
+- Varios métodos para eigenvalores (que veremos en el tema de
+  eigenvalores) resuelven un sistema con la misma matriz en cada
+  iteración.
+- Al resolver ecuaciones diferenciales con métodos implícitos (por
+  ejemplo, la ecuación de calor), en cada paso de tiempo se resuelve un
+  sistema con la misma matriz y un $\mathbf{b}$ nuevo.
+
+Lo que queremos es **guardar** el resultado de la eliminación para
+reutilizarlo. Eso es la descomposición LU.
+
+### La descomposición de Doolittle
+
+Supongamos que una matriz no singular $A$ se puede escribir como el
+producto de una triangular inferior $L$ y una triangular superior $U$:
+
+$$
+A = LU.
+$$
+
+Es la **descomposición LU** (o factorización LU) de $A$. (Más adelante,
+con el pivoteo, veremos que la historia es un poco más complicada;
+por ahora supongamos que se puede.) La descomposición no es única;
+para fijarla pedimos que $L$ tenga **unos en la diagonal**, $L_{ii} = 1$.
+Eso se llama descomposición de **Doolittle**.
+
+Veamos cómo se construye en el caso general $3\times 3$:
+
+$$
+L = \begin{pmatrix} 1 & 0 & 0 \\ L_{10} & 1 & 0 \\ L_{20} & L_{21} & 1 \end{pmatrix},
+\qquad
+U = \begin{pmatrix} U_{00} & U_{01} & U_{02} \\ 0 & U_{11} & U_{12} \\ 0 & 0 & U_{22} \end{pmatrix}.
+$$
+
+Multiplicándolas:
+
+$$
+A = LU = \begin{pmatrix}
+U_{00} & U_{01} & U_{02} \\
+L_{10}U_{00} & L_{10}U_{01} + U_{11} & L_{10}U_{02} + U_{12} \\
+L_{20}U_{00} & L_{20}U_{01} + L_{21}U_{11} & L_{20}U_{02} + L_{21}U_{12} + U_{22}
+\end{pmatrix}.
+$$
+
+Apliquemos la eliminación gaussiana a **esta** $A$ (sin ningún
+$\mathbf{b}$: solo nos interesa la matriz).
+
+**Pivote $j = 0$, $i = 1$.** El coeficiente que anula el primer
+elemento del renglón 1 es $L_{10}U_{00}/U_{00} = L_{10}$:
+"renglón 1 $-\ L_{10}\times$ renglón 0" deja el renglón 1 como
+$(0,\ U_{11},\ U_{12})$.
+
+**Pivote $j = 0$, $i = 2$.** El coeficiente es $L_{20}$, y el renglón 2
+queda como $(0,\ L_{21}U_{11},\ L_{21}U_{12} + U_{22})$.
+
+**Pivote $j = 1$, $i = 2$.** El coeficiente es
+$L_{21}U_{11}/U_{11} = L_{21}$, y el renglón 2 queda como
+$(0,\ 0,\ U_{22})$. Al final:
+
+$$
+\begin{pmatrix} U_{00} & U_{01} & U_{02} \\ 0 & U_{11} & U_{12} \\ 0 & 0 & U_{22} \end{pmatrix} = U.
+$$
+
+Leyendo esto al revés, llegamos a la conclusión importante:
+
+- **Para descomponer $A = LU$ basta con hacer la eliminación
+  gaussiana.** Lo que queda de $A$ al final es $U$.
+- **Los elementos de $L$ abajo de la diagonal son los coeficientes que
+  se usaron en la eliminación:** $L_{ij}$ es el coeficiente con el que
+  el pivote $j$ eliminó al renglón $i$.
+
+Con el ejemplo $3\times 3$ de la sección anterior, ya sin
+$\mathbf{b}$: $U$ es la matriz triangular a la que llegamos, y $L$
+junta los coeficientes $0.5$, $2.5$ y $15$:
+
+$$
+U = \begin{pmatrix} 2 & 1 & 1 \\ 0 & 0.5 & -2.5 \\ 0 & 0 & 40 \end{pmatrix},
+\qquad
+L = \begin{pmatrix} 1 & 0 & 0 \\ 0.5 & 1 & 0 \\ 2.5 & 15 & 1 \end{pmatrix}.
+$$
+
+No hubo que calcular nada nuevo: solo guardar lo que ya aparecía.
+(Multipliquen $L$ por $U$ para convencerse de que dan $A$;
+`eliminacion_gaussiana_lu.py` lo hace con la clase `Matrix`.)
+
+Guardar dos matrices $n\times n$ es un desperdicio: sabemos que la
+diagonal de $L$ son puros unos y que la mitad de cada matriz son
+ceros. En la práctica es común guardar $L$ y $U$ juntas en una sola
+matriz, dejando implícitos los unos de la diagonal de $L$. Aquí, por
+claridad, las guardamos por separado.
+
+### Resolver un sistema con LU
+
+Con $A = LU$, el sistema $A\mathbf{x} = \mathbf{b}$ se convierte en
+$LU\mathbf{x} = \mathbf{b}$, que podemos escribir como
+$L(U\mathbf{x}) = \mathbf{b}$. Llamando $\mathbf{y} = U\mathbf{x}$, el
+problema se parte en dos sistemas **triangulares**:
+
+$$
+\begin{aligned}
+L\mathbf{y} &= \mathbf{b} \qquad \text{(sustitución hacia adelante)}, \\
+U\mathbf{x} &= \mathbf{y} \qquad \text{(sustitución hacia atrás)}.
+\end{aligned}
+$$
+
+Primero se resuelve el de $L$ para obtener $\mathbf{y}$, y con ese
+$\mathbf{y}$ se resuelve el de $U$. Aquí es donde las dos
+sustituciones de la sección "Matrices triangulares" se usan juntas.
+
+### Implementación
+
+En [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py):
+
+```python
+def descomposicion_lu(A):
+    n = len(A)
+    U = [renglon[:] for renglon in A]
+    L = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+    for j in range(n - 1):
+        for i in range(j + 1, n):
+            coeficiente = U[i][j] / U[j][j]
+            for k in range(j, n):
+                U[i][k] -= coeficiente * U[j][k]
+            L[i][j] = coeficiente
+    return L, U
+
+
+def resolver_lu(L, U, b):
+    y = sustitucion_adelante(L, b)
+    return sustitucion_atras(U, y)
+```
+
+`descomposicion_lu` es idéntica a `eliminacion_gaussiana`, salvo que:
+
+- no hay $\mathbf{b}$: solo descomponemos la matriz;
+- a la matriz que se va modificando la llamamos `U` en vez de `A`;
+- cada coeficiente se guarda en `L[i][j]`, y `L` empieza como la
+  identidad para que su diagonal ya tenga los unos.
+
+**Una diferencia con el libro.** En el libro, `lusolve(A, bs)` recibe
+la matriz $A$ y llama a `ludec` adentro, así que cada vez que se
+resuelve un sistema se vuelve a descomponer $A$: justo lo que queríamos
+evitar. Aquí lo separamos en dos funciones: `descomposicion_lu(A)` se
+llama **una vez**, y `resolver_lu(L, U, b)` se llama con cada
+$\mathbf{b}$ distinto:
+
+```python
+L, U = descomposicion_lu(A)        # ~2n^3/3, una sola vez
+for b in lados_derechos:
+    x = resolver_lu(L, U, b)       # 2n^2 cada vez
+```
+
+Con la matriz de prueba del libro, la solución por LU no es idéntica
+bit a bit a la de eliminación gaussiana: coinciden en unos 13 dígitos.
+Matemáticamente hacen las mismas operaciones con $\mathbf{b}$, pero en
+distinto orden (la eliminación va restando de $b_i$ un término a la
+vez; la sustitución hacia adelante junta primero la suma y luego la
+resta), y en punto flotante el orden cambia el redondeo (unidad 06).
+
+### La inversa y el número de condición
+
+La columna $k$ de $A^{-1}$ es la solución de $A\mathbf{x} = \mathbf{e}_k$,
+donde $\mathbf{e}_k$ es la columna $k$ de la identidad, porque
+$AA^{-1} = I$. Calcular $A^{-1}$ es resolver $n$ sistemas con la
+misma $A$: el caso ideal para LU. Una descomposición y $n$ pares de
+sustituciones:
+
+$$
+\frac{2}{3}n^3 + n\cdot 2n^2 = \frac{8}{3}n^3 \text{ operaciones},
+$$
+
+contra $n\cdot\frac{2}{3}n^3$ si hiciéramos una eliminación gaussiana
+por columna.
+
+Con $A^{-1}$ por fin podemos calcular el número de condición
+$\kappa(A) = \|A\|\,\|A^{-1}\|$ de cualquier matriz, no solo de las
+$2\times 2$ de `analisis_de_error.py`. Para la matriz de prueba del
+libro, `eliminacion_gaussiana_lu.py` obtiene
+$`\kappa_\infty(A) \approx 3.9\times 10^{8}`$: la explicación de los
+8 dígitos perdidos de la sección anterior. (Calcular $A^{-1}$ para
+resolver un sistema, con $\mathbf{x} = A^{-1}\mathbf{b}$, es mala idea:
+cuesta más y acumula más error que LU. Aquí la queremos solo para
+$\kappa$.)
+
+### Conteo de operaciones
+
+La descomposición es la eliminación sin $\mathbf{b}$: para el pivote
+$j$ se ahorran la multiplicación y la resta de $b_i$ en cada uno de los
+$n-1-j$ renglones. Repitiendo la cuenta de la sección anterior con
+ese cambio se obtiene
+
+$$
+N_{LU} = \frac{2}{3}n^3 + \frac{1}{2}n^2 - \frac{7}{6}n \sim \frac{2}{3}n^3.
+$$
+
+(Háganlo: es el mismo procedimiento, con $2k^2 + 3k$ en lugar de
+$2k^2 + 5k$. `eliminacion_gaussiana_lu.py` comprueba la fórmula
+contando.) El término dominante es el mismo que en la eliminación
+gaussiana. La diferencia está en lo que sigue:
+
+| Costo aproximado | Un sistema | $m$ sistemas con la misma $A$ |
+|---|---|---|
+| Eliminación gaussiana | $\frac{2}{3}n^3 + n^2$ | $m\,\frac{2}{3}n^3$ |
+| LU | $\frac{2}{3}n^3 + 2n^2$ | $\frac{2}{3}n^3 + 2mn^2$ |
+
+Para un solo sistema da casi lo mismo (LU hace una sustitución más).
+Para muchos, LU gana por mucho: con $n = 100$ y $m = 20$, el conteo
+predice que LU es unas 12 veces más rápida, y el script mide alrededor
+de 14.
+
+Los flops no son lo único que importa: también la memoria. Tal como lo
+implementamos, LU guarda dos matrices $n\times n$, y la eliminación
+gaussiana solo una.
+
 ## Contenido
 - [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py):
   producto matriz-vector (`mat_vec`), residuo, normas de vectores y de
-  matrices, partes triangulares de una matriz, y las sustituciones
-  hacia adelante y hacia atrás. Todo con listas de listas, sin NumPy.
-  Aquí se irá acumulando el resto del tema.
+  matrices, partes triangulares de una matriz, las sustituciones
+  hacia adelante y hacia atrás, eliminación gaussiana
+  (`eliminacion_gaussiana`), descomposición LU (`descomposicion_lu`,
+  `resolver_lu`) y la matriz de prueba del libro (`crear_prueba`).
+  Todo con listas de listas, sin NumPy. Aquí se irá acumulando el
+  resto del tema.
 - [`analisis_de_error.py`](analisis_de_error.py): el ejemplo de Kahan
   completo (sección "Análisis de error"): residuo diminuto con una
   solución totalmente equivocada; el cambio drástico de la solución al
@@ -799,6 +1313,13 @@ triangular.
 - [`triangulares.py`](triangulares.py): sustitución hacia adelante y
   hacia atrás con la matriz de prueba del libro, comprobación de las
   soluciones, conteo de operaciones y medición de tiempos.
+- [`eliminacion_gaussiana_lu.py`](eliminacion_gaussiana_lu.py): el
+  ejemplo $3\times 3$ paso a paso (imprime la matriz aumentada después
+  de cada operación), su $L$ y su $U$ con la comprobación $LU = A$, el
+  sistema de prueba del libro resuelto con los dos métodos, la inversa
+  y $\kappa(A)$ con LU, el conteo de operaciones contra las fórmulas,
+  el tiempo de resolver muchos sistemas con la misma $A$, y qué pasa
+  con un pivote cero.
 
 Se corren desde la raíz del repositorio (con el `.venv` activado), por
 ejemplo `python3 unidades/09_algebra_lineal/triangulares.py`.

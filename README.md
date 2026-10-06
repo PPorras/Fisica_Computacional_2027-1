@@ -40,7 +40,7 @@ Los temas marcados como *(pendiente)* aún no se han visto en clase.
 ### 1. Python para física
 
 - Tipos de datos — [unidad 00](unidades/00_tipos_de_datos/)
-- Control de flujo — [unidad 01](unidades/01_control_de_flujo/)
+- Control de flujo — [unidad 01](unidades/01_control_de_flujo_y_punto_flotante/)
 - Funciones — [unidad 02](unidades/02_funciones/)
 - Módulos — [unidad 03](unidades/03_modulos/)
 - Archivos — [unidad 04](unidades/04_archivos/)
@@ -52,8 +52,8 @@ Los temas marcados como *(pendiente)* aún no se han visto en clase.
   [matplotlib](recursos/notas_matplotlib.md)
 - **Proyecto:** potencial electrostático de un arreglo de cargas
   — [`simulaciones/simulacion_potencial/`](simulaciones/simulacion_potencial/)
-- Prácticas: [práctica 1](practicas/practica_01.md) (tipos de
-  datos a archivos), [práctica 2](practicas/practica_02.md)
+- Prácticas: [práctica 1](practicas/practica1/practica_01.md) (tipos de
+  datos a archivos), [práctica 2](practicas/practica2/practica_02.md)
   (`VectorND` y `Matrix`)
 
 ### 2. Números
@@ -76,16 +76,20 @@ Los temas marcados como *(pendiente)* aún no se han visto en clase.
 - Diferenciación automática *(pendiente)*
 - **Proyecto:** energía cinética local en mecánica cuántica —
   [`simulaciones/energia_cinetica_local/`](simulaciones/energia_cinetica_local/)
-- Práctica: [práctica 3](practicas/practica_03.md)
+- Práctica: [práctica 3](practicas/practica3/practica_03.md)
 
 ### 4. Matrices
 
 - Motivación y análisis de error: normas, número de condición para
   sistemas lineales y para eigenvalores, sensibilidad de los
-  eigenvectores — [unidad 09](unidades/09_matrices/)
+  eigenvectores — [unidad 09](unidades/09_algebra_lineal/)
 - Solución de sistemas de ecuaciones lineales: matrices triangulares
-  (sustitución hacia adelante y hacia atrás) — [unidad 09](unidades/09_matrices/);
-  eliminación gaussiana y LU *(pendiente)*
+  (sustitución hacia adelante y hacia atrás), eliminación gaussiana
+  y descomposición LU — [unidad 09](unidades/09_algebra_lineal/);
+  pivoteo *(pendiente)*
+- Práctica: [práctica 4](practicas/practica4/practica_04.md) (matrices
+  triangulares como clases hijas de `Matrix`, `SistemaTriangular`,
+  conteo de operaciones y complejidad)
 - Problemas de eigenvalores *(pendiente)*
 - Descomposición en valores singulares (SVD) *(pendiente)*
 - **Proyecto:** la ecuación de Schrödinger como problema de

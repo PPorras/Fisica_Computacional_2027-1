@@ -1,6 +1,6 @@
 """Álgebra lineal numérica, escrita desde cero con listas de listas.
 
-Ver unidades/09_matrices/notas.md para la teoría (normas, número de
+Ver unidades/09_algebra_lineal/notas.md para la teoría (normas, número de
 condición, sustitución hacia adelante y hacia atrás).
 
 Convenciones:
@@ -11,10 +11,12 @@ Convenciones:
   (fiscomp/matrices.py), pasen su atributo .data.
 - Un vector es una lista simple de números: x[i].
 
-Aquí vive lo que se reutiliza en el resto del tema (eliminación
-gaussiana, LU, ...), empezando por las sustituciones para matrices
-triangulares.
+Aquí vive lo que se reutiliza en el resto del tema: las sustituciones
+para matrices triangulares, la eliminación gaussiana y la
+descomposición LU, y la matriz de prueba del libro.
 """
+
+from fiscomp.funciones_especiales import raiz_cuadrada
 
 ###############################################
 # Producto matriz-vector y residuo
@@ -137,3 +139,92 @@ def sustitucion_atras(U, b):
             suma += U[i][j] * x[j]
         x[i] = (b[i] - suma) / U[i][i]
     return x
+
+
+###############################################
+# Eliminación gaussiana y descomposición LU
+###############################################
+
+
+def eliminacion_gaussiana(A, b):
+    """Resuelve A x = b con eliminación gaussiana (gauelim en el libro).
+
+    Fase de eliminación: para cada renglón pivote j = 0, ..., n-2 y
+    cada renglón i = j+1, ..., n-1 de abajo,
+
+        coeficiente = A_ij / A_jj
+        renglón i  <-  renglón i - coeficiente * renglón j
+
+    (en A y en b), hasta que A queda triangular superior. Luego,
+    sustitución hacia atrás.
+
+    A: matriz n x n (lista de listas). b: vector de n componentes.
+    No modifica A ni b: trabaja sobre copias. Sin pivoteo: si algún
+    pivote A_jj vale cero, levanta ZeroDivisionError (ver notas.md).
+    Cuesta 2n^3/3 + 3n^2/2 - 13n/6 operaciones la eliminación, más n^2
+    la sustitución hacia atrás.
+    """
+    A = [renglon[:] for renglon in A]
+    b = b[:]
+    n = len(b)
+    for j in range(n - 1):
+        for i in range(j + 1, n):
+            coeficiente = A[i][j] / A[j][j]
+            # En el libro, con NumPy: A[i,j:] -= coeficiente*A[j,j:]
+            for k in range(j, n):
+                A[i][k] -= coeficiente * A[j][k]
+            b[i] -= coeficiente * b[j]
+    return sustitucion_atras(A, b)
+
+
+def descomposicion_lu(A):
+    """Descomposición LU de Doolittle: A = L U (ludec en el libro).
+
+    Es la misma eliminación gaussiana, pero sin b: lo que queda de A
+    al final es U (triangular superior), y los coeficientes que se
+    usaron para eliminar se guardan en L (triangular inferior, con
+    unos en la diagonal): L_ij = coeficiente que anuló a A_ij.
+
+    A: matriz n x n (lista de listas); no se modifica.
+    Regresa (L, U), dos listas de listas. Sin pivoteo, como
+    eliminacion_gaussiana. Cuesta 2n^3/3 + n^2/2 - 7n/6 operaciones.
+    """
+    n = len(A)
+    U = [renglon[:] for renglon in A]
+    L = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+    for j in range(n - 1):
+        for i in range(j + 1, n):
+            coeficiente = U[i][j] / U[j][j]
+            for k in range(j, n):
+                U[i][k] -= coeficiente * U[j][k]
+            L[i][j] = coeficiente
+    return L, U
+
+
+def resolver_lu(L, U, b):
+    """Resuelve A x = b a partir de la descomposición A = L U:
+
+        L y = b   (sustitución hacia adelante)
+        U x = y   (sustitución hacia atrás)
+
+    L, U: lo que regresa descomposicion_lu(A). b: vector de n
+    componentes. Cuesta 2n^2 operaciones: con la misma L y U se pueden
+    resolver muchos sistemas con distinto b sin repetir la
+    descomposición, que es la parte cara.
+    """
+    y = sustitucion_adelante(L, b)
+    return sustitucion_atras(U, y)
+
+
+###############################################
+# Matriz de prueba
+###############################################
+
+
+def crear_prueba(n, val):
+    """Matriz de prueba del libro (testcreate): A_ij = sqrt(val + n i + j),
+    y b_j = (A_0j)^2.1. No es simétrica. Regresa (A, b).
+    """
+    A = [[raiz_cuadrada(val + n * i + j) for j in range(n)] for i in range(n)]
+    b = [a_0j**2.1 for a_0j in A[0]]
+    return A, b

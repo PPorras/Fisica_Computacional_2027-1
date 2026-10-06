@@ -8,9 +8,9 @@ eliminación gaussiana y en la descomposición LU.
 
 Este script:
 
-1. Arma la matriz de prueba del libro (código 4.1, testcreate) con
-   listas, toma su parte triangular inferior y superior, y resuelve
-   L x = b y U x = b.
+1. Arma la matriz de prueba del libro (código 4.1, testcreate;
+   crear_prueba en fiscomp/algebra_lineal.py), toma su parte
+   triangular inferior y superior, y resuelve L x = b y U x = b.
 2. Comprueba las soluciones sin cajas negras: con el residuo, y
    resolviendo un sistema cuya solución exacta conocemos de antemano.
 3. Cuenta las operaciones de punto flotante de la sustitución hacia
@@ -22,7 +22,6 @@ Este script:
 import time
 
 from fiscomp.matrices import Matrix
-from fiscomp.funciones_especiales import raiz_cuadrada
 from fiscomp.precision_numerica import error_relativo
 from fiscomp.algebra_lineal import (
     mat_vec,
@@ -32,20 +31,12 @@ from fiscomp.algebra_lineal import (
     triangular_superior,
     sustitucion_adelante,
     sustitucion_atras,
+    crear_prueba,
 )
 
 ###############################################
-# Matriz de prueba
+# Utilidades
 ###############################################
-
-
-def crear_prueba(n, val):
-    """Matriz de prueba del libro (testcreate): A_ij = sqrt(val + n i + j),
-    y b_j = (A_0j)^2.1. No es simétrica. Regresa (A, b).
-    """
-    A = [[raiz_cuadrada(val + n * i + j) for j in range(n)] for i in range(n)]
-    b = [a_0j**2.1 for a_0j in A[0]]
-    return A, b
 
 
 def imprimir_vector(nombre, x):
