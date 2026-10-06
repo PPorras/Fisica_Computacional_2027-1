@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pruebas para la Práctica 2 (ver practica_02.md), con `unittest`.
 
-Se corre con `python3 practicas/pruebas_practica_02.py`, con el
+Se corre con `python3 practicas/practica2/pruebas_practica_02.py`, con el
 entorno virtual activado (`source .venv/bin/activate` desde la raíz
 del repositorio) y `fiscomp` instalado en modo editable
 (`pip install -e .`; ver README.md).

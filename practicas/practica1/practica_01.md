@@ -1,19 +1,19 @@
 # Práctica 1 — Tipos de datos, control de flujo y funciones
 
 Cubre lo visto en las unidades
-[00 (tipos de datos)](../unidades/00_tipos_de_datos/),
-[01 (control de flujo y punto flotante)](../unidades/01_control_de_flujo_y_punto_flotante/),
-[02 (funciones)](../unidades/02_funciones/),
-[03 (módulos)](../unidades/03_modulos/)
-y [04 (archivos)](../unidades/04_archivos/).
+[00 (tipos de datos)](../../unidades/00_tipos_de_datos/),
+[01 (control de flujo y punto flotante)](../../unidades/01_control_de_flujo_y_punto_flotante/),
+[02 (funciones)](../../unidades/02_funciones/),
+[03 (módulos)](../../unidades/03_modulos/)
+y [04 (archivos)](../../unidades/04_archivos/).
 
 ## Contexto
 
-En clase implementamos, en [`fiscomp/funciones_especiales.py`](../fiscomp/funciones_especiales.py):
+En clase implementamos, en [`fiscomp/funciones_especiales.py`](../../fiscomp/funciones_especiales.py):
 
 - `factorial(n)`: de forma iterativa.
 - `seno(x)`: con la serie de Taylor alrededor de 0, usando `EPS`
-  (de [`fiscomp/precision_numerica.py`](../fiscomp/precision_numerica.py))
+  (de [`fiscomp/precision_numerica.py`](../../fiscomp/precision_numerica.py))
   como criterio de convergencia — se suman términos de la serie
   mientras sigan siendo mayores o iguales que el épsilon de la
   máquina, y se corta la suma en cuanto un término deja de aportar
@@ -88,7 +88,7 @@ Al final, el programa debe generar un archivo `reporte_recoleccion.txt`
 `dict` (ahora con la carga estimada, la desviación estándar y el
 error relativo contra el valor aceptado) y el detalle de cada gota
 (carga medida, `n` y estimación individual), usando lo visto en la
-[unidad 04](../unidades/04_archivos/).
+[unidad 04](../../unidades/04_archivos/).
 
 > **Nota:** con pocas gotas (3-5) y datos inventados a mano, es fácil
 > que la estimación quede sorprendentemente cerca del valor real; con
@@ -150,7 +150,7 @@ las funciones "reales" del módulo `math` (`math.sin`, `math.cos`,
 
 Guarden sus resultados en un archivo de texto (por ejemplo
 `reporte_ejercicio4.txt`, en esta misma carpeta), usando lo visto en
-la [unidad 04](../unidades/04_archivos/) (`open()` en modo `'w'`,
+la [unidad 04](../../unidades/04_archivos/) (`open()` en modo `'w'`,
 `write()`). Ahí mismo respondan: ¿hay algún valor de `x` donde el
 error sea sorprendentemente alto? ¿Por qué creen que pasa (piensen en
 qué tan cerca está el valor "real" de cero, y en qué le hace eso al
@@ -177,7 +177,7 @@ parte se las revisamos a mano. Córranlo desde la raíz del
 repositorio:
 
 ```bash
-python3 practicas/pruebas_practica_01.py
+python3 practicas/practica1/pruebas_practica_01.py
 ```
 
 Por cada caso de prueba va a decir si pasó (`OK`) o no (`FALLÓ`), pero

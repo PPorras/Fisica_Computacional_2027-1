@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pruebas para la Práctica 3 (ver practica_03.md), con `unittest`.
 
-Se corre con `python3 practicas/pruebas_practica_03.py`, con el
+Se corre con `python3 practicas/practica3/pruebas_practica_03.py`, con el
 entorno virtual activado (`source .venv/bin/activate` desde la raíz
 del repositorio) y `fiscomp` instalado en modo editable
 (`pip install -e .`; ver README.md).
@@ -27,7 +27,7 @@ import unittest
 from pathlib import Path
 
 CARPETA_UNIDAD = (
-    Path(__file__).resolve().parent.parent / "unidades" / "08_diferencias_finitas"
+    Path(__file__).resolve().parent.parent.parent / "unidades" / "08_diferencias_finitas"
 )
 RUTA_SCRIPT = CARPETA_UNIDAD / "diferencias_finitas.py"
 RUTA_DATOS = CARPETA_UNIDAD / "datos" / "derivada_sin_x2.dat"
