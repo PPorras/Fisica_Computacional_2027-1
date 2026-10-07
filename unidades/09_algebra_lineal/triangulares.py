@@ -3,8 +3,8 @@
 
 Ver notas.md, sección "Matrices triangulares". Las funciones
 sustitucion_adelante y sustitucion_atras viven en
-fiscomp/algebra_lineal.py, porque las vamos a reutilizar en
-eliminación gaussiana y en la descomposición LU.
+fiscomp/algebra_lineal.py, porque las reutilizan la eliminación
+gaussiana y la descomposición LU (eliminacion_gaussiana_lu.py).
 
 Este script:
 

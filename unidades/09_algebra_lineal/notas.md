@@ -11,8 +11,10 @@
   triangulares (sustitución hacia adelante y hacia atrás) y conteo de
   operaciones; eliminación gaussiana y descomposición LU (Doolittle),
   su costo, y cómo reutilizar LU para muchos lados derechos (la
-  inversa y el número de condición).
-- Corresponde a las secciones 4.1 a 4.3.3 del libro de Gezerlis.
+  inversa, el número de condición y el determinante); inestabilidad
+  sin mal condicionamiento y pivoteo parcial; el método iterativo de
+  Jacobi.
+- Corresponde a las secciones 4.1 a 4.3.5 del libro de Gezerlis.
 
 ## Notación
 
@@ -37,11 +39,11 @@ usan los mismos conceptos que vamos a necesitar:
 $\mathbf{r} = (x, y)^T$ un ángulo $\theta$ en sentido antihorario
 alrededor del origen da el punto $\mathbf{r}' = (x', y')^T$, con
 
-$$
+```math
 \begin{pmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{pmatrix}
 \begin{pmatrix} x \\ y \end{pmatrix}
 = \begin{pmatrix} x' \\ y' \end{pmatrix}.
-$$
+```
 
 Si conocemos $\mathbf{r}'$ y queremos $\mathbf{r}$, hay que resolver
 un sistema de dos ecuaciones lineales. Nótese que la matriz de
@@ -54,10 +56,10 @@ física, pero no siempre; por eso estudiaremos matrices generales.
 potencial $\phi(\mathbf{r}_i)$ en $n$ puntos $\mathbf{r}_i$ conocidos.
 Por el principio de superposición,
 
-$$
+```math
 \phi(\mathbf{r}_i) = \sum_{j=0}^{n-1} \frac{k}{|\mathbf{r}_i - \mathbf{R}_j|}\, q_j,
 \qquad i = 0, 1, \ldots, n-1.
-$$
+```
 
 Es el problema **inverso** del proyecto
 [`simulacion_potencial`](../../simulaciones/simulacion_potencial/): ahí
@@ -65,7 +67,7 @@ conocíamos las cargas y calculábamos el potencial; aquí conocemos el
 potencial y queremos las cargas. Para cuatro cargas es el sistema
 $4\times 4$
 
-$$
+```math
 \begin{pmatrix}
 \frac{k}{|\mathbf{r}_0-\mathbf{R}_0|} & \frac{k}{|\mathbf{r}_0-\mathbf{R}_1|} & \frac{k}{|\mathbf{r}_0-\mathbf{R}_2|} & \frac{k}{|\mathbf{r}_0-\mathbf{R}_3|} \\
 \frac{k}{|\mathbf{r}_1-\mathbf{R}_0|} & \frac{k}{|\mathbf{r}_1-\mathbf{R}_1|} & \frac{k}{|\mathbf{r}_1-\mathbf{R}_2|} & \frac{k}{|\mathbf{r}_1-\mathbf{R}_3|} \\
@@ -74,14 +76,14 @@ $$
 \end{pmatrix}
 \begin{pmatrix} q_0 \\ q_1 \\ q_2 \\ q_3 \end{pmatrix}
 = \begin{pmatrix} \phi(\mathbf{r}_0) \\ \phi(\mathbf{r}_1) \\ \phi(\mathbf{r}_2) \\ \phi(\mathbf{r}_3) \end{pmatrix},
-$$
+```
 
 cuya matriz tampoco es simétrica en general.
 
 **3. Momentos principales de inercia.** Para un cuerpo rígido que rota
 alrededor de un eje arbitrario, el tensor de inercia es
 
-$$
+```math
 I_{\alpha\beta} = \int \rho(\mathbf{r})\left(\delta_{\alpha\beta}\, r^2 - r_\alpha r_\beta\right) d^3r,
 \qquad
 I = \begin{pmatrix}
@@ -89,7 +91,7 @@ I_{xx} & I_{xy} & I_{xz} \\
 I_{yx} & I_{yy} & I_{yz} \\
 I_{zx} & I_{zy} & I_{zz}
 \end{pmatrix},
-$$
+```
 
 con $\rho$ la densidad de masa y $\alpha, \beta$ componentes
 cartesianas. Los elementos de la diagonal son los momentos de inercia
@@ -109,7 +111,7 @@ eigenvalores.
 Tenemos $n$ incógnitas $x_i$, $n\times n$ coeficientes $A_{ij}$ y $n$
 constantes $b_i$:
 
-$$
+```math
 \begin{pmatrix}
 A_{00} & A_{01} & \cdots & A_{0,n-1} \\
 A_{10} & A_{11} & \cdots & A_{1,n-1} \\
@@ -120,7 +122,7 @@ A_{n-1,0} & A_{n-1,1} & \cdots & A_{n-1,n-1}
 = \begin{pmatrix} b_0 \\ b_1 \\ \vdots \\ b_{n-1} \end{pmatrix},
 \qquad\text{o sea}\qquad
 A\mathbf{x} = \mathbf{b}.
-$$
+```
 
 $A$ es la **matriz de coeficientes**. Suponemos que $|A| \neq 0$ (la
 matriz es no singular, sus columnas son linealmente independientes),
@@ -147,18 +149,18 @@ correspondientes de $\mathbf{b}$.
 
 La forma estándar es
 
-$$
+```math
 A\mathbf{v} = \lambda\mathbf{v}.
-$$
+```
 
 La diferencia crucial con $A\mathbf{x} = \mathbf{b}$ es que aquí
 **tanto** el número $\lambda$ (el **eigenvalor**) **como** el vector
 $\mathbf{v}$ (el **eigenvector**) son incógnitas. Pasando todo al lado
 izquierdo,
 
-$$
+```math
 (A - \lambda I)\mathbf{v} = \mathbf{0},
-$$
+```
 
 con $I$ la matriz identidad $n\times n$. Es un sistema lineal con
 coeficientes $A - \lambda I$ y lado derecho cero, pero con $n+1$
@@ -167,16 +169,16 @@ esperar una solución única. La solución trivial $\mathbf{v} = \mathbf{0}$
 siempre existe; para que haya una no trivial, la matriz
 $A - \lambda I$ tiene que ser **singular**:
 
-$$
+```math
 |A - \lambda I| = 0.
-$$
+```
 
 Desarrollando el determinante se obtiene la **ecuación
 característica**, un polinomio de grado $n$ en $\lambda$:
 
-$$
+```math
 (-1)^n\lambda^n + c_{n-1}\lambda^{n-1} + \cdots + c_1\lambda + c_0 = 0.
-$$
+```
 
 Así que una matriz $n\times n$ tiene a lo más $n$ eigenvalores
 distintos: las raíces del polinomio característico. Si una raíz
@@ -191,7 +193,7 @@ obtiene resolviendo $(A - \lambda_i I)\mathbf{v}_i = \mathbf{0}$. Como
 la matriz es singular, $\mathbf{v}_i$ no queda determinado de forma
 única: solo se pueden calcular los valores *relativos* de sus
 componentes (por eso normalmente se normaliza,
-$\|\mathbf{v}_i\| = 1$).
+$`\|\mathbf{v}_i\| = 1`$).
 
 **Ojo con la notación:** $\mathbf{v}_0$ es un vector columna de $n$
 elementos (el eigenvector número 0), no una componente. Sus
@@ -221,12 +223,12 @@ Hay dos maneras de analizar errores:
 
 Consideremos el sistema (debido a W. Kahan)
 
-$$
+```math
 (A|\mathbf{b}) = \left(\begin{array}{cc|c}
 1.2969 & 0.8648 & 0.8642 \\
 0.2161 & 0.1441 & 0.1440
 \end{array}\right),
-$$
+```
 
 y supongamos que alguien nos da la solución aproximada
 $\tilde{\mathbf{x}}^T = (0.9911, -0.4870)$. (Escribimos la transpuesta
@@ -235,18 +237,18 @@ para ahorrar espacio.)
 **A posteriori.** Una forma de medir qué tan buena es: el **vector
 residuo**
 
-$$
+```math
 \mathbf{r} = \mathbf{b} - A\tilde{\mathbf{x}}.
-$$
+```
 
 Si $\mathbf{x}$ es la solución exacta, $A\mathbf{x} = \mathbf{b}$ y el
 residuo es cero; una buena aproximación debería dar un residuo chico.
 Aquí $\mathbf{r}^T = (10^{-8}, -10^{-8})$: diminuto. Uno concluiría
 que $\tilde{\mathbf{x}}$ es excelente. Pero la solución exacta es
 
-$$
+```math
 \mathbf{x}^T = (2, -2),
-$$
+```
 
 así que $\tilde{\mathbf{x}}$ **no tiene ni una sola cifra
 significativa correcta**. Un residuo chico no garantiza una solución
@@ -273,24 +275,24 @@ tamaño de una matriz: las normas.
 ### Normas de matrices y de vectores
 
 Una **norma de matriz** mide la magnitud de $A$ con un solo número. Se
-escribe con doble barra, $\|A\|$ (la barra sencilla $|A|$ es el
+escribe con doble barra, $`\|A\|`$ (la barra sencilla $|A|$ es el
 determinante, o el valor absoluto de un número). Usaremos dos:
 
 **Norma de Frobenius:**
 
-$$
+```math
 \|A\|_F = \sqrt{\sum_{i=0}^{n-1}\sum_{j=0}^{n-1} |A_{ij}|^2}.
-$$
+```
 
 **Norma infinito** (máxima suma de renglón):
 
-$$
+```math
 \|A\|_\infty = \max_{0\le i\le n-1} \sum_{j=0}^{n-1} |A_{ij}|.
-$$
+```
 
 Cualquier norma de matrices cuadradas cumple:
 
-$$
+```math
 \begin{aligned}
 &\|A\| \ge 0, \\
 &\|A\| = 0 \text{ si y solo si todos los } A_{ij} = 0, \\
@@ -298,7 +300,7 @@ $$
 &\|A + B\| \le \|A\| + \|B\| \quad\text{(desigualdad del triángulo)}, \\
 &\|AB\| \le \|A\|\,\|B\|.
 \end{aligned}
-$$
+```
 
 Una norma es un **número**, no una matriz (igual que el determinante).
 
@@ -319,7 +321,7 @@ $`|\det(A)| = 10^{-8} \ll \|A\|_\infty \approx 2.16`$, y el problema sí
 está mal condicionado. **Pero el criterio es falso.** Tomemos
 $`D = 0.1\, I`$ de $20\times 20$: $`\det(D) = 0.1^{20} = 10^{-20}`$ y
 $`\|D\|_\infty = 0.1`$, así que $`|\det(D)| \ll \|D\|`$... y sin embargo
-$D\mathbf{x} = \mathbf{b}$ se resuelve trivialmente ($\mathbf{x} = 10\,\mathbf{b}$)
+$D\mathbf{x} = \mathbf{b}$ se resuelve trivialmente ($`\mathbf{x} = 10\,\mathbf{b}`$)
 y cambiar un poco $D$ o $\mathbf{b}$ cambia un poco
 $\mathbf{x}$. El determinante es sensible a la escala y a la dimensión
 de la matriz de una forma que no tiene nada que ver con el
@@ -329,53 +331,53 @@ condicionamiento. Necesitamos otra medida.
 
 Partimos del problema sin perturbar,
 
-$$
+```math
 A\mathbf{x} = \mathbf{b},
-$$
+```
 
 y cambiamos un poco $A$ (dejando $\mathbf{b}$ fija). La solución
 cambia también:
 
-$$
+```math
 (A + \Delta A)(\mathbf{x} + \Delta\mathbf{x}) = \mathbf{b}.
-$$
+```
 
 (Como en la unidad 06, el error absoluto es "aproximado menos exacto":
 esto es $\tilde{A}\tilde{\mathbf{x}} = \mathbf{b}$.) Desarrollando y
 usando $A\mathbf{x} = \mathbf{b}$:
 
-$$
+```math
 A\,\Delta\mathbf{x} = -\Delta A\,(\mathbf{x} + \Delta\mathbf{x})
 \quad\Longrightarrow\quad
 \Delta\mathbf{x} = -A^{-1}\Delta A\,(\mathbf{x} + \Delta\mathbf{x}).
-$$
+```
 
-Tomando normas y usando $\|kA\| = |k|\|A\|$ (con $k=-1$) y
-$\|AB\| \le \|A\|\|B\|$ (dos veces):
+Tomando normas y usando $`\|kA\| = |k|\|A\|`$ (con $k=-1$) y
+$`\|AB\| \le \|A\|\|B\|`$ (dos veces):
 
-$$
+```math
 \|\Delta\mathbf{x}\| \le \|A^{-1}\|\,\|\Delta A\|\,\|\mathbf{x} + \Delta\mathbf{x}\|
 \le \|A^{-1}\|\,\|\Delta A\|\,\left(\|\mathbf{x}\| + \|\Delta\mathbf{x}\|\right)
 \approx \|A^{-1}\|\,\|\Delta A\|\,\|\mathbf{x}\|,
-$$
+```
 
 donde en el segundo paso usamos la desigualdad del triángulo y en el
 último despreciamos el término de segundo orden
-$\|\Delta A\|\,\|\Delta\mathbf{x}\|$ (producto de dos cantidades
-chicas). Dividiendo entre $\|\mathbf{x}\|$, y multiplicando y
-dividiendo por $\|A\|$:
+$`\|\Delta A\|\,\|\Delta\mathbf{x}\|`$ (producto de dos cantidades
+chicas). Dividiendo entre $`\|\mathbf{x}\|`$, y multiplicando y
+dividiendo por $`\|A\|`$:
 
-$$
+```math
 \frac{\|\Delta\mathbf{x}\|}{\|\mathbf{x}\|} \le \|A\|\,\|A^{-1}\|\,\frac{\|\Delta A\|}{\|A\|}.
-$$
+```
 
 Es decir: una cota al cambio *relativo* en $A$ se traduce en una cota
 al cambio *relativo* en $\mathbf{x}$, y el factor que los conecta es el
 **número de condición**
 
-$$
+```math
 \kappa(A) = \|A\|\,\|A^{-1}\|.
-$$
+```
 
 - Si $\kappa(A)$ es de orden 1, una perturbación chica no se
   amplifica: el problema está **bien condicionado**. (Siempre
@@ -387,7 +389,7 @@ Para el ejemplo de Kahan, $\kappa_\infty(A) \approx 3.3\times 10^{8}$:
 un error relativo de $10^{-4}$ en $A$ puede volverse un error relativo
 de hasta $10^{4}$ en $\mathbf{x}$. Y el propio redondeo al guardar los
 datos ($\sim 10^{-16}$) se puede amplificar hasta $\sim 10^{-8}$. Para
-$D = 0.1\,I$, en cambio, $\kappa(D) = 0.1 \times 10 = 1$. **El número
+$`D = 0.1\,I`$, en cambio, $\kappa(D) = 0.1 \times 10 = 1$. **El número
 de condición no involucra al determinante.**
 
 Algunas observaciones:
@@ -413,18 +415,18 @@ podría pensar que $\kappa(A)$ también sirve aquí, pero no: veremos que
 la sensibilidad de los eigenvalores se mide con otra cosa.) Con
 índices explícitos, para distinguir los eigenvalores:
 
-$$
+```math
 A\mathbf{v}_i = \lambda_i\mathbf{v}_i.
-$$
+```
 
 No vamos a suponer que $A$ es simétrica (en física hay casos
 importantes que no lo son). Entonces conviene distinguir entre los
 **eigenvectores derechos** $\mathbf{v}_i$ de arriba y los
 **eigenvectores izquierdos** $\mathbf{u}_i$, definidos por
 
-$$
+```math
 \mathbf{u}_i^T A = \lambda_i\,\mathbf{u}_i^T.
-$$
+```
 
 ($\mathbf{u}_i^T$ es un vector renglón $1\times n$.) Transponiendo,
 $A^T\mathbf{u}_i = \lambda_i\mathbf{u}_i$: **los eigenvectores
@@ -435,52 +437,52 @@ $\mathbf{u}_i \ne \mathbf{v}_i$.
 Un dato que usaremos abajo: para eigenvalores distintos,
 **$\mathbf{u}_k^T\mathbf{v}_i = 0$ si $k \ne i$**. Demostración:
 $\mathbf{u}_k^T A \mathbf{v}_i$ se puede evaluar de dos formas,
-$\lambda_i\,\mathbf{u}_k^T\mathbf{v}_i$ (usando $A\mathbf{v}_i$) o
-$\lambda_k\,\mathbf{u}_k^T\mathbf{v}_i$ (usando $\mathbf{u}_k^T A$);
-restando, $(\lambda_k - \lambda_i)\,\mathbf{u}_k^T\mathbf{v}_i = 0$.
+$`\lambda_i\,\mathbf{u}_k^T\mathbf{v}_i`$ (usando $A\mathbf{v}_i$) o
+$`\lambda_k\,\mathbf{u}_k^T\mathbf{v}_i`$ (usando $\mathbf{u}_k^T A$);
+restando, $`(\lambda_k - \lambda_i)\,\mathbf{u}_k^T\mathbf{v}_i = 0`$.
 
 Perturbamos $A$, y con ella cambian eigenvalores y eigenvectores:
 
-$$
+```math
 (A + \Delta A)(\mathbf{v}_i + \Delta\mathbf{v}_i) = (\lambda_i + \Delta\lambda_i)(\mathbf{v}_i + \Delta\mathbf{v}_i).
-$$
+```
 
 Desarrollando, cancelando $A\mathbf{v}_i = \lambda_i\mathbf{v}_i$ y
 despreciando los términos de segundo orden ($\Delta\times\Delta$):
 
-$$
+```math
 A\,\Delta\mathbf{v}_i + \Delta A\,\mathbf{v}_i = \lambda_i\,\Delta\mathbf{v}_i + \Delta\lambda_i\,\mathbf{v}_i.
-$$
+```
 
 Multiplicando por la izquierda por $\mathbf{u}_i^T$, el primer término
 de cada lado se cancela (porque
 $\mathbf{u}_i^T A = \lambda_i\mathbf{u}_i^T$), y queda
 
-$$
+```math
 \mathbf{u}_i^T\,\Delta A\,\mathbf{v}_i = \Delta\lambda_i\,\mathbf{u}_i^T\mathbf{v}_i
 \quad\Longrightarrow\quad
 |\Delta\lambda_i| = \frac{|\mathbf{u}_i^T\,\Delta A\,\mathbf{v}_i|}{|\mathbf{u}_i^T\mathbf{v}_i|}.
-$$
+```
 
 Por la desigualdad de Cauchy–Schwarz,
-$|\mathbf{u}_i^T\,\Delta A\,\mathbf{v}_i| \le \|\mathbf{u}_i\|\,\|\Delta A\|\,\|\mathbf{v}_i\|$,
-y si normalizamos los eigenvectores, $\|\mathbf{u}_i\| = \|\mathbf{v}_i\| = 1$
+$`|\mathbf{u}_i^T\,\Delta A\,\mathbf{v}_i| \le \|\mathbf{u}_i\|\,\|\Delta A\|\,\|\mathbf{v}_i\|`$,
+y si normalizamos los eigenvectores, $`\|\mathbf{u}_i\| = \|\mathbf{v}_i\| = 1`$
 (como hacen las bibliotecas estándar):
 
-$$
+```math
 |\Delta\lambda_i| \le \frac{1}{|\mathbf{u}_i^T\mathbf{v}_i|}\,\|\Delta A\|.
-$$
+```
 
-(Aquí $\|\mathbf{u}\|$ es la norma euclídea; $\|\Delta A\|$ es la norma
+(Aquí $`\|\mathbf{u}\|`$ es la norma euclídea; $`\|\Delta A\|`$ es la norma
 de matrices asociada a ella, que siempre es menor o igual que la de
-Frobenius, así que la cota vale también con $\|\Delta A\|_F$.)
+Frobenius, así que la cota vale también con $`\|\Delta A\|_F`$.)
 
 El factor que amplifica la perturbación es el **número de condición
 para el eigenvalor simple** $\lambda_i$:
 
-$$
+```math
 \kappa^{ev}_{\lambda_i}(A) = \frac{1}{|\mathbf{u}_i^T\mathbf{v}_i|}.
-$$
+```
 
 El subíndice $ev$ recuerda que es para eigenvalores; el superíndice,
 de cuál eigenvalor se trata (cada uno tiene el suyo). Si
@@ -508,40 +510,40 @@ $10^{-6}$ a $A_{10}$ mueve cada eigenvalor $\approx 10^{-3}$.
 eigenvalores distintos, así que los eigenvectores son linealmente
 independientes. Partimos de la misma ecuación de primer orden:
 
-$$
+```math
 A\,\Delta\mathbf{v}_i + \Delta A\,\mathbf{v}_i = \lambda_i\,\Delta\mathbf{v}_i + \Delta\lambda_i\,\mathbf{v}_i,
-$$
+```
 
 y desarrollamos la perturbación del eigenvector en términos de los
 *demás* eigenvectores:
 
-$$
+```math
 \Delta\mathbf{v}_i = \sum_{j\ne i} t_{ji}\,\mathbf{v}_j,
-$$
+```
 
 con coeficientes $t_{ji}$ por determinar. (No hace falta un término
 $j = i$: una componente de $\Delta\mathbf{v}_i$ a lo largo de
 $\mathbf{v}_i$ solo cambia su normalización.) Sustituyendo, y usando
 $A\mathbf{v}_j = \lambda_j\mathbf{v}_j$:
 
-$$
+```math
 \sum_{j\ne i}(\lambda_j - \lambda_i)\,t_{ji}\,\mathbf{v}_j + \Delta A\,\mathbf{v}_i = \Delta\lambda_i\,\mathbf{v}_i.
-$$
+```
 
 Multiplicamos por la izquierda por $\mathbf{u}_k^T$ con $k \ne i$.
 Como $\mathbf{u}_k^T\mathbf{v}_j = 0$ para $j \ne k$, de la suma solo
 sobrevive el término $j = k$, y el lado derecho se anula:
 
-$$
+```math
 (\lambda_k - \lambda_i)\,t_{ki}\,\mathbf{u}_k^T\mathbf{v}_k + \mathbf{u}_k^T\,\Delta A\,\mathbf{v}_i = 0.
-$$
+```
 
 Despejando $t_{ki}$ y sustituyendo en el desarrollo de
 $\Delta\mathbf{v}_i$:
 
-$$
+```math
 \Delta\mathbf{v}_i = \sum_{j\ne i}\frac{\mathbf{u}_j^T\,\Delta A\,\mathbf{v}_i}{(\lambda_i - \lambda_j)\,\mathbf{u}_j^T\mathbf{v}_j}\,\mathbf{v}_j.
-$$
+```
 
 Este es el resultado principal. Nótese que:
 
@@ -579,8 +581,8 @@ refinan hasta converger; son útiles sobre todo para matrices
 
 El caso más sencillo es el de las **matrices triangulares**, con ceros
 arriba o abajo de la diagonal. No es un problema de juguete: los
-métodos generales (eliminación gaussiana, descomposición LU, que
-veremos después) transforman el problema hasta dejarlo en términos de
+métodos generales (eliminación gaussiana y descomposición LU, en las
+secciones siguientes) transforman el problema hasta dejarlo en términos de
 una o dos matrices triangulares. Aquí construimos esa base.
 
 (En las bibliotecas profesionales no se guardan los ceros de una
@@ -596,7 +598,7 @@ $L\mathbf{x} = \mathbf{b}$. (Aquí $\mathbf{b}$ es simplemente "el
 vector del lado derecho" y $\mathbf{x}$ "la incógnita"; más adelante
 les daremos otros nombres.) Para $3\times 3$:
 
-$$
+```math
 \begin{pmatrix}
 L_{00} & 0 & 0 \\
 L_{10} & L_{11} & 0 \\
@@ -610,25 +612,25 @@ L_{00}x_0 &= b_0 \\
 L_{10}x_0 + L_{11}x_1 &= b_1 \\
 L_{20}x_0 + L_{21}x_1 + L_{22}x_2 &= b_2
 \end{aligned}
-$$
+```
 
 La primera ecuación da $x_0$; con él, la segunda da $x_1$; con ambos,
 la tercera da $x_2$:
 
-$$
+```math
 x_0 = \frac{b_0}{L_{00}}, \qquad
 x_1 = \frac{b_1 - L_{10}x_0}{L_{11}}, \qquad
 x_2 = \frac{b_2 - L_{20}x_0 - L_{21}x_1}{L_{22}}.
-$$
+```
 
 Se llama **sustitución hacia adelante** (*forward substitution*)
 porque se empieza por la primera ecuación y se avanza. Para
 $n\times n$:
 
-$$
+```math
 x_i = \frac{1}{L_{ii}}\left(b_i - \sum_{j=0}^{i-1} L_{ij}\,x_j\right),
 \qquad i = 0, 1, \ldots, n-1,
-$$
+```
 
 entendiendo que la suma no tiene términos si $i = 0$, tiene uno si
 $i = 1$, etc.
@@ -638,29 +640,29 @@ $i = 1$, etc.
 Si en cambio $U$ es triangular superior (*upper*), $U\mathbf{x} = \mathbf{b}$
 es, para $3\times 3$,
 
-$$
+```math
 \begin{aligned}
 U_{00}x_0 + U_{01}x_1 + U_{02}x_2 &= b_0 \\
 U_{11}x_1 + U_{12}x_2 &= b_1 \\
 U_{22}x_2 &= b_2
 \end{aligned}
-$$
+```
 
 Ahora se empieza por la **última** ecuación y se avanza hacia atrás:
 
-$$
+```math
 x_2 = \frac{b_2}{U_{22}}, \qquad
 x_1 = \frac{b_1 - U_{12}x_2}{U_{11}}, \qquad
 x_0 = \frac{b_0 - U_{01}x_1 - U_{02}x_2}{U_{00}}.
-$$
+```
 
 Es la **sustitución hacia atrás** (*back substitution*). Para
 $n\times n$:
 
-$$
+```math
 x_i = \frac{1}{U_{ii}}\left(b_i - \sum_{j=i+1}^{n-1} U_{ij}\,x_j\right),
 \qquad i = n-1, n-2, \ldots, 1, 0,
-$$
+```
 
 con la suma vacía si $i = n-1$, de un término si $i = n-2$, etc.
 
@@ -746,9 +748,9 @@ $2n^3 - 7n^2 + 5n \sim 2n^3$.
 $y_i$ requiere $n$ multiplicaciones y $n-1$ sumas; hay $n$ de ellos,
 así que en total son $n^2$ multiplicaciones y $n(n-1)$ sumas:
 
-$$
+```math
 2n^2 - n \sim 2n^2 = O(n^2)\ \text{operaciones}.
-$$
+```
 
 **Sustitución hacia adelante.** Cada $x_i$ requiere una división ($n$
 en total). Además, para $x_i$ hay $i$ multiplicaciones
@@ -756,11 +758,11 @@ en total). Además, para $x_i$ hay $i$ multiplicaciones
 sumas para juntar los $i$ productos, más la resta de $b_i$). Sumando
 sobre $i$, con $\sum_{i=0}^{n-1} i = \frac{(n-1)n}{2}$:
 
-$$
+```math
 \text{sumas/restas: } \frac{n^2 - n}{2},
 \qquad
 \text{multiplicaciones/divisiones: } n + \frac{n^2 - n}{2} = \frac{n^2 + n}{2}.
-$$
+```
 
 En total, **exactamente $n^2$ operaciones**. Se podría escribir
 $O(n^2)$, pero eso es menos informativo: el conteo explícito nos dice
@@ -773,8 +775,8 @@ duplicar $n$: como el costo es $\propto n^2$, el tiempo se cuadruplica.
 
 Para comparar: el producto de dos vectores es $O(n)$ y el de dos
 matrices $`O(n^3)`$ (calculen los prefactores exactos, junto con los
-términos de grado menor). Y, como veremos, resolver un sistema general
-con eliminación gaussiana es $`O(n^3)`$: mucho más caro que resolver uno
+términos de grado menor). Y, como se ve en la sección "Eliminación
+gaussiana", resolver un sistema general con ella es $`O(n^3)`$: mucho más caro que resolver uno
 triangular.
 
 ## Eliminación gaussiana
@@ -798,7 +800,7 @@ El método tiene dos fases:
 
 Antes del caso general, resolvamos un ejemplo a mano:
 
-$$
+```math
 \begin{aligned}
 2x_0 + x_1 + x_2 &= 8 \\
 x_0 + x_1 - 2x_2 &= -2 \\
@@ -808,24 +810,24 @@ x_0 + x_1 - 2x_2 &= -2 \\
 \begin{pmatrix} 2 & 1 & 1 \\ 1 & 1 & -2 \\ 5 & 10 & 5 \end{pmatrix}
 \begin{pmatrix} x_0 \\ x_1 \\ x_2 \end{pmatrix}
 = \begin{pmatrix} 8 \\ -2 \\ 10 \end{pmatrix}.
-$$
+```
 
 Trabajamos con la matriz aumentada, que contiene todo lo que importa
 (la $\mathbf{x}$ queda implícita):
 
-$$
+```math
 (A|\mathbf{b}) = \left(\begin{array}{ccc|c}
 2 & 1 & 1 & 8 \\
 1 & 1 & -2 & -2 \\
 5 & 10 & 5 & 10
 \end{array}\right).
-$$
+```
 
 Nótese que $A$ no es simétrica. La operación que vamos a repetir es
 
-$$
+```math
 \text{nuevo renglón } i = \text{renglón } i - \text{coeficiente} \times \text{renglón } j.
-$$
+```
 
 El renglón $j$ se llama **renglón pivote**; el renglón $i$ es el que
 estamos transformando. El coeficiente se escoge para que el primer
@@ -835,49 +837,49 @@ elemento distinto de cero del renglón $i$ se vuelva $0$.
 $1 - 0.5\times 2 = 0$. La operación se hace con **todo** el renglón,
 incluyendo el elemento de $\mathbf{b}$:
 
-$$
+```math
 \left(\begin{array}{ccc|c}
 2 & 1 & 1 & 8 \\
 0 & 0.5 & -2.5 & -6 \\
 5 & 10 & 5 & 10
 \end{array}\right).
-$$
+```
 
 Para $i = 2$ el coeficiente es $2.5$, porque $5 - 2.5\times 2 = 0$:
 
-$$
+```math
 \left(\begin{array}{ccc|c}
 2 & 1 & 1 & 8 \\
 0 & 0.5 & -2.5 & -6 \\
 0 & 7.5 & 2.5 & -10
 \end{array}\right).
-$$
+```
 
 Ya terminamos con el pivote $j = 0$: la columna $0$ tiene ceros abajo
 de la diagonal.
 
 **Pivote $j = 1$.** Siempre se usa la versión **más reciente** de la
-matriz, así que el renglón pivote es $(0,\ 0.5,\ -2.5 \,|\, -6)$. Los
+matriz, así que el renglón pivote es $`(0,\ 0.5,\ -2.5 \,|\, -6)`$. Los
 renglones que se transforman están siempre abajo del pivote; aquí
 solo queda $i = 2$. El coeficiente es $15$, porque
 $7.5 - 15\times 0.5 = 0$:
 
-$$
+```math
 \left(\begin{array}{ccc|c}
 2 & 1 & 1 & 8 \\
 0 & 0.5 & -2.5 & -6 \\
 0 & 0 & 40 & 80
 \end{array}\right).
-$$
+```
 
 La matriz de coeficientes ya es triangular superior: terminó la
 eliminación. Con la sustitución hacia atrás:
 
-$$
+```math
 x_2 = \frac{80}{40} = 2, \qquad
 x_1 = \frac{-6 - (-2.5)\times 2}{0.5} = -2, \qquad
 x_0 = \frac{8 - 1\times(-2) - 1\times 2}{2} = 4.
-$$
+```
 
 `eliminacion_gaussiana_lu.py` repite este ejemplo e imprime la matriz
 aumentada después de cada paso.
@@ -887,17 +889,17 @@ aumentada después de cada paso.
 Para una matriz $n\times n$, la eliminación modifica $A$ y
 $\mathbf{b}$ hasta que $A$ queda triangular. A media eliminación, justo
 cuando el renglón $j$ se convierte en pivote, la matriz aumentada se ve
-así (con $n = 5$ y $j = 2$; $*$ es un número cualquiera):
+así, con $n = 5$ y $j = 2$, donde $\ast$ es un número cualquiera:
 
-$$
+```math
 \left(\begin{array}{ccccc|c}
-* & * & * & * & * & * \\
-0 & * & * & * & * & * \\
-0 & 0 & A_{22} & * & * & * \\
-0 & 0 & * & * & * & * \\
-0 & 0 & * & * & * & *
+\ast & \ast & \ast & \ast & \ast & \ast \\
+0 & \ast & \ast & \ast & \ast & \ast \\
+0 & 0 & A_{22} & \ast & \ast & \ast \\
+0 & 0 & \ast & \ast & \ast & \ast \\
+0 & 0 & \ast & \ast & \ast & \ast
 \end{array}\right).
-$$
+```
 
 Los renglones de arriba del pivote ya están listos y los de abajo
 todavía tienen que transformarse. (Los valores son los actuales, ya
@@ -910,22 +912,22 @@ modificados por los pasos anteriores; el primer renglón nunca cambia.)
   $i = j+1, j+2, \ldots, n-1$.
 - El primer elemento distinto de cero del renglón $i$ es $A_{ij}$, y
   el del renglón $j$ es $A_{jj}$. Como
-  $A_{ij} - (A_{ij}/A_{jj})\,A_{jj} = 0$, el coeficiente es
+  $`A_{ij} - (A_{ij}/A_{jj})\,A_{jj} = 0`$, el coeficiente es
 
-$$
+```math
 \text{coeficiente} = \frac{A_{ij}}{A_{jj}}.
-$$
+```
 
 $A_{jj}$ se llama **elemento pivote**: es el que se divide para
 eliminar los primeros elementos de los renglones de abajo. Con ese
 coeficiente, el renglón $i$ se actualiza elemento por elemento:
 
-$$
+```math
 \begin{aligned}
 A_{ik} &\leftarrow A_{ik} - \text{coeficiente}\times A_{jk}, \qquad k = j, j+1, \ldots, n-1, \\
 b_i &\leftarrow b_i - \text{coeficiente}\times b_j.
 \end{aligned}
-$$
+```
 
 (Las columnas $k < j$ ya son cero en ambos renglones, así que no hace
 falta tocarlas.) Al final, $A$ es triangular superior y se aplica la
@@ -1006,36 +1008,36 @@ una en $\mathbf{b}$: $(n-2) + 2n(n-2)$ operaciones.
 
 **Pivote $j$ cualquiera.** El patrón es
 
-$$
+```math
 (n-1-j) + 2(n+1-j)(n-1-j).
-$$
+```
 
 Sumando sobre todos los pivotes, con el cambio de variable
 $k = n-1-j$, que va de $n-1$ a $1$:
 
-$$
+```math
 N = \sum_{j=0}^{n-2}\left[(n-1-j) + 2(n+1-j)(n-1-j)\right]
 = \sum_{k=1}^{n-1}\left[k + 2(k+2)k\right]
 = \sum_{k=1}^{n-1}\left(2k^2 + 5k\right).
-$$
+```
 
 Con las sumas conocidas
 $\sum_{k=0}^{n-1} k = \frac{(n-1)n}{2}$ y
 $\sum_{k=0}^{n-1} k^2 = \frac{(n-1)n(2n-1)}{6}$:
 
-$$
+```math
 N = 2\,\frac{(n-1)n(2n-1)}{6} + 5\,\frac{(n-1)n}{2}
 = \frac{2}{3}n^3 + \frac{3}{2}n^2 - \frac{13}{6}n
 \sim \frac{2}{3}n^3.
-$$
+```
 
 Para $n = 3$ da $18 + 13.5 - 6.5 = 25$: compruébenlo contando las
 operaciones del ejemplo de arriba. La sustitución hacia atrás agrega
 $n^2$, pero para $n$ grande la eliminación domina por completo:
 
-$$
+```math
 \frac{2}{3}n^3 + n^2 \sim \frac{2}{3}n^3.
-$$
+```
 
 Es decir: resolver un sistema general cuesta $`O(n^3)`$, mientras que uno
 triangular cuesta $n^2$. Para $n = 1000$, la eliminación es unas 670
@@ -1049,18 +1051,18 @@ La fórmula del coeficiente divide entre $A_{jj}$. Si algún pivote vale
 cero, el método truena, **aunque la matriz no sea singular**. Por
 ejemplo,
 
-$$
-\begin{pmatrix} 0 & 1 \\ 1 & 1 \end{pmatrix}
+```math
+\begin{pmatrix} 0 & -1 \\ 1 & 1 \end{pmatrix}
 \begin{pmatrix} x_0 \\ x_1 \end{pmatrix}
 = \begin{pmatrix} 1 \\ 2 \end{pmatrix}
-$$
+```
 
-tiene determinante $-1$ y solución $\mathbf{x} = (1, 1)$, pero
+tiene determinante $1$ y solución $\mathbf{x} = (3, -1)$, pero
 `eliminacion_gaussiana` levanta `ZeroDivisionError` en el primer
 paso. La solución es obvia: intercambiar los dos renglones (la segunda
-operación elemental, el **pivoteo**). Lo veremos con cuidado más
-adelante; también resuelve un problema menos visible, el de los
-pivotes que no son cero pero sí muy chicos.
+operación elemental, el **pivoteo**). Lo vemos con cuidado en la
+sección "Pivoteo", donde también aparece un problema menos visible: el
+de los pivotes que no son cero pero sí muy chicos.
 
 ## Descomposición LU
 
@@ -1088,9 +1090,9 @@ reutilizarlo. Eso es la descomposición LU.
 Supongamos que una matriz no singular $A$ se puede escribir como el
 producto de una triangular inferior $L$ y una triangular superior $U$:
 
-$$
+```math
 A = LU.
-$$
+```
 
 Es la **descomposición LU** (o factorización LU) de $A$. (Más adelante,
 con el pivoteo, veremos que la historia es un poco más complicada;
@@ -1100,21 +1102,21 @@ Eso se llama descomposición de **Doolittle**.
 
 Veamos cómo se construye en el caso general $3\times 3$:
 
-$$
+```math
 L = \begin{pmatrix} 1 & 0 & 0 \\ L_{10} & 1 & 0 \\ L_{20} & L_{21} & 1 \end{pmatrix},
 \qquad
 U = \begin{pmatrix} U_{00} & U_{01} & U_{02} \\ 0 & U_{11} & U_{12} \\ 0 & 0 & U_{22} \end{pmatrix}.
-$$
+```
 
 Multiplicándolas:
 
-$$
+```math
 A = LU = \begin{pmatrix}
 U_{00} & U_{01} & U_{02} \\
 L_{10}U_{00} & L_{10}U_{01} + U_{11} & L_{10}U_{02} + U_{12} \\
 L_{20}U_{00} & L_{20}U_{01} + L_{21}U_{11} & L_{20}U_{02} + L_{21}U_{12} + U_{22}
 \end{pmatrix}.
-$$
+```
 
 Apliquemos la eliminación gaussiana a **esta** $A$ (sin ningún
 $\mathbf{b}$: solo nos interesa la matriz).
@@ -1131,9 +1133,9 @@ queda como $(0,\ L_{21}U_{11},\ L_{21}U_{12} + U_{22})$.
 $L_{21}U_{11}/U_{11} = L_{21}$, y el renglón 2 queda como
 $(0,\ 0,\ U_{22})$. Al final:
 
-$$
+```math
 \begin{pmatrix} U_{00} & U_{01} & U_{02} \\ 0 & U_{11} & U_{12} \\ 0 & 0 & U_{22} \end{pmatrix} = U.
-$$
+```
 
 Leyendo esto al revés, llegamos a la conclusión importante:
 
@@ -1147,11 +1149,11 @@ Con el ejemplo $3\times 3$ de la sección anterior, ya sin
 $\mathbf{b}$: $U$ es la matriz triangular a la que llegamos, y $L$
 junta los coeficientes $0.5$, $2.5$ y $15$:
 
-$$
+```math
 U = \begin{pmatrix} 2 & 1 & 1 \\ 0 & 0.5 & -2.5 \\ 0 & 0 & 40 \end{pmatrix},
 \qquad
 L = \begin{pmatrix} 1 & 0 & 0 \\ 0.5 & 1 & 0 \\ 2.5 & 15 & 1 \end{pmatrix}.
-$$
+```
 
 No hubo que calcular nada nuevo: solo guardar lo que ya aparecía.
 (Multipliquen $L$ por $U$ para convencerse de que dan $A$;
@@ -1170,12 +1172,12 @@ $LU\mathbf{x} = \mathbf{b}$, que podemos escribir como
 $L(U\mathbf{x}) = \mathbf{b}$. Llamando $\mathbf{y} = U\mathbf{x}$, el
 problema se parte en dos sistemas **triangulares**:
 
-$$
+```math
 \begin{aligned}
 L\mathbf{y} &= \mathbf{b} \qquad \text{(sustitución hacia adelante)}, \\
 U\mathbf{x} &= \mathbf{y} \qquad \text{(sustitución hacia atrás)}.
 \end{aligned}
-$$
+```
 
 Primero se resuelve el de $L$ para obtener $\mathbf{y}$, y con ese
 $\mathbf{y}$ se resuelve el de $U$. Aquí es donde las dos
@@ -1231,31 +1233,6 @@ distinto orden (la eliminación va restando de $b_i$ un término a la
 vez; la sustitución hacia adelante junta primero la suma y luego la
 resta), y en punto flotante el orden cambia el redondeo (unidad 06).
 
-### La inversa y el número de condición
-
-La columna $k$ de $A^{-1}$ es la solución de $A\mathbf{x} = \mathbf{e}_k$,
-donde $\mathbf{e}_k$ es la columna $k$ de la identidad, porque
-$AA^{-1} = I$. Calcular $A^{-1}$ es resolver $n$ sistemas con la
-misma $A$: el caso ideal para LU. Una descomposición y $n$ pares de
-sustituciones:
-
-$$
-\frac{2}{3}n^3 + n\cdot 2n^2 = \frac{8}{3}n^3 \text{ operaciones},
-$$
-
-contra $n\cdot\frac{2}{3}n^3$ si hiciéramos una eliminación gaussiana
-por columna.
-
-Con $A^{-1}$ por fin podemos calcular el número de condición
-$\kappa(A) = \|A\|\,\|A^{-1}\|$ de cualquier matriz, no solo de las
-$2\times 2$ de `analisis_de_error.py`. Para la matriz de prueba del
-libro, `eliminacion_gaussiana_lu.py` obtiene
-$`\kappa_\infty(A) \approx 3.9\times 10^{8}`$: la explicación de los
-8 dígitos perdidos de la sección anterior. (Calcular $A^{-1}$ para
-resolver un sistema, con $\mathbf{x} = A^{-1}\mathbf{b}$, es mala idea:
-cuesta más y acumula más error que LU. Aquí la queremos solo para
-$\kappa$.)
-
 ### Conteo de operaciones
 
 La descomposición es la eliminación sin $\mathbf{b}$: para el pivote
@@ -1263,9 +1240,9 @@ $j$ se ahorran la multiplicación y la resta de $b_i$ en cada uno de los
 $n-1-j$ renglones. Repitiendo la cuenta de la sección anterior con
 ese cambio se obtiene
 
-$$
+```math
 N_{LU} = \frac{2}{3}n^3 + \frac{1}{2}n^2 - \frac{7}{6}n \sim \frac{2}{3}n^3.
-$$
+```
 
 (Háganlo: es el mismo procedimiento, con $2k^2 + 3k$ en lugar de
 $2k^2 + 5k$. `eliminacion_gaussiana_lu.py` comprueba la fórmula
@@ -1274,7 +1251,7 @@ gaussiana. La diferencia está en lo que sigue:
 
 | Costo aproximado | Un sistema | $m$ sistemas con la misma $A$ |
 |---|---|---|
-| Eliminación gaussiana | $\frac{2}{3}n^3 + n^2$ | $m\,\frac{2}{3}n^3$ |
+| Eliminación gaussiana | $\frac{2}{3}n^3 + n^2$ | $`m\,\frac{2}{3}n^3`$ |
 | LU | $\frac{2}{3}n^3 + 2n^2$ | $\frac{2}{3}n^3 + 2mn^2$ |
 
 Para un solo sistema da casi lo mismo (LU hace una sustitución más).
@@ -1286,24 +1263,546 @@ Los flops no son lo único que importa: también la memoria. Tal como lo
 implementamos, LU guarda dos matrices $n\times n$, y la eliminación
 gaussiana solo una.
 
+### La matriz inversa
+
+En la práctica casi nunca hace falta invertir una matriz: para
+resolver $A\mathbf{x} = \mathbf{b}$, calcular $A^{-1}$ y luego
+$A^{-1}\mathbf{b}$ cuesta más y acumula más error que usar LU
+directamente. Pero hay usos legítimos; el primero para nosotros es el
+número de condición, $`\kappa(A) = \|A\|\,\|A^{-1}\|`$.
+
+La inversa cumple $AA^{-1} = I$. El truco es ver la identidad como $n$
+vectores columna $\mathbf{e}_i$, cada uno con un solo $1$ en el lugar
+$i$, y a $A^{-1}$ también como $n$ columnas $\mathbf{x}_i$:
+
+```math
+A^{-1} = \begin{pmatrix} \mathbf{x}_0 & \mathbf{x}_1 & \cdots & \mathbf{x}_{n-1} \end{pmatrix},
+\qquad
+I = \begin{pmatrix} \mathbf{e}_0 & \mathbf{e}_1 & \cdots & \mathbf{e}_{n-1} \end{pmatrix}.
+```
+
+Así, en vez de atacar $AA^{-1} = I$ de un golpe, lo partimos en $n$
+sistemas, uno por columna:
+
+```math
+A\mathbf{x}_i = \mathbf{e}_i, \qquad i = 0, 1, \ldots, n-1.
+```
+
+Es nuestro primer ejemplo de muchos sistemas con la misma $A$: se
+descompone $A = LU$ **una vez**, y para cada columna se resuelve
+$L(U\mathbf{x}_i) = \mathbf{e}_i$ con una sustitución hacia adelante y
+una hacia atrás. Cada par cuesta $2n^2$ y hay $n$ columnas:
+
+```math
+\underbrace{\frac{2}{3}n^3}_{\text{LU}} + \underbrace{n\cdot 2n^2}_{\text{sustituciones}} = \frac{8}{3}n^3 \text{ operaciones}.
+```
+
+Con eliminación gaussiana tendríamos que repetir todo, $`O(n^3)`$, para
+cada una de las $n$ columnas: $`O(n^4)`$, demasiado caro.
+
+En [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py):
+
+```python
+def inversa(A):
+    n = len(A)
+    L, U = descomposicion_lu(A)
+    columnas = []
+    for k in range(n):
+        e_k = [1.0 if i == k else 0.0 for i in range(n)]
+        columnas.append(resolver_lu(L, U, e_k))
+    # columnas[k][i] es el elemento (i, k) de la inversa: transponemos.
+    return [[columnas[k][i] for k in range(n)] for i in range(n)]
+```
+
+Ojo con el último paso: `columnas` guarda las columnas de $A^{-1}$ como
+si fueran renglones, así que hay que transponer.
+
+Con $A^{-1}$ podemos calcular el número de condición de cualquier
+matriz, no solo de las $2\times 2$ de `analisis_de_error.py`. Para la
+matriz de prueba del libro, `eliminacion_gaussiana_lu.py` obtiene
+$`\kappa_\infty(A) \approx 3.9\times 10^{8}`$: la explicación de los
+8 dígitos perdidos de la sección "Eliminación gaussiana".
+
+### El determinante
+
+Para una matriz triangular, el determinante es el producto de la
+diagonal. Y el determinante de un producto es el producto de los
+determinantes. Con $A = LU$:
+
+```math
+\det(A) = \det(L)\,\det(U)
+= \left(\prod_{i=0}^{n-1} 1\right)\left(\prod_{i=0}^{n-1} U_{ii}\right)
+= \prod_{i=0}^{n-1} U_{ii},
+```
+
+porque la diagonal de $L$ son puros unos. **El determinante es el
+producto de la diagonal de** $U$, que ya teníamos al terminar la
+eliminación. De paso, esto dice que $A$ es no singular si y solo si
+ningún $U_{ii}$ vale cero.
+
+Cuesta lo mismo que la descomposición, $`\sim 2n^3/3`$. La fórmula de
+cofactores que se ve en los cursos de álgebra cuesta del orden de
+$n!$: para $n = 20$, unas $10^{18}$ operaciones contra unas
+$5\times 10^{3}$.
+
+La función `determinante(A)` de `fiscomp/algebra_lineal.py` hace
+exactamente esto. Para la matriz de prueba del libro da
+$`\det(A) \approx -7\times 10^{-12}`$. Recordemos la sección "¿Determinante
+chico?": eso no dice nada por sí solo. Lo que importa es
+$`\kappa \approx 4\times 10^{8}`$. El proyecto de espines
+([`simulaciones/espines/`](../../simulaciones/espines/)) usa esta
+función para buscar eigenvalores como raíces de $\det(H - \lambda I)$.
+
+## Pivoteo
+
+Hasta aquí aplicamos la eliminación gaussiana (y su prima, la LU) a
+casos sin complicaciones. Ahora veremos que es fácil que algo salga
+mal, cómo se arregla lo más grave, y qué remedios más complicados
+existen.
+
+### Inestabilidad sin mal condicionamiento
+
+En la sección "Análisis de error" vimos que un problema puede estar
+**mal condicionado**: es una propiedad del *problema*, que se mide con
+$\kappa(A)$. Ahora veremos lo contrario: problemas perfectamente bien
+condicionados en los que el *método* falla. La culpa, en ese caso, es
+del método. Veamos tres ejemplos.
+
+**Ejemplo 1: un cero en el primer pivote.**
+
+```math
+\left(\begin{array}{cc|c}
+0 & -1 & 1 \\
+1 & 1 & 2
+\end{array}\right)
+```
+
+Está bien condicionado, con $`\kappa_\infty(A) = 4`$, y su solución
+es fácil de obtener a mano: $\mathbf{x} = (3, -1)$. Pero la
+eliminación gaussiana empieza (y termina) con el pivote $j = 0$, y el
+coeficiente $A_{10}/A_{00}$ divide entre $A_{00} = 0$. En el libro,
+con NumPy, el resultado es `[nan nan]` (*not a number*); con nuestras
+listas, Python levanta `ZeroDivisionError`.
+
+**Ejemplo 2: un cero escondido.** Si en el ejemplo $3\times 3$ de la
+sección "Eliminación gaussiana" cambiamos un par de elementos (sin
+cambiar la solución, que sigue siendo $`\mathbf{x} = (4, -2, 2)`$):
+
+```math
+\left(\begin{array}{ccc|c}
+2 & 1 & 1 & 8 \\
+2 & 1 & -4 & -2 \\
+5 & 10 & 5 & 10
+\end{array}\right).
+```
+
+El primer pivote, $2$, no tiene nada de malo. Pero después de eliminar
+la columna $0$:
+
+```math
+\left(\begin{array}{ccc|c}
+2 & 1 & 1 & 8 \\
+0 & 0 & -5 & -10 \\
+0 & 7.5 & 2.5 & -10
+\end{array}\right),
+```
+
+y el siguiente pivote, $A_{11}$, vale cero. El problema no se veía a
+simple vista: apareció a media eliminación.
+
+**Ejemplo 3: un pivote diminuto.** Cuando un método falla en un caso,
+casi siempre falla también en los casos parecidos. Cambiemos el $0$ del
+ejemplo 1 por un número muy chico:
+
+```math
+\left(\begin{array}{cc|c}
+10^{-20} & -1 & 1 \\
+1 & 1 & 2
+\end{array}\right),
+\qquad
+\mathbf{x} = \left(\frac{3}{1 + 10^{-20}},\ \frac{-1 + 2\times 10^{-20}}{1 + 10^{-20}}\right).
+```
+
+Sigue bien condicionado, con $`\kappa_\infty(A) \approx 4`$, y como
+$10^{-20}$ es mucho menor que $\epsilon_{\text{mach}}$, esperaríamos
+obtener $(3, -1)$, igual que en el ejemplo 1. Ahora el pivote no es
+cero, así que la eliminación procede, con coeficiente
+$1/10^{-20} = 10^{20}$:
+
+```math
+\left(\begin{array}{cc|c}
+10^{-20} & -1 & 1 \\
+0 & 1 + 10^{20} & 2 - 10^{20}
+\end{array}\right).
+```
+
+Es la situación de la unidad 06: en punto flotante,
+$1 + 10^{20} = 10^{20}$ y $2 - 10^{20} = -10^{20}$; el $1$ y el $2$ se
+pierden por completo. Nadie divide entre cero, así que la sustitución
+hacia atrás procede normalmente, pero con la matriz
+
+```math
+\left(\begin{array}{cc|c}
+10^{-20} & -1 & 1 \\
+0 & 10^{20} & -10^{20}
+\end{array}\right),
+```
+
+que da $\mathbf{x} = (0, -1)$. Completamente distinto de la respuesta
+correcta, y sin ningún aviso.
+
+### Pivoteo parcial
+
+En el ejemplo 1, si hubiéramos escrito las ecuaciones en el otro
+orden,
+
+```math
+\left(\begin{array}{cc|c}
+1 & 1 & 2 \\
+0 & -1 & 1
+\end{array}\right),
+```
+
+no habría pasado nada: la matriz ya es triangular superior. Pero
+reacomodar a mano los renglones que "se ven mal" no es un método.
+Necesitamos una regla general.
+
+En los tres ejemplos, el problema fue usar como pivote un número muy
+chico (o cero). Al eliminar, el coeficiente es $A_{ij}/A_{jj}$: si
+$A_{jj}$ es chico, el coeficiente es enorme. La regla del **pivoteo
+parcial** es: justo antes de usar el renglón $j$ como pivote, buscar en
+la **columna** $j$, del renglón $j$ para abajo, el elemento de mayor
+valor absoluto. Si está en el renglón $k$,
+
+```math
+|A_{kj}| = \max_{j \le m \le n-1} |A_{mj}|,
+```
+
+se **intercambian los renglones** $j$ y $k$ (de $A$ y de $\mathbf{b}$)
+y se elimina como siempre. (Si hay empate, se toma el primero, el $k$
+más chico.) Como ahora el pivote es el más grande de su columna, los
+coeficientes nunca pasan de 1 en valor absoluto.
+
+Ojo con los índices: el segundo índice, la columna $j$, está fijo; lo
+que recorremos son los renglones $m$, de $j$ para abajo.
+
+Intercambiar renglones es la segunda operación elemental de la
+sección "Sistemas de ecuaciones lineales". No cambia la solución,
+pero sí el signo del determinante. Se llama pivoteo *parcial* porque
+solo intercambiamos renglones; también se podrían intercambiar
+columnas. (Una advertencia de vocabulario: "pivote" es el renglón o el
+elemento con el que eliminamos, y "pivotear" es intercambiar
+renglones. Están relacionados, pero no son lo mismo.)
+
+### Implementación
+
+En [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py),
+`eliminacion_gaussiana_pivoteo` es `eliminacion_gaussiana` con un
+bloque nuevo al inicio de cada pivote:
+
+```python
+def eliminacion_gaussiana_pivoteo(A, b):
+    A = [renglon[:] for renglon in A]
+    b = b[:]
+    n = len(b)
+    for j in range(n - 1):
+        k = j
+        for m in range(j + 1, n):
+            if abs(A[m][j]) > abs(A[k][j]):
+                k = m
+        if k != j:
+            A[j], A[k] = A[k], A[j]
+            b[j], b[k] = b[k], b[j]
+        for i in range(j + 1, n):
+            coeficiente = A[i][j] / A[j][j]
+            for k_col in range(j, n):
+                A[i][k_col] -= coeficiente * A[j][k_col]
+            b[i] -= coeficiente * b[j]
+    return sustitucion_atras(A, b)
+```
+
+Algunos detalles:
+
+- Para encontrar $k$, el libro usa `numpy.argmax`. Nosotros recorremos
+  la columna con un ciclo. Como la comparación es `>` estricta, en un
+  empate se queda el primero.
+- `if k != j`: intercambiar un renglón consigo mismo no hace nada.
+- El intercambio usa la asignación múltiple de Python,
+  `A[j], A[k] = A[k], A[j]`, sin variable temporal. Con listas de
+  listas esto intercambia los renglones completos de un golpe: lo que
+  se intercambia son las referencias a las dos sublistas. (El libro
+  tiene que escribir `A[j,:].copy()`, porque con NumPy un pedazo de un
+  arreglo es una *vista* del original, y sin la copia se sobreescribe
+  en vez de intercambiar. Con listas no hay ese problema.)
+- El ciclo interno usa `k_col` en vez de `k` para no confundirlo con el
+  renglón `k` del pivoteo.
+
+`pivoteo.py` resuelve los tres ejemplos: sin pivoteo, los dos primeros
+levantan `ZeroDivisionError` y el tercero da $(0, -1)$; con pivoteo,
+los tres dan la respuesta correcta. Con la matriz de prueba del libro,
+en cambio, los dos métodos pierden unos 8 dígitos. Ahí el problema es
+$\kappa(A)$, y eso no lo arregla ningún método. En el libro, el
+pivoteo acerca el resultado al de `numpy.linalg.solve`, que también
+pivotea; con nuestra matriz de $4\times 4$ las diferencias son solo de
+redondeo.
+
+**Para pensar.**
+
+1. Agreguen pivoteo parcial a `descomposicion_lu` (problema 4.16 del
+   libro). La LU no modifica $\mathbf{b}$, así que hay que guardar qué
+   renglones se intercambiaron, para luego intercambiar igual los
+   elementos de $\mathbf{b}$ antes de las sustituciones.
+2. Con pivoteo, `determinante` tiene que cambiar el signo en cada
+   intercambio. ¿Cómo lo modificarían?
+3. En vez de intercambiar físicamente los renglones, se puede dejar la
+   matriz como está y llevar la cuenta del orden en que se usaron los
+   renglones como pivote. Al final queda una triangular "revuelta".
+   Es más eficiente, pero requiere más contabilidad.
+
+### Más allá del pivoteo parcial
+
+El pivoteo parcial no siempre basta. Tomen el ejemplo 3 y multipliquen
+el segundo renglón por $10^{-20}$:
+
+```math
+\left(\begin{array}{cc|c}
+10^{-20} & -1 & 1 \\
+10^{-20} & 10^{-20} & 2\times 10^{-20}
+\end{array}\right).
+```
+
+Son exactamente las mismas ecuaciones, así que la respuesta debería
+ser la misma. Pero ahora los dos candidatos a pivote tienen la misma
+magnitud, no hay intercambio, y volvemos a obtener $(0, -1)$. El libro
+reporta que `numpy.linalg.solve` también falla aquí.
+
+El remedio es el **pivoteo parcial escalado**: elegir el pivote con el
+mayor tamaño *relativo* a su propio renglón. Para cada renglón $i$ se
+define un factor de escala, su elemento más grande,
+
+```math
+s_i = \max_{0 \le j \le n-1} |A_{ij}|,
+```
+
+y se busca el $k$ más chico tal que
+
+```math
+\frac{|A_{kj}|}{s_k} = \max_{j \le m \le n-1} \frac{|A_{mj}|}{s_m}.
+```
+
+En el ejemplo, el primer renglón tiene $s_0 = 1$ y razón $10^{-20}$, y
+el segundo $s_1 = 10^{-20}$ y razón $1$: sí se intercambian.
+Implementarlo es el problema 4.15 del libro.
+
+Ni siquiera el pivoteo escalado garantiza estabilidad. Lo que sí la
+garantiza es el **pivoteo completo**, que intercambia renglones y
+columnas, pero es más caro, y en la práctica el pivoteo parcial
+(escalado o no) casi nunca falla. Por eso la mayoría de las
+bibliotecas no lo implementan.
+
+**Cuándo no hace falta pivotear.** La eliminación gaussiana funciona
+sin pivoteo para matrices simétricas positivas definidas y para
+matrices **diagonalmente dominantes**: aquellas en las que, en cada
+renglón, el elemento de la diagonal es al menos tan grande, en valor
+absoluto, como la suma de los demás,
+
+```math
+|A_{ii}| \ge \sum_{j \ne i} |A_{ij}|, \qquad i = 0, 1, \ldots, n-1.
+```
+
+Por ejemplo, el ejemplo $3\times 3$ de la sección "Eliminación
+gaussiana" con el segundo y tercer renglón intercambiados:
+
+```math
+\left(\begin{array}{ccc|c}
+2 & 1 & 1 & 8 \\
+5 & 10 & 5 & 10 \\
+1 & 1 & -2 & -2
+\end{array}\right).
+```
+
+Con ella, `eliminacion_gaussiana_pivoteo` no intercambia nada y da
+exactamente el mismo resultado que `eliminacion_gaussiana`.
+
+¿Por qué querríamos evitar el pivoteo? Porque buscar el máximo e
+intercambiar renglones cuesta, y porque el intercambio destruye
+estructuras útiles: una matriz simétrica o de banda (con ceros lejos
+de la diagonal) deja de serlo, y los métodos especializados para esas
+estructuras ya no se pueden usar.
+
+## Método iterativo de Jacobi
+
+Todos los métodos que hemos visto son **directos**: hacen un número
+fijo de operaciones, conocido de antemano. Los métodos **iterativos**
+(o *de relajación*) parten de una propuesta de solución y la mejoran
+una y otra vez hasta que deja de cambiar. Cuántas iteraciones hacen
+falta depende de la matriz, del método, de la propuesta inicial y del
+criterio de convergencia; y a veces no convergen nunca.
+
+Por eso, en general, son más lentos que los directos. Su ventaja
+aparece con matrices **ralas**, con casi todos sus elementos iguales a
+cero, que son justo las que aparecen al resolver ecuaciones
+diferenciales parciales (capítulo 8). Además, se *autocorrigen*: cada
+iteración no arrastra el error de redondeo de la anterior. Aquí vemos
+el más sencillo, el **método de Jacobi**; es también un primer
+contacto con la idea de iterar hasta converger, que reaparecerá en los
+eigenvalores y en la búsqueda de raíces.
+
+### El algoritmo
+
+Escribamos $A\mathbf{x} = \mathbf{b}$ con índices y despejemos la
+componente $x_i$, la que multiplica al elemento de la diagonal $A_{ii}$:
+
+```math
+x_i = \frac{1}{A_{ii}}\left(b_i - \sum_{j=0}^{i-1} A_{ij}x_j - \sum_{j=i+1}^{n-1} A_{ij}x_j\right),
+\qquad i = 0, 1, \ldots, n-1.
+```
+
+Se parece a las fórmulas de las sustituciones hacia adelante y hacia
+atrás, pero hay una diferencia esencial: allá, al calcular $x_i$, ya
+conocíamos los $x_j$ que aparecen a la derecha. Aquí no conocemos
+ninguno.
+
+Jacobi lo resuelve así: se propone un vector inicial
+$\mathbf{x}^{(0)}$ (el superíndice entre paréntesis es el número de
+iteración), se mete del lado derecho, y sale una propuesta mejorada
+$\mathbf{x}^{(1)}$. Esa se vuelve a meter, y así sucesivamente. En la
+iteración $k$:
+
+```math
+x_i^{(k)} = \frac{1}{A_{ii}}\left(b_i - \sum_{j=0}^{i-1} A_{ij}x_j^{(k-1)} - \sum_{j=i+1}^{n-1} A_{ij}x_j^{(k-1)}\right),
+\qquad i = 0, 1, \ldots, n-1.
+```
+
+Todas las componentes nuevas se calculan con el vector **anterior**
+completo.
+
+**¿Cuándo parar?** No conocemos la solución exacta, así que no podemos
+calcular el error. Lo que sí podemos medir es cuánto cambia cada
+componente de una iteración a la siguiente. Como en capítulos
+anteriores, usamos un cambio *relativo*, sumado sobre las componentes:
+paramos cuando
+
+```math
+\sum_{i=0}^{n-1}\left|\frac{x_i^{(k)} - x_i^{(k-1)}}{x_i^{(k)}}\right| \le \epsilon,
+```
+
+con $\epsilon$ una tolerancia que escogemos. Dividimos entre
+$x_i^{(k)}$ y no entre $x_i^{(k-1)}$ porque es nuestra mejor
+estimación hasta el momento, y porque es común empezar con
+$\mathbf{x}^{(0)} = \mathbf{0}$, que haría dividir entre cero en la
+primera iteración. (Hay otras opciones razonables, como el cambio
+máximo o la suma en cuadratura. Un criterio más sistemático usa el
+residuo de la sección "Análisis de error":
+$`\|\mathbf{b} - A\mathbf{x}^{(k)}\| \le \epsilon\left(\|A\|\,\|\mathbf{x}^{(k)}\| + \|\mathbf{b}\|\right)`$,
+que mide directamente qué tan bien se cumple $A\mathbf{x} = \mathbf{b}$.)
+
+**¿Converge?** No siempre, aunque la propuesta inicial sea buena. Una
+condición **suficiente** es que $A$ sea diagonalmente dominante: así
+converge para cualquier $\mathbf{x}^{(0)}$ (problema 4.20 del libro).
+Un sistema que no lo es a veces se vuelve dominante reacomodando las
+ecuaciones; y algunos sistemas que no lo son convergen de todos modos
+con ciertas propuestas iniciales.
+
+### Implementación
+
+En [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py), una
+iteración, el criterio de paro y el método completo van en tres
+funciones:
+
+```python
+def paso_jacobi(A, b, x):
+    n = len(b)
+    x_nuevo = []
+    for i in range(n):
+        suma = 0.0
+        for j in range(n):
+            if j != i:
+                suma += A[i][j] * x[j]
+        x_nuevo.append((b[i] - suma) / A[i][i])
+    return x_nuevo
+
+
+def cambio_relativo(x_viejo, x_nuevo):
+    return sum(abs((xn - xv) / xn) for xv, xn in zip(x_viejo, x_nuevo))
+
+
+def jacobi(A, b, kmax=50, tol=1e-6):
+    x = [0.0] * len(b)
+    for k in range(1, kmax):
+        x_nuevo = paso_jacobi(A, b, x)
+        error = cambio_relativo(x, x_nuevo)
+        x = x_nuevo
+        if error < tol:
+            break
+    else:
+        return None, kmax
+    return x, k
+```
+
+Algunos detalles:
+
+- `paso_jacobi` junta las dos sumas de la fórmula en una sola,
+  saltándose $j = i$. El libro las escribe por separado con NumPy.
+- `paso_jacobi` construye una lista **nueva** y no toca `x`. Si fuéramos
+  modificando `x` en su lugar, al calcular $x_i$ ya estaríamos usando
+  algunos valores nuevos (eso es otro método, Gauss-Seidel). Y si
+  escribiéramos `x_viejo = x` creyendo que es una copia, los dos nombres
+  apuntarían a la misma lista, el cambio relativo daría siempre cero,
+  y el método "convergería" en la primera iteración. El libro insiste
+  en este punto: hay que usar `np.copy`.
+- `jacobi` usa una construcción de Python que no habíamos visto: un
+  `for` con `else`. El bloque `else` de un ciclo se ejecuta solo si
+  el ciclo termina **sin** pasar por un `break`. Aquí eso quiere decir
+  que se acabaron las iteraciones sin converger, y en ese caso la
+  función regresa `(None, kmax)`. Si converge, el `break` se salta el
+  `else` y la función regresa la solución y el número de iteraciones.
+
+`jacobi.py` lo prueba con la matriz de prueba del libro más $21I$ (que
+la vuelve diagonalmente dominante): converge en 33 iteraciones, "unas
+tres docenas" como dice el libro, y coincide con la eliminación
+gaussiana en unos 7 dígitos, lo que permite la tolerancia de
+$10^{-6}$. Con la matriz original, que no es dominante, las
+componentes crecen en cada iteración y `jacobi` regresa `None`.
+
+**Costo.** Cada iteración cuesta unas $2n^2$ operaciones, contra
+$`\sim 2n^3/3`$ de la eliminación gaussiana. Si el número de
+iteraciones no crece mucho con $n$, Jacobi gana para $n$ grande.
+`jacobi.py` lo mide con una matriz tridiagonal (diagonal $4$, vecinas
+$-1$): siempre unas 40 iteraciones, y para $n = 400$ Jacobi ya es
+unas 3 veces más rápido. Si además no guardáramos los ceros, cada
+iteración costaría solo unas $5n$ operaciones.
+
+**Para pensar.** El método de **Gauss-Seidel** cambia un solo detalle:
+al calcular $x_i^{(k)}$, usa los valores *nuevos*
+$x_0^{(k)}, \ldots, x_{i-1}^{(k)}$, que ya se calcularon en esta misma
+iteración, en vez de los viejos. Impleméntenlo (problema 4.19 del
+libro) y comparen cuántas iteraciones necesita con la matriz de prueba
+más $21I$.
+
 ## Contenido
 - [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py):
   producto matriz-vector (`mat_vec`), residuo, normas de vectores y de
   matrices, partes triangulares de una matriz, las sustituciones
-  hacia adelante y hacia atrás, eliminación gaussiana
-  (`eliminacion_gaussiana`), descomposición LU (`descomposicion_lu`,
-  `resolver_lu`) y la matriz de prueba del libro (`crear_prueba`).
+  hacia adelante y hacia atrás, eliminación gaussiana sin y con
+  pivoteo (`eliminacion_gaussiana`, `eliminacion_gaussiana_pivoteo`),
+  descomposición LU (`descomposicion_lu`, `resolver_lu`), la inversa y
+  el determinante (`inversa`, `determinante`), el método de Jacobi
+  (`paso_jacobi`, `cambio_relativo`, `jacobi`) y la matriz de prueba
+  del libro (`crear_prueba`).
   Todo con listas de listas, sin NumPy. Aquí se irá acumulando el
   resto del tema.
 - [`analisis_de_error.py`](analisis_de_error.py): el ejemplo de Kahan
   completo (sección "Análisis de error"): residuo diminuto con una
   solución totalmente equivocada; el cambio drástico de la solución al
   perturbar un solo elemento; por qué el determinante no sirve como
-  criterio (con $D = 0.1\,I$); el número de condición $\kappa(A)$ con
+  criterio (con $`D = 0.1\,I`$); el número de condición $\kappa(A)$ con
   las normas infinito y de Frobenius, y la comprobación de la cota
-  $\|\Delta\mathbf{x}\|/\|\mathbf{x}\| \le \kappa(A)\,\|\Delta A\|/\|A\|$.
-  Como aún no tenemos un método general, todo es $2\times 2$ y se
-  resuelve con la regla de Cramer.
+  $`\|\Delta\mathbf{x}\|/\|\mathbf{x}\| \le \kappa(A)\,\|\Delta A\|/\|A\|`$.
+  Se escribió antes de tener un método general, así que todo es
+  $2\times 2$ y se resuelve con la regla de Cramer; con LU, el número
+  de condición ya se calcula para cualquier $n$ (ver
+  `eliminacion_gaussiana_lu.py`).
 - [`condicion_eigenvalores.py`](condicion_eigenvalores.py): el número
   de condición $\kappa^{ev}$ de los eigenvalores de una matriz no
   simétrica contra una simétrica, comparado con el cambio real al
@@ -1316,10 +1815,20 @@ gaussiana solo una.
 - [`eliminacion_gaussiana_lu.py`](eliminacion_gaussiana_lu.py): el
   ejemplo $3\times 3$ paso a paso (imprime la matriz aumentada después
   de cada operación), su $L$ y su $U$ con la comprobación $LU = A$, el
-  sistema de prueba del libro resuelto con los dos métodos, la inversa
-  y $\kappa(A)$ con LU, el conteo de operaciones contra las fórmulas,
-  el tiempo de resolver muchos sistemas con la misma $A$, y qué pasa
-  con un pivote cero.
+  sistema de prueba del libro resuelto con los dos métodos, la
+  inversa, $\kappa(A)$ y el determinante con LU, el conteo de
+  operaciones contra las fórmulas, el tiempo de resolver muchos
+  sistemas con la misma $A$, y qué pasa con un pivote cero.
+- [`pivoteo.py`](pivoteo.py): los tres ejemplos del libro de
+  inestabilidad sin mal condicionamiento (un cero en el primer pivote,
+  uno escondido y un pivote diminuto), resueltos sin y con pivoteo
+  parcial; la matriz de prueba con los dos métodos; el caso en el que
+  el pivoteo parcial no basta; y una matriz diagonalmente dominante,
+  con la que el pivoteo no intercambia nada.
+- [`jacobi.py`](jacobi.py): el método de Jacobi iteración por
+  iteración con la matriz de prueba más $21I$, comparado con
+  eliminación gaussiana; lo que pasa sin dominancia diagonal; y el
+  tiempo contra la eliminación gaussiana con una matriz tridiagonal.
 
 Se corren desde la raíz del repositorio (con el `.venv` activado), por
 ejemplo `python3 unidades/09_algebra_lineal/triangulares.py`.

@@ -11,9 +11,10 @@ números, lo que ahí se discute:
 4. El número de condición kappa(A) = ||A|| ||A^-1|| sí lo detecta, y
    la cota ||dx||/||x|| <= kappa(A) ||dA||/||A|| se cumple.
 
-Como todavía no tenemos un método general para invertir matrices ni
-resolver sistemas (eso viene en las siguientes clases), aquí todo es
-2x2 y se resuelve con fórmulas cerradas (regla de Cramer).
+Este script va antes de la eliminación gaussiana y LU en las notas,
+así que todo es 2x2 y se resuelve con fórmulas cerradas (regla de
+Cramer). Con LU, la inversa y kappa(A) de una matriz de cualquier
+tamaño están en eliminacion_gaussiana_lu.py.
 """
 
 from fiscomp.matrices import Matrix

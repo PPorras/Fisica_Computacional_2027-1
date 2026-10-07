@@ -11,8 +11,8 @@ viven en fiscomp/algebra_lineal.py. Este script:
 3. Resuelve el sistema de prueba del libro (crear_prueba) con los dos
    métodos y compara: residuo y sistema con solución conocida.
 4. Calcula la inversa de A con LU (n sistemas con la misma A) y con
-   ella el número de condición kappa(A): explica por qué en el punto 3
-   se pierden dígitos.
+   ella el número de condición kappa(A), que explica por qué en el
+   punto 3 se pierden dígitos; y el determinante con LU.
 5. Cuenta las operaciones de la eliminación y de la descomposición LU
    y las compara contra las fórmulas de las notas.
 6. Mide el tiempo de resolver muchos sistemas con la misma A: con
@@ -33,6 +33,8 @@ from fiscomp.algebra_lineal import (
     eliminacion_gaussiana,
     descomposicion_lu,
     resolver_lu,
+    inversa,
+    determinante,
     crear_prueba,
 )
 
@@ -118,17 +120,10 @@ print(f"Error relativo máximo = {max(errores):.2e}")
 # 4. La inversa con LU y el número de condición
 ###############################################
 
-print("\n--- 4. Inversa y número de condición ---")
-# La columna k de A^-1 resuelve A x = e_k (e_k: columna k de la
-# identidad). Son n sistemas con la misma A: una sola LU y n pares de
-# sustituciones.
-n = len(A)
-columnas = []
-for k in range(n):
-    e_k = [1.0 if i == k else 0.0 for i in range(n)]
-    columnas.append(resolver_lu(L, U, e_k))
-A_inv = Matrix(columnas).transpose().data
-
+print("\n--- 4. Inversa, número de condición y determinante ---")
+# inversa() resuelve A x_k = e_k (e_k: columna k de la identidad) para
+# cada k: n sistemas con la misma A, una sola LU (ver notas.md).
+A_inv = inversa(A)
 print("A^-1 A (debe ser la identidad):")
 for renglon in (Matrix(A_inv) * Matrix(A)).data:
     print("  " + " ".join(f"{a:10.2e}" for a in renglon))
@@ -136,6 +131,8 @@ kappa = norma_infinito(A) * norma_infinito(A_inv)
 print(f"kappa(A) = ||A||_inf ||A^-1||_inf = {kappa:.2e}")
 print("Se pueden perder hasta log10(kappa) dígitos de los ~16 de un float:")
 print("es una propiedad de A, no un defecto del método.")
+print(f"det(A) = producto de la diagonal de U = {determinante(A):.3e}")
+print(f"det del ejemplo 3x3 = {determinante(A_ejemplo)} (2 * 0.5 * 40)")
 
 ###############################################
 # 5. Conteo de operaciones
@@ -219,11 +216,12 @@ print(f"Predicción con flops: m (2n^3/3) / (2n^3/3 + 2 m n^2) = "
 ###############################################
 
 print("\n--- 7. Un cero en la diagonal ---")
-A = [[0.0, 1.0], [1.0, 1.0]]
+A = [[0.0, -1.0], [1.0, 1.0]]
 b = [1.0, 2.0]
-print("A = [[0, 1], [1, 1]], b = [1, 2]; la solución es x = [1, 1] y det(A) = -1.")
+print("A = [[0, -1], [1, 1]], b = [1, 2]; la solución es x = [3, -1] y det(A) = 1.")
 try:
     eliminacion_gaussiana(A, b)
 except ZeroDivisionError as error:
     print(f"eliminacion_gaussiana falla: ZeroDivisionError ({error}).")
-    print("La matriz no es singular: solo hay que intercambiar los renglones (pivoteo).")
+    print("La matriz no es singular: solo hay que intercambiar los renglones")
+    print("(pivoteo; ver pivoteo.py).")
