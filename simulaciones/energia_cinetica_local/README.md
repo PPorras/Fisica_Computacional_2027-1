@@ -14,15 +14,15 @@ eigenvalores, $\hat{H}\psi = E\psi$, con $\hat{H} = \hat{T} + \hat{V}$
 (energía cinética más potencial). En una dimensión, la energía cinética
 es una segunda derivada:
 
-$$
+```math
 \hat{T}\psi = -\frac{\hbar^2}{2m}\frac{d^2\psi}{dx^2}.
-$$
+```
 
 La **energía cinética local** se define como
 
-$$
+```math
 T_L(x) = \frac{\hat{T}\psi(x)}{\psi(x)} = -\frac{\hbar^2}{2m}\frac{\psi''(x)}{\psi(x)}.
-$$
+```
 
 No es el valor esperado de la energía cinética: es su valor en cada
 punto $x$, así que en general depende de $x$. La normalización de
@@ -41,25 +41,25 @@ $E_n = (n + \tfrac{1}{2})\hbar\omega$, con $n = 0, 1, 2, \dots$ (la
 energía del estado base no es cero: es la energía de punto cero). Las
 eigenfunciones normalizadas son
 
-$$
+```math
 \psi_n(x) = \frac{1}{\sqrt{2^n n!}}\left(\frac{m\omega}{\pi\hbar}\right)^{1/4}
 H_n\!\left(\sqrt{\frac{m\omega}{\hbar}}\,x\right)e^{-m\omega x^2/(2\hbar)},
-$$
+```
 
 donde $H_n$ son los polinomios de Hermite. Se calculan con la relación
 de recurrencia
 
-$$
+```math
 H_{j+1}(x) = 2xH_j(x) - 2jH_{j-1}(x),
 \qquad H_0(x) = 1,\quad H_1(x) = 2x.
-$$
+```
 
 Como $\hat{T}\psi + \hat{V}\psi = E\psi$, la energía cinética local
 exacta es
 
-$$
+```math
 T_L(x) = E_n - V(x) = \left(n + \tfrac{1}{2}\right)\hbar\omega - \tfrac{1}{2}m\omega^2x^2.
-$$
+```
 
 Para $|x|$ suficientemente grande, $T_L < 0$: la partícula cuántica
 puede estar en la región **clásicamente prohibida**, algo imposible en
@@ -69,9 +69,9 @@ mecánica clásica.
 $x_0$ pasa más tiempo cerca de los puntos de retorno $\pm x_0$, donde
 es más lento. Su densidad de probabilidad es
 
-$$
+```math
 P_c(x) = \frac{1}{\pi\sqrt{x_0^2 - x^2}}, \qquad |x| < x_0.
-$$
+```
 
 Igualando su energía $\tfrac{1}{2}m\omega^2x_0^2$ con $E_n$ se obtiene
 $x_0 = \sqrt{(2n+1)\hbar/(m\omega)}$. Para $n$ grande, la densidad
@@ -84,16 +84,16 @@ Una partícula libre ($V = 0$) en una caja de longitud $L$, de
 $-L/2$ a $L/2$, con condiciones periódicas: $\psi(x + L) = \psi(x)$.
 Las eigenfunciones son ondas planas,
 
-$$
+```math
 \psi_k(x) = \frac{1}{\sqrt{L}}e^{ikx}, \qquad k = \frac{2\pi}{L}n,
 \quad n = 0, \pm1, \pm2, \dots
-$$
+```
 
 y la energía, que aquí es toda cinética y no depende de $x$, es
 
-$$
+```math
 E = \frac{\hbar^2k^2}{2m} = \frac{\hbar^2}{2m}\left(\frac{2\pi}{L}\right)^2n^2.
-$$
+```
 
 ## La programación: una interfaz común
 
@@ -116,9 +116,9 @@ el diccionario tal cual a `psi`.
 La segunda derivada se calcula con `diff2_central` (de
 `fiscomp/derivadas.py`), la diferencia central de la unidad 08:
 
-$$
+```math
 \psi''(x) \approx \frac{4\left[\psi(x+h/2) + \psi(x-h/2) - 2\psi(x)\right]}{h^2}.
-$$
+```
 
 `diff2_central` recibe una función de una sola variable, `f(x)`, pero
 nuestras funciones de onda reciben también `parametros`. Por eso
@@ -175,6 +175,6 @@ hasta que el redondeo lo alcanza.
    eigenfunción, $T_L + V$ es la constante $E_n$ en todo $x$.)
 5. **Una función de onda nueva.** Escriban otra función con la misma
    interfaz; por ejemplo, la de una partícula en una caja con paredes
-   infinitas, $\psi_n(x) = \sqrt{2/L}\,\sin(n\pi x/L)$ para
+   infinitas, $`\psi_n(x) = \sqrt{2/L}\,\sin(n\pi x/L)`$ para
    $0 < x < L$. Úsenla con `energia_cinetica_local` sin modificar esa
    función.

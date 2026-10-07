@@ -19,7 +19,7 @@
 ## Definiciones
 
 Un **intervalo** $X = [a, b]$, con $a \le b$, representa el conjunto
-de reales $\{x \in \mathbb{R} : a \le x \le b\}$. La **aritmética de
+de reales $`\{x \in \mathbb{R} : a \le x \le b\}`$. La **aritmética de
 intervalos** extiende las operaciones aritméticas a intervalos, de
 forma que el resultado siempre contenga todos los resultados posibles
 de operar cualquier par de reales tomados de los intervalos
@@ -27,22 +27,22 @@ originales.
 
 Para $X = [a,b]$ y $Y = [c,d]$:
 
-$$
+```math
 X + Y = [a+c,\; b+d]
-$$
+```
 
-$$
+```math
 X - Y = [a-d,\; b-c]
-$$
+```
 
-$$
+```math
 X \times Y = [\min(ac,ad,bc,bd),\; \max(ac,ad,bc,bd)]
-$$
+```
 
-$$
+```math
 X \div Y = X \times \left[\tfrac{1}{d}, \tfrac{1}{c}\right],
 \qquad \text{si } 0 \notin Y
-$$
+```
 
 (la división no está definida si $0 \in Y$, porque $1/y$ no está
 acotado cerca de $y=0$).
@@ -66,9 +66,9 @@ vez en una expresión, la aritmética de intervalos la trata como si
 fueran variables *independientes* en cada aparición. Por ejemplo, con
 $X = [1,2]$:
 
-$$
+```math
 X - X = [1,2] - [1,2] = [1-2,\; 2-1] = [-1, 1] \neq [0,0].
-$$
+```
 
 Por eso, la misma función matemática puede dar cotas más anchas de lo
 necesario según cómo esté escrita la expresión (p. ej. $X^2$ da una

@@ -131,7 +131,7 @@ Hay un script de pruebas en
 exista, que tenga el formato de columnas esperado, y que el error de
 `diff_central` sea consistentemente más chico que el de
 `diff_forward` para `h` grande — una consecuencia directa de que
-`diff_central` esté bien implementada ($O(h^2) < O(h)$), no un juicio
+`diff_central` esté bien implementada ($`O(h^2) < O(h)`$), no un juicio
 de estilo. Córranlo desde la raíz del repositorio:
 
 ```bash

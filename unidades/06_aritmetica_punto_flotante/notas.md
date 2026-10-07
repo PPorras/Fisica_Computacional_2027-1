@@ -16,21 +16,21 @@ Un sistema de punto flotante queda determinado por:
 Por definición, cualquier número $x$ en el sistema de punto flotante se
 representa como
 
-$$
+```math
 x = \pm\left(d_0 + \frac{d_1}{\beta} + \frac{d_2}{\beta^2} + \cdots + \frac{d_{t-1}}{\beta^{t-1}}\right)\beta^e,
-$$
+```
 
 donde
 
-$$
+```math
 0 \le d_i \le \beta - 1, \qquad i = 0, \dots, t-1,
-$$
+```
 
 y
 
-$$
+```math
 L \le e \le U.
-$$
+```
 
 ### Normalización
 
@@ -39,9 +39,9 @@ $d_0$ siempre es distinto de cero (a menos que el número representado
 sea el cero). Así, en un sistema normalizado, la mantisa $m$ de un
 número de punto flotante distinto de cero siempre satisface
 
-$$
+```math
 1 \le m < \beta.
-$$
+```
 
 (Una convención alternativa es que $d_0$ siempre sea cero, en cuyo
 caso un número de punto flotante está normalizado si $d_1 \neq 0$, y
@@ -63,9 +63,9 @@ Un sistema de números de punto flotante es **finito y discreto**.
 **Número de elementos.** El número de números de punto flotante
 normalizados es
 
-$$
+```math
 2(\beta - 1)\,\beta^{t-1}\,(U - L + 1) + 1,
-$$
+```
 
 porque hay dos posibles signos, $\beta - 1$ opciones para el dígito
 líder de la mantisa, $\beta$ opciones para cada uno de los $t - 1$
@@ -75,17 +75,17 @@ ser cero.
 
 Existe un menor número positivo normalizado,
 
-$$
+```math
 \text{Underflow level} = \text{UFL} = \beta^{L},
-$$
+```
 
 que tiene un 1 como dígito líder y 0 en el resto de los dígitos de la
 mantisa, junto con el menor valor posible del exponente. Existe un
 mayor número de punto flotante,
 
-$$
+```math
 \text{Overflow level} = \text{OFL} = \beta^{U+1}(1 - \beta^{-t}),
-$$
+```
 
 que tiene $\beta - 1$ como valor de cada dígito de la mantisa y el
 mayor valor posible del exponente. Cualquier número mayor que OFL no
@@ -96,34 +96,34 @@ ningún número positivo menor que UFL.
 la mayor mantisa posible ($d_i = \beta - 1$ para todo $i$) y el mayor
 exponente posible ($e = U$). La mantisa máxima es
 
-$$
+```math
 m_{\max} = (\beta - 1) + \frac{\beta - 1}{\beta} + \frac{\beta - 1}{\beta^2} + \cdots + \frac{\beta - 1}{\beta^{t-1}}
 = (\beta - 1) \sum_{i=0}^{t-1} \beta^{-i}.
-$$
+```
 
 La suma geométrica vale
 
-$$
+```math
 \sum_{i=0}^{t-1} \beta^{-i} = \frac{1 - \beta^{-t}}{1 - \beta^{-1}} = \frac{\beta}{\beta - 1}\left(1 - \beta^{-t}\right),
-$$
+```
 
 así que
 
-$$
+```math
 m_{\max} = (\beta - 1) \cdot \frac{\beta}{\beta - 1}\left(1 - \beta^{-t}\right) = \beta\left(1 - \beta^{-t}\right).
-$$
+```
 
 Multiplicando por $\beta^{U}$ (el mayor factor de escala) se obtiene
 
-$$
+```math
 \text{OFL} = m_{\max} \cdot \beta^{U} = \beta^{U+1}\left(1 - \beta^{-t}\right).
-$$
+```
 
-*Ejemplo (doble precisión IEEE 754, $\beta = 2$, $t = 53$, $U = 1023$):*
+*Ejemplo (doble precisión IEEE 754, $`\beta = 2`$, $`t = 53`$, $`U = 1023`$):*
 
-$$
+```math
 \text{OFL} = 2^{1024}\left(1 - 2^{-53}\right) \approx 1.7977 \times 10^{308},
-$$
+```
 
 que coincide con el valor máximo representable de un `float` de Python
 (`sys.float_info.max`).
@@ -194,30 +194,30 @@ precision** o **machine epsilon**, que denotamos $\epsilon_{\text{mach}}$.
 Su valor depende de la regla de redondeo usada. Con redondeo por
 truncamiento (chop),
 
-$$
+```math
 \epsilon_{\text{mach}} = \beta^{1-t},
-$$
+```
 
 mientras que con redondeo al más cercano (round to nearest),
 
-$$
+```math
 \epsilon_{\text{mach}} = \tfrac{1}{2}\beta^{1-t}.
-$$
+```
 
 El unit roundoff es importante porque determina el máximo error
 relativo posible al representar un número real $x$ distinto de cero en
 un sistema de punto flotante:
 
-$$
+```math
 \left|\frac{fl(x) - x}{x}\right| \le \epsilon_{\text{mach}}.
-$$
+```
 
 Una caracterización alternativa del unit roundoff, que a veces se ve,
 es que es el número $\epsilon$ más pequeño tal que
 
-$$
+```math
 fl(1 + \epsilon) > 1,
-$$
+```
 
 aunque esto no es del todo equivalente a la definición anterior si se
 usa la regla de redondeo al par. Otra definición que a veces se usa es
@@ -245,9 +245,9 @@ sistema de punto flotante, mientras que el underflow level UFL está
 determinado por el número de dígitos del campo del exponente. En todo
 sistema de punto flotante práctico,
 
-$$
+```math
 0 < \text{UFL} < \epsilon_{\text{mach}} < \text{OFL}.
-$$
+```
 
 En Python, `sys.float_info.epsilon` da el valor de
 $\epsilon_{\text{mach}}$ con redondeo al más cercano en doble
@@ -260,27 +260,27 @@ expone en [`fiscomp.precision_numerica.EPS`](../../fiscomp/precision_numerica.py
 Tomemos $x$ normalizado, positivo y con exponente $e$ (es decir,
 $1 \le m < \beta$, así que $\beta^e \le x < \beta^{e+1}$):
 
-$$
+```math
 x = \left(d_0 + \frac{d_1}{\beta} + \cdots + \frac{d_{t-1}}{\beta^{t-1}} + \frac{d_t}{\beta^t} + \cdots\right)\beta^e.
-$$
+```
 
 **Truncamiento (chop).** $fl(x)$ conserva solo los primeros $t$
 dígitos ($d_0, \dots, d_{t-1}$) y descarta el resto. El error absoluto
 es lo que queda descartado:
 
-$$
+```math
 |x - fl(x)| = \left(\frac{d_t}{\beta^t} + \frac{d_{t+1}}{\beta^{t+1}} + \cdots\right)\beta^e
 \le (\beta - 1)\sum_{i=t}^{\infty}\beta^{-i}\,\beta^e = \beta^{1-t}\,\beta^e.
-$$
+```
 
 (la suma geométrica $\sum_{i=t}^{\infty}\beta^{-i} = \beta^{1-t}/(\beta-1)$
 es la misma cuenta que usamos para OFL, pero sumando desde $i=t$ en
 vez de hasta $t-1$). Como $x \ge \beta^e$ por ser normalizado, el
 error relativo queda acotado por
 
-$$
+```math
 \frac{|x - fl(x)|}{x} \le \frac{\beta^{1-t}\,\beta^e}{\beta^e} = \beta^{1-t} = \epsilon_{\text{mach}}.
-$$
+```
 
 **Redondeo al más cercano.** $\beta^{1-t}\beta^e$ es exactamente el
 tamaño del "hueco" entre dos números de punto flotante consecutivos
@@ -289,11 +289,11 @@ $d_{t-1}$). Redondear a la nearest solo puede acercarse, en el peor
 caso, hasta la **mitad** de ese hueco (si $x$ cayera más lejos, ya
 habría un flotante todavía más cercano). Entonces
 
-$$
+```math
 |x - fl(x)| \le \tfrac{1}{2}\,\beta^{1-t}\,\beta^e
 \quad\Longrightarrow\quad
 \frac{|x - fl(x)|}{x} \le \tfrac{1}{2}\beta^{1-t} = \epsilon_{\text{mach}}.
-$$
+```
 
 El factor $\tfrac{1}{2}$ es exactamente lo que diferencia las dos
 fórmulas: redondear al más cercano nunca comete más de la mitad del
@@ -313,11 +313,11 @@ la mantisa).
 
 **Verificación con el sistema de juguete** ($\beta = 2$, $t = 3$):
 
-$$
+```math
 \epsilon_{\text{mach}}^{\text{chop}} = 2^{1-3} = 2^{-2} = 0.25,
 \qquad
 \epsilon_{\text{mach}}^{\text{nearest}} = \tfrac{1}{2}\cdot 2^{-2} = 2^{-3} = 0.125,
-$$
+```
 
 que son justo los valores mencionados arriba.
 
@@ -329,9 +329,9 @@ $\epsilon_{\text{mach}}$. Al sumar $n$ términos uno tras otro (suma
 naive, "corriendo" un acumulador), esos errores se van arrastrando:
 el resultado calculado $\hat{s}_n$ satisface, en el peor caso,
 
-$$
+```math
 |\hat{s}_n - s_n| \lesssim (n - 1)\,\epsilon_{\text{mach}} \sum_{i=1}^{n} |x_i|.
-$$
+```
 
 Es decir, el error **crece con $n$**: no es que cada suma individual
 sea muy imprecisa (cada una comete a lo más $\epsilon_{\text{mach}}$

@@ -66,9 +66,9 @@ completen `__mul__`, `escalar * matriz` va a funcionar igual que
 que usamos con `VectorND` en la unidad 07).
 
 **Pista para probar la multiplicación matricial a mano:** con
-$A = \begin{pmatrix}1&2\\3&4\end{pmatrix}$ y
-$B = \begin{pmatrix}5&6\\7&8\end{pmatrix}$,
-$A \times B = \begin{pmatrix}19&22\\43&50\end{pmatrix}$.
+$`A = \begin{pmatrix}1&2\\3&4\end{pmatrix}`$ y
+$`B = \begin{pmatrix}5&6\\7&8\end{pmatrix}`$,
+$`A \times B = \begin{pmatrix}19&22\\43&50\end{pmatrix}`$.
 
 ### Manejo de errores — resumen
 

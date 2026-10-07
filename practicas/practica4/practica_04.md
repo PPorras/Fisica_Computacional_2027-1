@@ -28,7 +28,8 @@ Al final, medimos cuánto cuesta cada operación.
 
 No borren `sustitucion_adelante` ni `sustitucion_atras`: las usa
 [`triangulares.py`](../../unidades/09_algebra_lineal/triangulares.py)
-y las vamos a reutilizar en eliminación gaussiana. Lo que escriban en
+y las reutilizan `eliminacion_gaussiana` y `resolver_lu`, en el mismo
+archivo. Lo que escriban en
 esta práctica va **junto** a ellas.
 
 ## Ejercicio 1 — Clases hijas de `Matrix`: matrices triangulares
@@ -274,11 +275,11 @@ caso. Si un método cuesta $C n^p$ operaciones y cada operación tarda
 más o menos lo mismo, el tiempo es $t(n) \approx C' n^p$, y al
 **duplicar** $n$:
 
-$$
+```math
 \frac{t(2n)}{t(n)} \approx 2^p
 \qquad\Longrightarrow\qquad
 p \approx \log_2 \frac{t(2n)}{t(n)}.
-$$
+```
 
 Midan, con `time.perf_counter()` como en `triangulares.py`, el tiempo
 de:
@@ -314,7 +315,7 @@ Respondan en comentarios al final del script:
    con prefactores distintos ($`n^2`$ contra $`2n^2 - n`$). ¿Cuál esperan
    que sea más rápido para la misma `n`, y por cuánto, aproximadamente?
 3. Si resolver un sistema triangular con $n = 1000$ tarda $t$, ¿cuánto
-   tardaría con $n = 10\,000$? ¿Y un producto de matrices, si con
+   tardaría con $`n = 10\,000`$? ¿Y un producto de matrices, si con
    $n = 1000$ tarda $t'$? En unas líneas: ¿por qué en álgebra lineal
    importa tanto si un método es $O(n^2)$ o $`O(n^3)`$?
 
