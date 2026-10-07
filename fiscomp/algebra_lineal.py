@@ -12,8 +12,9 @@ Convenciones:
 - Un vector es una lista simple de números: x[i].
 
 Aquí vive lo que se reutiliza en el resto del tema: las sustituciones
-para matrices triangulares, la eliminación gaussiana y la
-descomposición LU, y la matriz de prueba del libro.
+para matrices triangulares, la eliminación gaussiana (con y sin
+pivoteo), la descomposición LU con la inversa y el determinante, el
+método de Jacobi, y la matriz de prueba del libro.
 """
 
 from fiscomp.funciones_especiales import raiz_cuadrada
@@ -214,6 +215,142 @@ def resolver_lu(L, U, b):
     """
     y = sustitucion_adelante(L, b)
     return sustitucion_atras(U, y)
+
+
+
+def inversa(A):
+    """Matriz inversa con LU: la columna k de A^-1 es la solución de
+
+        A x_k = e_k,
+
+    con e_k la columna k de la identidad (porque A A^-1 = I). Son n
+    sistemas con la misma A: una sola descomposición LU y n pares de
+    sustituciones. Cuesta ~2n^3/3 + 2n^3 = 8n^3/3 operaciones.
+
+    A: matriz n x n (lista de listas); no se modifica.
+    Regresa A^-1 como lista de listas. Sin pivoteo (ver
+    descomposicion_lu).
+    """
+    n = len(A)
+    L, U = descomposicion_lu(A)
+    columnas = []
+    for k in range(n):
+        e_k = [1.0 if i == k else 0.0 for i in range(n)]
+        columnas.append(resolver_lu(L, U, e_k))
+    # columnas[k][i] es el elemento (i, k) de la inversa: transponemos.
+    return [[columnas[k][i] for k in range(n)] for i in range(n)]
+
+
+def determinante(A):
+    """Determinante con LU: det(A) = det(L) det(U), y como L tiene unos
+    en la diagonal,
+
+        det(A) = U_00 U_11 ... U_(n-1)(n-1).
+
+    Cuesta ~2n^3/3 operaciones (contra ~n! con cofactores). Sin
+    pivoteo: si aparece un pivote cero levanta ZeroDivisionError,
+    aunque A no sea singular.
+    """
+    _, U = descomposicion_lu(A)
+    producto = 1.0
+    for i in range(len(U)):
+        producto *= U[i][i]
+    return producto
+
+
+###############################################
+# Pivoteo parcial
+###############################################
+
+
+def eliminacion_gaussiana_pivoteo(A, b):
+    """Eliminación gaussiana con pivoteo parcial (gauelim_pivot en el
+    libro).
+
+    Igual que eliminacion_gaussiana, pero antes de usar el renglón j
+    como pivote se busca, en la columna j y del renglón j para abajo,
+    el elemento de mayor valor absoluto (renglón k), y se intercambian
+    los renglones j y k de A y de b. Así el pivote nunca es cero (si A
+    no es singular) y los coeficientes nunca pasan de 1 en valor
+    absoluto.
+
+    A: matriz n x n (lista de listas). b: vector de n componentes.
+    No modifica A ni b. Regresa la solución x.
+    """
+    A = [renglon[:] for renglon in A]
+    b = b[:]
+    n = len(b)
+    for j in range(n - 1):
+        # k: el renglón (de j para abajo) con el |A[k][j]| más grande.
+        # Con ">" estricto, si hay empate se queda el primero.
+        k = j
+        for m in range(j + 1, n):
+            if abs(A[m][j]) > abs(A[k][j]):
+                k = m
+        if k != j:
+            A[j], A[k] = A[k], A[j]
+            b[j], b[k] = b[k], b[j]
+        for i in range(j + 1, n):
+            coeficiente = A[i][j] / A[j][j]
+            for k_col in range(j, n):
+                A[i][k_col] -= coeficiente * A[j][k_col]
+            b[i] -= coeficiente * b[j]
+    return sustitucion_atras(A, b)
+
+
+###############################################
+# Método iterativo de Jacobi
+###############################################
+
+
+def paso_jacobi(A, b, x):
+    """Una iteración del método de Jacobi:
+
+        x_nuevo_i = (b_i - sum_{j != i} A_ij x_j) / A_ii
+
+    Todas las componentes nuevas se calculan con el x *anterior*.
+    Regresa una lista nueva (no modifica x).
+    """
+    n = len(b)
+    x_nuevo = []
+    for i in range(n):
+        suma = 0.0
+        for j in range(n):
+            if j != i:
+                suma += A[i][j] * x[j]
+        x_nuevo.append((b[i] - suma) / A[i][i])
+    return x_nuevo
+
+
+def cambio_relativo(x_viejo, x_nuevo):
+    """Criterio de paro del libro (termcrit):
+
+        sum_i |(x_nuevo_i - x_viejo_i) / x_nuevo_i|
+    """
+    return sum(abs((xn - xv) / xn) for xv, xn in zip(x_viejo, x_nuevo))
+
+
+def jacobi(A, b, kmax=50, tol=1e-6):
+    """Resuelve A x = b con el método iterativo de Jacobi, empezando en
+    x = 0, hasta que cambio_relativo sea menor que tol.
+
+    A: matriz n x n (lista de listas), con diagonal sin ceros. Converge
+       seguro si A es diagonalmente dominante.
+    kmax: número máximo de iteraciones (entero); tol: tolerancia.
+    Regresa (x, k): la solución y el número de iteraciones que tomó,
+    o (None, kmax) si no convergió.
+    """
+    x = [0.0] * len(b)
+    for k in range(1, kmax):
+        x_nuevo = paso_jacobi(A, b, x)
+        error = cambio_relativo(x, x_nuevo)
+        x = x_nuevo
+        if error < tol:
+            break
+    else:
+        # Solo llega aquí si el for terminó sin break: no convergió.
+        return None, kmax
+    return x, k
 
 
 ###############################################
