@@ -84,16 +84,18 @@ Los temas marcados como *(pendiente)* aún no se han visto en clase.
   sistemas lineales y para eigenvalores, sensibilidad de los
   eigenvectores — [unidad 09](unidades/09_algebra_lineal/)
 - Solución de sistemas de ecuaciones lineales: matrices triangulares
-  (sustitución hacia adelante y hacia atrás), eliminación gaussiana
-  y descomposición LU — [unidad 09](unidades/09_algebra_lineal/);
-  pivoteo *(pendiente)*
+  (sustitución hacia adelante y hacia atrás), eliminación gaussiana,
+  descomposición LU (inversa y determinante), pivoteo parcial y el
+  método iterativo de Jacobi — [unidad 09](unidades/09_algebra_lineal/)
 - Práctica: [práctica 4](practicas/practica4/practica_04.md) (matrices
   triangulares como clases hijas de `Matrix`, `SistemaTriangular`,
   conteo de operaciones y complejidad)
 - Problemas de eigenvalores *(pendiente)*
 - Descomposición en valores singulares (SVD) *(pendiente)*
 - **Proyecto:** la ecuación de Schrödinger como problema de
-  eigenvalores *(pendiente)*
+  eigenvalores (espines 1/2) —
+  [`simulaciones/espines/`](simulaciones/espines/); por ahora con
+  el determinante calculado con LU, el método QR *(pendiente)*
 
 ### 5. Ceros y mínimos *(pendiente)*
 
