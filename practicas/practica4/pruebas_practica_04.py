@@ -26,6 +26,11 @@ Qué se revisa:
 - Ejercicio 3: corre unidades/09_algebra_lineal/complejidad.py y revisa
   datos/conteo_flops.dat (los conteos deben coincidir exactamente con
   las fórmulas) y el formato de datos/tiempos.dat.
+- Ejercicio 4: PivoteCeroError, EliminacionGaussiana, SistemaLineal y
+  FactorizacionLU (en fiscomp/algebra_lineal.py): U, b transformado y
+  L (con la bandera coeficientes), soluciones, L U = A, determinante,
+  inversa y excepciones. No revisa el diseño (que cada clase use las
+  anteriores): eso se revisa a mano.
 
 No revisa los docstrings, ni las respuestas escritas del Ejercicio 3:
 eso se revisa a mano.
@@ -50,6 +55,22 @@ except ImportError:
     SistemaTriangular = None
     MatrizSingularError = None
 
+try:
+    from fiscomp.algebra_lineal import PivoteCeroError, EliminacionGaussiana
+except ImportError:
+    PivoteCeroError = None
+    EliminacionGaussiana = None
+
+try:
+    from fiscomp.algebra_lineal import SistemaLineal
+except ImportError:
+    SistemaLineal = None
+
+try:
+    from fiscomp.algebra_lineal import FactorizacionLU
+except ImportError:
+    FactorizacionLU = None
+
 RAIZ = Path(__file__).resolve().parent.parent.parent
 CARPETA_UNIDAD = RAIZ / "unidades" / "09_algebra_lineal"
 RUTA_SCRIPT = CARPETA_UNIDAD / "complejidad.py"
@@ -61,6 +82,20 @@ L_DATOS = [[2.0, 0.0, 0.0], [1.0, 4.0, 0.0], [-1.0, 3.0, 5.0]]
 U_DATOS = [[2.0, 1.0, -1.0], [0.0, 4.0, 3.0], [0.0, 0.0, 5.0]]
 X_EXACTA = [1.0, -2.0, 3.0]
 
+# Ejercicio 4: el ejemplo 3x3 de notas.md (solución [4, -2, 2], det 40,
+# con su U, su b transformado y su L, todos exactos en punto flotante),
+# una matriz donde la eliminación deja un "cero" de -1.1e-16, una con
+# pivote cero sin ser singular, y una singular.
+A_DATOS = [[2.0, 1.0, 1.0], [1.0, 1.0, -2.0], [5.0, 10.0, 5.0]]
+B_DATOS = [8.0, -2.0, 10.0]
+X_DATOS = [4.0, -2.0, 2.0]
+U_ELIMINADA = [[2.0, 1.0, 1.0], [0.0, 0.5, -2.5], [0.0, 0.0, 40.0]]
+B_ELIMINADO = [8.0, -6.0, 80.0]
+L_COEFICIENTES = [[1.0, 0.0, 0.0], [0.5, 1.0, 0.0], [2.5, 15.0, 1.0]]
+A_REDONDEO = [[0.3, 1.0], [0.7, 2.0]]
+A_PIVOTE_CERO = [[0.0, -1.0], [1.0, 1.0]]
+A_SINGULAR = [[1.0, 2.0], [2.0, 4.0]]
+
 
 def producto(A, x):
     return [sum(a_ij * x_j for a_ij, x_j in zip(renglon, x)) for renglon in A]
@@ -71,6 +106,15 @@ def requiere_triangulares(prueba):
         prueba.skipTest(
             "todavía no existen LowerTriangularMatrix / UpperTriangularMatrix "
             "en fiscomp/matrices.py (Ejercicio 1)"
+        )
+
+
+def requiere_ejercicio_4(prueba, clase, nombre):
+    requiere_sistema(prueba)
+    if PivoteCeroError is None or clase is None:
+        prueba.skipTest(
+            f"todavía no existen PivoteCeroError / {nombre} en "
+            "fiscomp/algebra_lineal.py (Ejercicio 4)"
         )
 
 
@@ -339,6 +383,233 @@ class TestComplejidad(unittest.TestCase):
         with self.subTest(caso="el tiempo crece con n"):
             self.assertGreater(filas[-1][1], filas[0][1])
             self.assertGreater(filas[-1][2], filas[0][2])
+
+
+###############################################
+# Ejercicio 4
+###############################################
+
+
+class CasoEjercicio4(unittest.TestCase):
+    """Comparaciones que usan las tres clases de pruebas de abajo."""
+
+    def assertVectoresCercanos(self, x, y):
+        self.assertEqual(len(x), len(y))
+        for x_i, y_i in zip(x, y):
+            self.assertAlmostEqual(x_i, y_i, places=12)
+
+    def assertMatricesCercanas(self, A, B):
+        self.assertEqual(len(A), len(B))
+        for renglon_A, renglon_B in zip(A, B):
+            self.assertVectoresCercanos(renglon_A, renglon_B)
+
+
+class TestEliminacionGaussiana(CasoEjercicio4):
+    def setUp(self):
+        requiere_ejercicio_4(self, EliminacionGaussiana, "EliminacionGaussiana")
+
+    def test_pivote_cero_error_es_zero_division_error(self):
+        self.assertTrue(
+            issubclass(PivoteCeroError, ZeroDivisionError),
+            msg="PivoteCeroError debe heredar de ZeroDivisionError",
+        )
+
+    def test_solo_U(self):
+        e = EliminacionGaussiana(Matrix(A_DATOS))
+        with self.subTest(caso="tipo de U"):
+            self.assertIsInstance(e.U, UpperTriangularMatrix)
+        with self.subTest(caso="U"):
+            self.assertMatricesCercanas(e.U.data, U_ELIMINADA)
+        with self.subTest(caso="sin b, b_nuevo es None"):
+            self.assertIsNone(e.b_nuevo)
+        with self.subTest(caso="coeficientes=False, L es None"):
+            self.assertIsNone(e.L)
+
+    def test_con_b(self):
+        e = EliminacionGaussiana(Matrix(A_DATOS), B_DATOS)
+        with self.subTest(caso="U"):
+            self.assertMatricesCercanas(e.U.data, U_ELIMINADA)
+        with self.subTest(caso="b_nuevo"):
+            self.assertVectoresCercanos(e.b_nuevo, B_ELIMINADO)
+        with self.subTest(caso="L es None"):
+            self.assertIsNone(e.L)
+
+    def test_con_coeficientes(self):
+        e = EliminacionGaussiana(Matrix(A_DATOS), coeficientes=True)
+        with self.subTest(caso="tipo de L"):
+            self.assertIsInstance(e.L, LowerTriangularMatrix)
+        with self.subTest(caso="L"):
+            self.assertMatricesCercanas(e.L.data, L_COEFICIENTES)
+        with self.subTest(caso="U"):
+            self.assertMatricesCercanas(e.U.data, U_ELIMINADA)
+        with self.subTest(caso="L U = A"):
+            self.assertMatricesCercanas((e.L * e.U).data, A_DATOS)
+
+    def test_ceros_de_redondeo(self):
+        # Si U[1][0] se calcula como 0.7 - (0.7/0.3)*0.3, queda en -1.1e-16
+        # y UpperTriangularMatrix la rechaza.
+        try:
+            EliminacionGaussiana(Matrix(A_REDONDEO), [1.0, 1.0], coeficientes=True)
+        except ValueError:
+            self.fail("la U tiene un 'cero' de redondeo abajo de la diagonal (ver practica_04.md)")
+
+    def test_no_modifica_A_ni_b(self):
+        A = Matrix(A_DATOS)
+        b = list(B_DATOS)
+        EliminacionGaussiana(A, b, coeficientes=True)
+        with self.subTest(caso="A"):
+            self.assertEqual(A.data, A_DATOS, msg="no se debe modificar A")
+        with self.subTest(caso="b"):
+            self.assertEqual(b, B_DATOS, msg="no se debe modificar b")
+
+    def test_entradas_invalidas(self):
+        with self.subTest(caso="lista de listas"):
+            with self.assertRaises(TypeError):
+                EliminacionGaussiana(A_DATOS)
+        with self.subTest(caso="no cuadrada"):
+            with self.assertRaises(ValueError):
+                EliminacionGaussiana(Matrix([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]))
+        with self.subTest(caso="b de otro tamaño"):
+            with self.assertRaises(ValueError):
+                EliminacionGaussiana(Matrix(A_DATOS), [1.0, 1.0])
+
+    def test_pivote_cero(self):
+        for coeficientes in (False, True):
+            with self.subTest(coeficientes=coeficientes):
+                with self.assertRaises(PivoteCeroError):
+                    EliminacionGaussiana(Matrix(A_PIVOTE_CERO), [1.0, 2.0], coeficientes)
+
+    def test_singular_si_termina(self):
+        # El pivote cero queda en el último renglón: no se divide entre él.
+        e = EliminacionGaussiana(Matrix(A_SINGULAR), [1.0, 1.0])
+        self.assertEqual(e.U.data[1][1], 0.0)
+
+
+class TestSistemaLineal(CasoEjercicio4):
+    def setUp(self):
+        requiere_ejercicio_4(self, SistemaLineal, "SistemaLineal")
+
+    def test_resolver_gauss(self):
+        sistema = SistemaLineal(Matrix(A_DATOS), B_DATOS)
+        self.assertVectoresCercanos(sistema.resolver_gauss(), X_DATOS)
+
+    def test_acepta_triangulares(self):
+        # Una LowerTriangularMatrix es una Matrix (principio L de SOLID).
+        sistema = SistemaLineal(LowerTriangularMatrix(L_DATOS), producto(L_DATOS, X_EXACTA))
+        self.assertVectoresCercanos(sistema.resolver_gauss(), X_EXACTA)
+
+    def test_ceros_de_redondeo(self):
+        x_exacta = [1.0, 2.0]
+        sistema = SistemaLineal(Matrix(A_REDONDEO), producto(A_REDONDEO, x_exacta))
+        try:
+            x = sistema.resolver_gauss()
+        except ValueError:
+            self.fail("la U tiene un 'cero' de redondeo abajo de la diagonal (ver practica_04.md)")
+        self.assertVectoresCercanos(x, x_exacta)
+
+    def test_residuo(self):
+        sistema = SistemaLineal(Matrix(A_DATOS), B_DATOS)
+        r = sistema.residuo(sistema.resolver_gauss())
+        self.assertVectoresCercanos(r, [0.0, 0.0, 0.0])
+
+    def test_no_modifica_A_ni_b(self):
+        A = Matrix(A_DATOS)
+        b = list(B_DATOS)
+        SistemaLineal(A, b).resolver_gauss()
+        with self.subTest(caso="A"):
+            self.assertEqual(A.data, A_DATOS, msg="no se debe modificar A")
+        with self.subTest(caso="b"):
+            self.assertEqual(b, B_DATOS, msg="no se debe modificar b")
+
+    def test_entradas_invalidas(self):
+        with self.subTest(caso="lista de listas"):
+            with self.assertRaises(TypeError):
+                SistemaLineal(A_DATOS, B_DATOS)
+        with self.subTest(caso="no cuadrada"):
+            with self.assertRaises(ValueError):
+                SistemaLineal(Matrix([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]), [1.0, 1.0])
+        with self.subTest(caso="b de otro tamaño"):
+            with self.assertRaises(ValueError):
+                SistemaLineal(Matrix(A_DATOS), [1.0, 1.0])
+
+    def test_pivote_cero(self):
+        with self.assertRaises(PivoteCeroError):
+            SistemaLineal(Matrix(A_PIVOTE_CERO), [1.0, 2.0]).resolver_gauss()
+
+    def test_singular(self):
+        with self.assertRaises(MatrizSingularError):
+            SistemaLineal(Matrix(A_SINGULAR), [1.0, 1.0]).resolver_gauss()
+
+
+class TestFactorizacionLU(CasoEjercicio4):
+    def setUp(self):
+        requiere_ejercicio_4(self, FactorizacionLU, "FactorizacionLU")
+
+    def test_L_y_U(self):
+        lu = FactorizacionLU(Matrix(A_DATOS))
+        with self.subTest(caso="tipo de L"):
+            self.assertIsInstance(lu.L, LowerTriangularMatrix)
+        with self.subTest(caso="tipo de U"):
+            self.assertIsInstance(lu.U, UpperTriangularMatrix)
+        with self.subTest(caso="L"):
+            self.assertMatricesCercanas(lu.L.data, L_COEFICIENTES)
+        with self.subTest(caso="L U = A"):
+            self.assertMatricesCercanas((lu.L * lu.U).data, A_DATOS)
+        with self.subTest(caso="ceros de redondeo"):
+            lu_redondeo = FactorizacionLU(Matrix(A_REDONDEO))
+            self.assertMatricesCercanas((lu_redondeo.L * lu_redondeo.U).data, A_REDONDEO)
+
+    def test_resolver_varios_b(self):
+        lu = FactorizacionLU(Matrix(A_DATOS))
+        with self.subTest(caso="b del ejemplo"):
+            self.assertVectoresCercanos(lu.resolver(B_DATOS), X_DATOS)
+        with self.subTest(caso="otro b, misma factorización"):
+            x_otra = [1.0, 2.0, 3.0]
+            self.assertVectoresCercanos(lu.resolver(producto(A_DATOS, x_otra)), x_otra)
+
+    def test_resolver_lu_en_sistema_lineal(self):
+        if SistemaLineal is None:
+            self.skipTest("todavía no existe SistemaLineal (Ejercicio 4b)")
+        sistema = SistemaLineal(Matrix(A_DATOS), B_DATOS)
+        self.assertVectoresCercanos(sistema.resolver_lu(), X_DATOS)
+
+    def test_determinante(self):
+        with self.subTest(caso="ejemplo de notas.md"):
+            self.assertAlmostEqual(FactorizacionLU(Matrix(A_DATOS)).determinante(), 40.0)
+        with self.subTest(caso="matriz con ceros de redondeo"):
+            self.assertAlmostEqual(FactorizacionLU(Matrix(A_REDONDEO)).determinante(), -0.1)
+        with self.subTest(caso="singular"):
+            self.assertAlmostEqual(FactorizacionLU(Matrix(A_SINGULAR)).determinante(), 0.0)
+
+    def test_inversa(self):
+        A = Matrix(A_DATOS)
+        inv = FactorizacionLU(A).inversa()
+        with self.subTest(caso="tipo"):
+            self.assertIsInstance(inv, Matrix)
+        with self.subTest(caso="A A^-1 = I"):
+            identidad = [[1.0 if i == j else 0.0 for j in range(3)] for i in range(3)]
+            self.assertMatricesCercanas((A * inv).data, identidad)
+
+    def test_entradas_invalidas(self):
+        with self.subTest(caso="lista de listas"):
+            with self.assertRaises(TypeError):
+                FactorizacionLU(A_DATOS)
+        with self.subTest(caso="no cuadrada"):
+            with self.assertRaises(ValueError):
+                FactorizacionLU(Matrix([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]))
+
+    def test_pivote_cero(self):
+        with self.assertRaises(PivoteCeroError):
+            FactorizacionLU(Matrix(A_PIVOTE_CERO))
+
+    def test_singular(self):
+        lu = FactorizacionLU(Matrix(A_SINGULAR))
+        with self.subTest(caso="resolver"):
+            with self.assertRaises(MatrizSingularError):
+                lu.resolver([1.0, 1.0])
+        with self.subTest(caso="inversa"):
+            with self.assertRaises(MatrizSingularError):
+                lu.inversa()
 
 
 if __name__ == "__main__":
