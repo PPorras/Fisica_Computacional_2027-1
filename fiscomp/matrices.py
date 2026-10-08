@@ -13,6 +13,7 @@ Incluye:
 - Suma, resta y multiplicación (escalar y matricial).
 - Transpuesta.
 - Métodos auxiliares para acceder a filas y columnas.
+- La clase hija Identity, la matriz identidad de n x n.
 """
 
 
@@ -202,6 +203,86 @@ class Matrix:
     __rmul__ = __mul__
 
 
+class Identity(Matrix):
+    """
+    Matriz identidad de n x n: unos en la diagonal y ceros fuera de ella.
+
+    Es una clase hija de Matrix: hereda shape(), get_row(), get_col(),
+    transpose(), copy() y las operaciones +, - y *. Solo cambia dos
+    cosas:
+
+    - El constructor recibe la dimensión n en lugar de una lista de
+      listas, y arma esa lista él mismo.
+    - La multiplicación I * A sobreescribe la de Matrix: como I A = A,
+      regresa una copia de A sin hacer las n^3 multiplicaciones.
+
+    Las operaciones heredadas regresan una Matrix común, no una
+    Identity: 2 * I o I + A ya no son la identidad.
+
+    Examples
+    --------
+    >>> I = Identity(3)
+    >>> I.shape()
+    (3, 3)
+    >>> I.get_row(1)
+    [0.0, 1.0, 0.0]
+    """
+
+    def __init__(self, n: int):
+        """
+        Crea la matriz identidad de n x n.
+
+        Parameters
+        ----------
+        n : int
+            Dimensión de la matriz (número de filas y de columnas).
+
+        Raises
+        ------
+        ValueError
+            Si n es menor que 1.
+        """
+        if n < 1:
+            raise ValueError("La dimensión n debe ser al menos 1.")
+        data = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+        # El constructor de Matrix (la clase madre) guarda data, rows y cols.
+        super().__init__(data)
+
+    def __mul__(self, other):
+        """
+        Multiplicación I * other.
+
+        Si other es una Matrix con n filas, el resultado es una copia de
+        other (porque I A = A), sin hacer ninguna operación. Para un
+        escalar se usa el método de Matrix: I * 2 es una Matrix con
+        doses en la diagonal.
+
+        (A * I, con la identidad a la derecha, usa el __mul__ de A, que
+        es el de Matrix, y sí hace todas las multiplicaciones.)
+
+        Parameters
+        ----------
+        other : int, float, Matrix
+
+        Returns
+        -------
+        Matrix
+
+        Raises
+        ------
+        ValueError
+            Si other es una Matrix cuyo número de filas no es n.
+        TypeError
+            Si el tipo de other no es soportado.
+        """
+        if isinstance(other, Matrix):
+            if self.cols != other.rows:
+                raise ValueError("Dimensiones incompatibles para multiplicación.")
+            return other.copy()
+        # Para escalares (o tipos no soportados) usamos el de la clase madre.
+        return super().__mul__(other)
+
+
 if __name__ == "__main__":
     A = Matrix([[1, 2, 3], [4, 5, 6]])
     print(f"Las componentes de la matriz A son {A.data}")
@@ -240,3 +321,15 @@ if __name__ == "__main__":
 
     print("\nTranspuesta de A:")
     print(A.transpose())
+
+    I = Identity(3)
+    print("\nIdentidad de 3 x 3:")
+    print(I)
+    print(f"¿I es una Matrix? {isinstance(I, Matrix)}")
+    print("\nI * C (regresa una copia de C sin multiplicar):")
+    print(I * C)
+    print("\nA * I (usa la multiplicación de Matrix):")
+    print(A * I)
+    print("\n2 * I (ya no es la identidad: es una Matrix común):")
+    print(2 * I)
+    print(f"Tipo de 2 * I: {type(2 * I).__name__}")
