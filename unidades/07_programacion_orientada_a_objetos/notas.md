@@ -11,6 +11,10 @@
   - Métodos "reflejados" (`__radd__`, `__rmul__`, ...) para que la
     clase también funcione del lado derecho de un operador con un
     `int`/`float`
+  - Herencia: clases hijas, `super()`, sobreescritura de métodos,
+    búsqueda de métodos (`__mro__`), `isinstance`/`issubclass`, la
+    jerarquía de excepciones, y cuándo conviene la composición en su
+    lugar; polimorfismo
 - **Física computacional:** aritmética de intervalos como caso de uso
   de POO — representar un intervalo $[a,b]$ como un objeto con sus
   propios operadores, y usarlo para acotar rigurosamente el rango de
@@ -78,10 +82,14 @@ que `__mul__` no sabe que ambos factores son "el mismo" intervalo).
 ## Contenido
 - [`poo.md`](poo.md): teoría general de programación orientada a
   objetos (clases, objetos, `__init__`, métodos, `@property`, métodos
-  especiales, sobrecarga de operadores, encapsulación, mención de
-  herencia/polimorfismo), con una clase `Punto` de ejemplo.
+  especiales, sobrecarga de operadores, encapsulación, herencia y
+  polimorfismo), con una clase `Punto` de ejemplo.
 - [`punto.py`](punto.py): versión completa y ejecutable de la clase
   `Punto` que se va construyendo por partes en `poo.md`.
+- [`herencia.py`](herencia.py): la clase hija `PuntoConMasa(Punto)`
+  (con `super()`, un método nuevo y `__repr__` sobreescrito), los
+  métodos heredados que sorprenden, `__mro__`, `isinstance`,
+  polimorfismo y la jerarquía de excepciones.
 - [`aritmetica_intervalos.py`](aritmetica_intervalos.py): clase
   `Intervalo` con los operadores aritméticos sobrecargados, y ejemplos
   que ilustran la contención garantizada, el problema de dependencia
