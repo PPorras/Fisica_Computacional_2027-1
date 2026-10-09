@@ -1,0 +1,40 @@
+seno
+----
+  x=    0.000000  propio=0.000000000000  math=0.000000000000  error_relativo=0.000e+00
+  x=    0.500000  propio=0.479425538604  math=0.479425538604  error_relativo=0.000e+00
+  x=    1.000000  propio=0.841470984808  math=0.841470984808  error_relativo=0.000e+00
+  x=    1.570796  propio=1.000000000000  math=1.000000000000  error_relativo=2.220e-16
+  x=    3.141593  propio=-0.000000000000  math=0.000000000000  error_relativo=1.595e+01
+  x=    9.424778  propio=-0.000000000000  math=0.000000000000  error_relativo=1.158e+01
+
+coseno
+------
+  x=    0.000000  propio=1.000000000000  math=1.000000000000  error_relativo=0.000e+00
+  x=    0.500000  propio=0.877582561890  math=0.877582561890  error_relativo=0.000e+00
+  x=    1.000000  propio=0.540302305868  math=0.540302305868  error_relativo=0.000e+00
+  x=    1.570796  propio=0.000000000000  math=0.000000000000  error_relativo=6.773e-03
+  x=    3.141593  propio=-1.000000000000  math=-1.000000000000  error_relativo=0.000e+00
+  x=    9.424778  propio=-1.000000000000  math=-1.000000000000  error_relativo=0.000e+00
+
+exponencial
+-----------
+  x=    0.000000  propio=1.000000000000  math=1.000000000000  error_relativo=0.000e+00
+  x=    1.000000  propio=2.718281828459  math=2.718281828459  error_relativo=1.634e-16
+  x=   -1.000000  propio=0.367879441171  math=0.367879441171  error_relativo=1.509e-16
+  x=    2.500000  propio=12.182493960703  math=12.182493960703  error_relativo=1.458e-16
+  x=    5.000000  propio=148.413159102577  math=148.413159102577  error_relativo=0.000e+00
+  x=  -20.000000  propio=0.000000002061  math=0.000000002061  error_relativo=4.013e-16
+
+ln
+--
+  x=    1.000000  propio=0.000000000000  math=0.000000000000  error_relativo=0.000e+00
+  x=    0.100000  propio=-2.302585092994  math=-2.302585092994  error_relativo=7.715e-16
+  x=    0.500000  propio=-0.693147180560  math=-0.693147180560  error_relativo=4.805e-16
+  x=    2.000000  propio=0.693147180560  math=0.693147180560  error_relativo=4.805e-16
+  x=    5.000000  propio=1.609437912434  math=1.609437912434  error_relativo=2.759e-16
+  x=  100.000000  propio=4.605170185988  math=4.605170185988  error_relativo=2.893e-15
+
+Conclusiones
+------------
+El error relativo es sorprendentemente alto en seno(pi), seno(3 pi) y coseno(pi/2) (de 1e-2 a 1e1, en vez de ~1e-16). En esos puntos el valor 'real' (math.sin/math.cos) no es exactamente 0, sino un número muy chico, porque pi no se puede representar exactamente en binario: math.pi es solo el float más cercano. Como error_relativo divide entre ese valor 'exacto' casi cero, un error absoluto minúsculo (de los últimos bits) se convierte en un error relativo enorme. No es que la aproximación sea mala ahí: es una debilidad del error relativo como métrica cerca de los ceros de la función.
+En exponencial(-20) el error es del orden de 1e-16 porque fiscomp calcula e^x para x < 0 como 1/e^|x|. Si se suma la serie de Taylor directamente con x = -20, los términos llegan a ~4e7, con signos alternados, y casi se cancelan entre sí (cancelación catastrófica, unidad 06): el resultado, e^-20 ~ 2e-9, sale con un error relativo de ~2, es decir, sin ningún dígito correcto.
