@@ -144,9 +144,9 @@ FUNCIONES_DE_PRUEBA = (
 # Comparar contra la segunda derivada exacta
 ###############################################
 
-# x0 = 1 y no 6 (como en solucion_diferencias_finitas.py): seno y
-# coseno de fiscomp pierden precisión para argumentos grandes, y en
-# x0 = 6 evaluaríamos seno(36).
+# x0 = 1 y no 6: el h óptimo por defecto supone que f y sus derivadas
+# son de orden 1, y en x0 = 6 las derivadas de sin(x^2) son enormes
+# (el factor 2x vale 12 en cada derivada).
 x0 = 1.0
 
 print(f"Segunda derivada en x0={x0}, con el h óptimo por defecto (h={h_optimo_segunda():.2e}):\n")

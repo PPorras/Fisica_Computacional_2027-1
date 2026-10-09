@@ -282,22 +282,23 @@ for nombre, f, f_prima in FUNCIONES_DE_PRUEBA:
 # O(h) vs. O(h^2). Para f(x)=x^2 la central incluso sale exacta: su
 # error de truncamiento es proporcional a f''', que para x^2 vale 0.
 #
-# Ojo con sin(x^2) en x0=6, por dos razones:
-# - f'(x) = 2x cos(x^2) oscila muy rápido ahí (el factor 2x vale 12),
-#   así que h=0.1 es un paso demasiado grande.
-# - seno y coseno de fiscomp suman la serie de Taylor sin reducir el
-#   argumento a [-pi, pi] (ver su docstring), y en x^2 = 36 pierden
-#   precisión: seno(36) se equivoca en ~0.03. Incluso la columna
-#   "exacta" está mal: da -1.710, y el valor real es
-#   12*cos(36) = -1.536.
+# Ojo con sin(x^2) en x0=6: f'(x) = 2x cos(x^2) oscila muy rápido ahí
+# (el factor 2x vale 12), así que h=0.1 es un paso demasiado grande y
+# hasta la diferencia central se equivoca en ~8%.
+# (Cuando se escribió esta práctica, seno y coseno de fiscomp sumaban
+# la serie de Taylor sin reducir el argumento, y seno(36) se equivocaba
+# en ~0.03: hasta la columna "exacta" salía mal. Ahora fiscomp reduce
+# el argumento a [-pi, pi] y seno(36) es correcto a ~1e-15.)
 print(30 * "=")
 
 ###############################################
 # Los mismos métodos, sin dar h (usan su h óptimo)
 ###############################################
 
-# Aquí usamos x0 = 1: en x0 = 6, seno(36) de fiscomp trae un error de
-# ~0.03 (ver arriba), que dividido entre un h ~ 1e-8 se vuelve enorme.
+# Aquí usamos x0 = 1: las fórmulas del h óptimo suponen que f y sus
+# derivadas son de orden 1, y en x0 = 6 las derivadas de sin(x^2) son
+# enormes (f''' llega a ~(2x)^3 ~ 1700), así que ese h dejaría de ser
+# óptimo.
 x0 = 1.0
 
 print(f"\nError relativo en x0={x0} con el h óptimo de cada método (sin dar h):\n")
