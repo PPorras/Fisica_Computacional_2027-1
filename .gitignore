@@ -30,6 +30,14 @@ simulaciones/*/figuras/*
 # --- Soluciones de referencia (NO deben ver los estudiantes) ---
 solucion_practica_*/
 
+# Soluciones ya publicadas (prácticas cerradas): se quitan de la regla
+# de arriba una por una, al cerrar cada práctica.
+!practicas/practica1/solucion_practica_01/
+!practicas/practica2/solucion_practica_02/
+!practicas/practica3/solucion_practica_03/
+# Datos que generan las soluciones si se corren en su carpeta.
+practicas/*/solucion_practica_*/datos/
+
 # --- Editores ---
 *.swp
 *.swo
