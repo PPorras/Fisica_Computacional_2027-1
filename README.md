@@ -80,9 +80,8 @@ Los temas marcados como *(pendiente)* aún no se han visto en clase.
 
 ### 4. Matrices
 
-- Motivación y análisis de error: normas, número de condición para
-  sistemas lineales y para eigenvalores, sensibilidad de los
-  eigenvectores — [unidad 09](unidades/09_algebra_lineal/)
+- Motivación y análisis de error: normas y número de condición para
+  sistemas lineales — [unidad 09](unidades/09_algebra_lineal/)
 - Solución de sistemas de ecuaciones lineales: matrices triangulares
   (sustitución hacia adelante y hacia atrás), eliminación gaussiana,
   descomposición LU (inversa y determinante), pivoteo parcial y el
@@ -90,10 +89,12 @@ Los temas marcados como *(pendiente)* aún no se han visto en clase.
 - Práctica: [práctica 4](practicas/practica4/practica_04.md) (matrices
   triangulares como clases hijas de `Matrix`, `SistemaTriangular`,
   conteo de operaciones y complejidad)
-- Problemas de eigenvalores: método de la potencia y de la potencia
-  inversa con desplazamiento, descomposición QR (Gram-Schmidt),
-  iteración simultánea y el método QR, todos los eigenpares —
-  [unidad 09](unidades/09_algebra_lineal/)
+- Problemas de eigenvalores (valores y vectores propios): número de
+  condición para eigenvalores y sensibilidad de los eigenvectores,
+  método de la potencia y de la potencia inversa con desplazamiento,
+  descomposición QR (Gram-Schmidt), iteración simultánea y el método
+  QR, todos los eigenpares —
+  [unidad 10](unidades/10_valores_y_vectores_propios/)
 - Descomposición en valores singulares (SVD) *(pendiente)*
 - **Proyecto:** la ecuación de Schrödinger como problema de
   eigenvalores (espines 1/2) —

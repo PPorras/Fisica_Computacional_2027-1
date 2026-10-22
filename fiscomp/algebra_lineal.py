@@ -1,7 +1,9 @@
 """Álgebra lineal numérica, escrita desde cero con listas de listas.
 
-Ver unidades/09_algebra_lineal/notas.md para la teoría (normas, número de
-condición, sustitución hacia adelante y hacia atrás).
+Ver unidades/09_algebra_lineal/notas.md para la teoría de sistemas
+lineales (normas, número de condición, sustituciones, eliminación
+gaussiana, LU, Jacobi) y unidades/10_valores_y_vectores_propios/notas.md
+para la de eigenvalores (potencia, potencia inversa, método QR).
 
 Convenciones:
 

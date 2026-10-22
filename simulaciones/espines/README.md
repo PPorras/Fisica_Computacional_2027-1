@@ -134,7 +134,7 @@ H = \begin{pmatrix}
 con los dos espines alineados no se mezclan con nada: sus energías son
 los elementos de la diagonal. Los otros dos forman un bloque
 $2\times 2$, cuyos eigenvalores salen del polinomio característico,
-como en `condicion_eigenvalores.py` de la unidad 09:
+como en `condicion_eigenvalores.py` de la unidad 10:
 
 ```math
 E_\pm = -\frac{\gamma}{4} \pm \sqrt{\left(\frac{\omega_I - \omega_{II}}{2}\right)^2 + \left(\frac{\gamma}{2}\right)^2}.
