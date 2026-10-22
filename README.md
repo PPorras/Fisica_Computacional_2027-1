@@ -91,8 +91,9 @@ Los temas marcados como *(pendiente)* aún no se han visto en clase.
   triangulares como clases hijas de `Matrix`, `SistemaTriangular`,
   conteo de operaciones y complejidad)
 - Problemas de eigenvalores: método de la potencia y de la potencia
-  inversa con desplazamiento — [unidad 09](unidades/09_algebra_lineal/);
-  el método QR *(pendiente)*
+  inversa con desplazamiento, descomposición QR (Gram-Schmidt),
+  iteración simultánea y el método QR, todos los eigenpares —
+  [unidad 09](unidades/09_algebra_lineal/)
 - Descomposición en valores singulares (SVD) *(pendiente)*
 - **Proyecto:** la ecuación de Schrödinger como problema de
   eigenvalores (espines 1/2) —

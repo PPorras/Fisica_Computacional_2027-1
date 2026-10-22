@@ -16,8 +16,11 @@
   Jacobi; el problema de eigenvalores numéricamente (diagonalización,
   por qué no usar el polinomio característico), el método de la
   potencia, el cociente de Rayleigh y el método de la potencia
-  inversa con desplazamiento.
-- Corresponde a las secciones 4.1 a 4.4.2 del libro de Gezerlis.
+  inversa con desplazamiento; la descomposición QR (Gram-Schmidt),
+  las transformaciones de similitud, la iteración simultánea y el
+  método QR para todos los eigenvalores; todos los eigenpares
+  combinando QR con la potencia inversa.
+- Corresponde a las secciones 4.1 a 4.4.4 del libro de Gezerlis.
 
 ## Notación
 
@@ -2187,6 +2190,571 @@ cosa común, los dos métodos son $`O(n^3)`$.)
   tiene componente en $\mathbf{v}_0$ ($c_0 = 0$)? Construyan un
   ejemplo $2\times 2$ y córranlo. (Pista: el redondeo ayuda.)
 
+## Método QR
+
+La potencia y la potencia inversa dan **un** eigenpar a la vez. Con
+desplazamientos podemos ir buscando los demás, pero hay que saber
+dónde buscar. El **método QR** (J. Francis, principios de los 60)
+calcula **todos** los eigenvalores de una sola vez, y es la base de lo
+que hacen las bibliotecas profesionales.
+
+Ojo con los nombres, que se parecen mucho:
+
+- La **descomposición QR** escribe una matriz como producto de otras
+  dos, $A = QR$. Es un método **directo**, como LU: un número fijo de
+  pasos que depende solo de $n$.
+- El **método QR** calcula los eigenvalores. Es **iterativo** (como
+  todos los métodos de eigenvalores) y en cada iteración hace una
+  descomposición QR.
+
+### Descomposición QR
+
+Toda matriz cuadrada real (con columnas linealmente independientes)
+se puede escribir como
+
+```math
+A = QR ,
+```
+
+con $Q$ **ortogonal** y $R$ **triangular superior** (se llama $R$ y no
+$U$ por razones históricas: *right*). Ortogonal quiere decir que
+$`Q^{-1} = Q^T`$, o sea $`Q^TQ = I`$: las columnas de $Q$ son vectores
+**ortonormales** (ortogonales entre sí y de norma 1).
+
+La prueba es **constructiva**: construimos $Q$ a partir de $A$, y en el
+camino nos sale $R$ gratis.
+
+**Construyendo Q: Gram-Schmidt.** Escribimos $A$ por columnas,
+
+```math
+A = \begin{pmatrix} \mathbf{a}_0 & \mathbf{a}_1 & \cdots & \mathbf{a}_{n-1}\end{pmatrix},
+\qquad
+Q = \begin{pmatrix} \mathbf{q}_0 & \mathbf{q}_1 & \cdots & \mathbf{q}_{n-1}\end{pmatrix},
+```
+
+y buscamos vectores $\mathbf{q}_j$ ortonormales. El primero es fácil:
+la dirección de $\mathbf{a}_0$, normalizada,
+
+```math
+\mathbf{q}_0 = \frac{\mathbf{a}_0}{\|\mathbf{a}_0\|} .
+```
+
+Para el segundo no basta normalizar $\mathbf{a}_1$: casi seguro no es
+perpendicular a $\mathbf{a}_0$. La receta de **Gram-Schmidt** es
+quitarle a $\mathbf{a}_1$ su componente en la dirección de
+$\mathbf{q}_0$ y luego normalizar:
+
+```math
+\mathbf{a}'_1 = \mathbf{a}_1 - (\mathbf{q}_0^T\mathbf{a}_1)\,\mathbf{q}_0,
+\qquad
+\mathbf{q}_1 = \frac{\mathbf{a}'_1}{\|\mathbf{a}'_1\|} .
+```
+
+(Comprueben que $`\mathbf{q}_0^T\mathbf{a}'_1 = 0`$.) Para el tercero
+quitamos las componentes en las direcciones de $\mathbf{q}_0$ **y** de
+$\mathbf{q}_1$, y así sucesivamente. En general, para
+$j = 0, 1, \ldots, n-1$:
+
+```math
+\mathbf{a}'_j = \mathbf{a}_j - \sum_{i=0}^{j-1} (\mathbf{q}_i^T\mathbf{a}_j)\,\mathbf{q}_i,
+\qquad
+\mathbf{q}_j = \frac{\mathbf{a}'_j}{\|\mathbf{a}'_j\|} .
+```
+
+Para $j = 0$ la suma no tiene términos y recuperamos la fórmula de
+$\mathbf{q}_0$.
+
+**Encontrando R.** Supongamos que $A = QR$ y escribámoslo columna por
+columna. Como $R$ es triangular superior, la columna $j$ de $A$ solo
+usa las primeras $j+1$ columnas de $Q$:
+
+```math
+\begin{aligned}
+\mathbf{a}_0 &= R_{00}\,\mathbf{q}_0 \\
+\mathbf{a}_1 &= R_{01}\,\mathbf{q}_0 + R_{11}\,\mathbf{q}_1 \\
+&\;\;\vdots \\
+\mathbf{a}_j &= R_{0j}\,\mathbf{q}_0 + R_{1j}\,\mathbf{q}_1 + \cdots + R_{jj}\,\mathbf{q}_j .
+\end{aligned}
+```
+
+Despejando $\mathbf{q}_j$ de la última,
+
+```math
+\mathbf{q}_j = \frac{\mathbf{a}_j - \sum_{i=0}^{j-1} R_{ij}\,\mathbf{q}_i}{R_{jj}},
+```
+
+y comparando con Gram-Schmidt se lee qué tiene que ser $R$:
+
+```math
+R_{ij} = \mathbf{q}_i^T\mathbf{a}_j \quad (i < j),
+\qquad
+R_{jj} = \|\mathbf{a}'_j\| ,
+\qquad
+R_{ij} = 0 \quad (i > j).
+```
+
+Lo importante: **los dos ya los calculamos** al construir $Q$. Así que
+$Q$ y $R$ se van llenando juntos. (Escogimos $R_{jj} > 0$; con esa
+convención la descomposición QR es única.)
+
+**De paso.** Gram-Schmidt convierte $n$ vectores linealmente
+independientes en $n$ vectores ortonormales. La misma idea funciona
+con *funciones* si el producto punto se cambia por la integral del
+producto de dos funciones (el espacio de Hilbert de mecánica
+cuántica). Ortonormalizando los monomios $1, x, x^2, \ldots$ en
+$[-1, 1]$ salen (múltiplos de) los **polinomios de Legendre**
+(problema 4.27 del libro).
+
+### Implementación
+
+Como nuestras matrices son listas de **renglones** y Gram-Schmidt
+trabaja con **columnas**, primero agregamos a
+[`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py) la
+`transpuesta` (las columnas de $A$ son los renglones de $A^T$) y el
+producto de matrices `mat_mat` (que también necesitamos para el
+método QR). Con ellas:
+
+```python
+def descomposicion_qr(A):
+    n = len(A)
+    columnas = transpuesta(A)
+    q = []  # columnas de Q, ya ortonormales
+    R = [[0.0] * n for _ in range(n)]
+    for j in range(n):
+        a_prima = columnas[j][:]
+        for i in range(j):
+            R[i][j] = producto_punto(q[i], columnas[j])
+            a_prima = [a - R[i][j] * q_i for a, q_i in zip(a_prima, q[i])]
+        R[j][j] = norma_euclidea(a_prima)
+        q.append([a / R[j][j] for a in a_prima])
+    return transpuesta(q), R
+```
+
+Es una traducción directa de las fórmulas: `a_prima` empieza siendo
+una copia de $\mathbf{a}_j$ y se le van restando las componentes; el
+ciclo interno no se ejecuta para $j = 0$. Al final, `q` es la lista de
+columnas de $Q$, y la transponemos para regresar $Q$ como lista de
+renglones. No hay `kmax` ni tolerancia: es un método directo.
+
+¿Cómo sabemos si funciona? Con dos pruebas. La obvia,
+$`\|A - QR\|`$, que debe ser cero. Y otra: en aritmética exacta $Q$ es
+ortogonal por construcción, pero con redondeo hay que comprobarlo con
+$`\|Q^TQ - I\|`$. La parte 1 de [`qr.py`](qr.py) lo hace con la matriz
+de prueba (norma de Frobenius):
+
+| $n$ | $`\|A - QR\|`$ | $`\|Q^TQ - I\|`$ |
+|---|---|---|
+| 4 | $`1.3\times 10^{-15}`$ | $`7.3\times 10^{-3}`$ |
+| 6 | $`2.5\times 10^{-15}`$ | $2.4$ |
+| 8 | $`6.2\times 10^{-15}`$ | $4.5$ |
+
+$QR$ reconstruye $A$ al nivel del épsilon de la máquina, pero $Q$
+**deja de ser ortogonal** muy rápido: ya para $n = 6$ no se parece en
+nada a una matriz ortogonal. Gram-Schmidt tal como lo escribimos (el
+**Gram-Schmidt clásico**) se porta mal con el redondeo, sobre todo con
+una matriz casi singular como esta: si dos columnas son casi
+paralelas, $`\mathbf{a}'_j`$ es la resta de dos vectores casi iguales
+(cancelación catastrófica, unidad 06). Hay una variante, el
+**Gram-Schmidt modificado**, que se porta mucho mejor (problema 4.25),
+y otra manera de hacer QR con reflexiones de Householder (problema
+4.28). Para el método QR esta falta de ortogonalidad resulta no ser
+tan grave.
+
+### Transformaciones de similitud
+
+Diagonalizar es encontrar $V$ con $V^{-1}AV = \Lambda$. Hagamos algo
+más modesto: tomemos cualquier matriz invertible $S$ y definamos
+
+```math
+A' = S^{-1} A S .
+```
+
+A esto se le llama una **transformación de similitud** y se dice que
+$A$ y $`A'`$ son **similares**. No pedimos que $`A'`$ sea diagonal. ¿Para
+qué sirve? Sustituyendo $`A = SA'S^{-1}`$ en
+$A\mathbf{v}_i = \lambda_i\mathbf{v}_i$ y multiplicando por $S^{-1}$
+por la izquierda:
+
+```math
+A'\,(S^{-1}\mathbf{v}_i) = \lambda_i\,(S^{-1}\mathbf{v}_i) .
+```
+
+Es decir, **$A$ y $`A'`$ tienen los mismos eigenvalores**. Los
+eigenvectores no son los mismos: los de $`A'`$ son
+$`\mathbf{v}'_i = S^{-1}\mathbf{v}_i`$. (También tienen el mismo
+determinante, problema 4.29.)
+
+Si $S$ es una matriz ortogonal $Q$, la inversa es gratis
+($`Q^{-1} = Q^T`$, no hay que resolver $n$ sistemas):
+
+```math
+A' = Q^T A Q .
+```
+
+La idea del método QR: si encontramos una $Q$ que haga a $`A'`$
+**triangular**, los eigenvalores de $A$ se leen de la diagonal de
+$`A'`$ (los eigenvalores de una matriz triangular son los elementos de
+su diagonal). A $`A = QA'Q^T`$ con $`A'`$ triangular se le llama la
+**descomposición de Schur**. Falta ver cómo encontrar esa $Q$ (la $Q$
+de $A = QR$ no sirve, pruébenlo).
+
+**¿Y LU?** $U$ también es triangular, y el producto de su diagonal da
+el determinante. ¿Por qué no leer los eigenvalores de la diagonal de
+$U$? Porque $A = LU$ **no** es una transformación de similitud: los
+eigenvalores de $U$ no son los de $A$. La parte 2 de
+[`qr.py`](qr.py) lo muestra: la diagonal de $U$ es
+$`(4.58, -0.0186, -8.4\times 10^{-5}, -1.0\times 10^{-6})`$ y los
+eigenvalores son $`(21.3, -0.0672, -6.9\times 10^{-5}, -7.5\times 10^{-8})`$.
+Solo coinciden los productos.
+
+### Iteración simultánea: primer intento
+
+Generalicemos el método de la potencia a $n$ vectores a la vez, para
+sacar los $n$ eigenvectores. En vez de un vector inicial
+$`\mathbf{z}^{(0)}`$ usamos $n$, como columnas de una matriz
+$`Z^{(0)}`$; la elección natural es la identidad, $`Z^{(0)} = I`$
+(columnas $\mathbf{e}_0, \ldots, \mathbf{e}_{n-1}$, linealmente
+independientes). Y multiplicamos por $A$ una y otra vez:
+
+```math
+Z^{(k)} = A Z^{(k-1)} = A^k Z^{(0)}, \qquad k = 1, 2, \ldots
+```
+
+Cada columna se expande en eigenvectores, ahora con coeficientes de
+dos índices (uno para la suma y otro para saber de qué columna se
+trata):
+
+```math
+\mathbf{z}_j^{(0)} = \sum_{i=0}^{n-1} c_{ij}\mathbf{v}_i
+\quad\Longrightarrow\quad
+\mathbf{z}_j^{(k)} = \sum_{i=0}^{n-1} c_{ij}\lambda_i^k\mathbf{v}_i .
+```
+
+Uno esperaría que cada columna se quedara con "su" eigenvector. No
+pasa: por el mismo argumento que en la potencia, en **todas** las
+columnas domina el término de $\lambda_0$, y todas tienden a
+$\mathbf{v}_0$. La parte 3a de [`qr.py`](qr.py) calcula $`A^{10}`$ y
+normaliza sus columnas: las cuatro son
+$`(0.4444, 0.4822, 0.5172, 0.5500)`$, el eigenvector dominante, repetido
+cuatro veces. (Además está el problema del desbordamiento, como en la
+potencia sin normalizar.)
+
+### Iteración simultánea: ortonormalizando
+
+Con un solo vector bastaba normalizar. Con varios hay que, además,
+**quitarle a cada columna lo que tenga de las otras**: ortogonalizar.
+Eso es justo lo que hace Gram-Schmidt, o sea, una descomposición QR.
+La **iteración simultánea** (o *iteración ortogonal*) es: empezando
+con $`\mathcal{Q}^{(0)} = I`$, para $k = 1, 2, \ldots$
+
+```math
+Z^{(k)} = A\,\mathcal{Q}^{(k-1)},
+\qquad
+Z^{(k)} = \mathcal{Q}^{(k)} R^{(k)} .
+```
+
+Compárenlo con la potencia normalizada,
+$`\mathbf{z}^{(k)} = A\mathbf{q}^{(k-1)}`$,
+$`\mathbf{q}^{(k)} = \mathbf{z}^{(k)}/\|\mathbf{z}^{(k)}\|`$: es lo
+mismo con matrices en vez de vectores, y "ortonormalizar" en vez de
+"normalizar". (La $\mathcal{Q}$ caligráfica es solo un nombre: la
+matriz ortogonal que sale de descomponer $`Z^{(k)}`$. La razón de la
+letra rara se ve en la siguiente sección.)
+
+Definamos también el producto (en orden inverso) de todas las $R$:
+
+```math
+\mathcal{R}^{(k)} = R^{(k)} R^{(k-1)} \cdots R^{(2)} R^{(1)} ,
+\qquad \mathcal{R}^{(0)} = I .
+```
+
+El producto de matrices triangulares superiores es triangular superior
+(problema 4.2), así que $`\mathcal{R}^{(k)}`$ lo es. Entonces se
+cumple algo notable:
+
+```math
+A^k = \mathcal{Q}^{(k)}\mathcal{R}^{(k)} .
+```
+
+(Cuidado: $`A^k`$ es una potencia; $`\mathcal{Q}^{(k)}`$ es el número
+de iteración.) Es decir, la iteración simultánea va construyendo la
+**descomposición QR de las potencias** de $A$. Se prueba por inducción.
+Para $k = 0$ es $I = I\cdot I$. Si vale para $k - 1$:
+
+```math
+A^k = A\,A^{k-1}
+= A\,\mathcal{Q}^{(k-1)}\mathcal{R}^{(k-1)}
+= Z^{(k)}\mathcal{R}^{(k-1)}
+= \mathcal{Q}^{(k)} R^{(k)}\mathcal{R}^{(k-1)}
+= \mathcal{Q}^{(k)}\mathcal{R}^{(k)} .
+```
+
+(Se usó la hipótesis, luego las dos ecuaciones de la iteración, y al
+final la definición de $`\mathcal{R}^{(k)}`$.)
+
+¿Qué tiene que ver con los eigenvectores? Si $A$ es simétrica, sus
+eigenvectores son ortonormales y $`\mathcal{Q}^{(k)}`$ tiende a la matriz
+de eigenvectores. Si no es simétrica (nuestro caso), los
+eigenvectores no son ortogonales, y $`\mathcal{Q}^{(k)}`$ tiende al
+"factor ortogonal" $\tilde{Q}$ de la matriz de eigenvectores: la
+descomposición QR $V = \tilde{Q}U$, con $U$ triangular superior
+(problema 4.32).
+
+**Los eigenvalores.** En la potencia, el eigenvalor salía del cociente
+de Rayleigh $`[\mathbf{q}^{(k)}]^T A\mathbf{q}^{(k)}`$. La
+generalización a $n$ vectores es
+
+```math
+A^{(k)} = [\mathcal{Q}^{(k)}]^T A\,\mathcal{Q}^{(k)} ,
+```
+
+una **transformación de similitud ortogonal**: $`A^{(k)}`$ tiene los
+mismos eigenvalores que $A$. Y cuando $`\mathcal{Q}^{(k)} \to \tilde{Q}`$:
+
+```math
+A^{(k)} \to \tilde{Q}^T A\tilde{Q}
+= \tilde{Q}^T A V U^{-1}
+= \tilde{Q}^T V \Lambda U^{-1}
+= \tilde{Q}^T \tilde{Q} U \Lambda U^{-1}
+= U \Lambda U^{-1} .
+```
+
+(Se usó $`\tilde{Q} = VU^{-1}`$, luego $AV = V\Lambda$, luego otra vez
+$V = \tilde{Q}U$, y por último $`\tilde{Q}^T\tilde{Q} = I`$.) El
+resultado es un producto de tres matrices triangulares superiores (la
+inversa de una triangular superior también lo es), así que es
+**triangular superior**, con $\Lambda$ en la diagonal: los
+eigenvalores se leen de la diagonal de $`A^{(k)}`$. Esta es la
+descomposición de Schur que buscábamos. Si $A$ es simétrica, $`A^{(k)}`$
+tiende a una matriz **diagonal**.
+
+Resumiendo, la iteración simultánea da
+
+```math
+A^k = \mathcal{Q}^{(k)}\mathcal{R}^{(k)},
+\qquad
+A^{(k)} = [\mathcal{Q}^{(k)}]^T A\,\mathcal{Q}^{(k)} .
+```
+
+La primera tiene que ver con los eigenvectores y la segunda con los
+eigenvalores. Como criterio de paro se puede usar un número fijo de
+iteraciones o vigilar cuánto cambia $`A^{(k)}`$.
+
+### El método QR: algoritmo
+
+El método QR es sorprendentemente simple. Empezando con
+$`A^{(0)} = A`$, para $k = 1, 2, \ldots$
+
+```math
+A^{(k-1)} = Q^{(k)} R^{(k)},
+\qquad
+A^{(k)} = R^{(k)} Q^{(k)} .
+```
+
+Se descompone, y se **multiplica en orden inverso**. Y otra vez, y
+otra vez. (Ahora la $Q$ es normal, no caligráfica.)
+
+Dicho así parece magia. Pero es **exactamente la iteración
+simultánea**, solo que calcula primero $`A^{(k)}`$ en vez de
+$`\mathcal{Q}^{(k)}`$. Para verlo, definimos las mismas
+$`\mathcal{R}^{(k)}`$ de antes y
+
+```math
+\mathcal{Q}^{(k)} = Q^{(1)} Q^{(2)} \cdots Q^{(k-1)} Q^{(k)} ,
+\qquad \mathcal{Q}^{(0)} = I ,
+```
+
+(en el orden **contrario** al de las $R$). El producto de matrices
+ortogonales es ortogonal (problema 4.2), así que $`\mathcal{Q}^{(k)}`$
+lo es. Hay que probar las mismas dos relaciones de antes.
+
+**Segunda relación,** $`A^{(k)} = [\mathcal{Q}^{(k)}]^T A\,\mathcal{Q}^{(k)}`$.
+Para $k = 0$ es $`A^{(0)} = A`$. Multiplicando la primera ecuación del
+método por $`[Q^{(k)}]^T`$ (que es la inversa de $`Q^{(k)}`$):
+$`R^{(k)} = [Q^{(k)}]^T A^{(k-1)}`$. Sustituyendo en la segunda:
+
+```math
+A^{(k)} = [Q^{(k)}]^T A^{(k-1)} Q^{(k)} .
+```
+
+Cada paso del método QR es una transformación de similitud ortogonal.
+Usando la hipótesis de inducción para $`A^{(k-1)}`$:
+
+```math
+A^{(k)} = [Q^{(k)}]^T [\mathcal{Q}^{(k-1)}]^T A\,\mathcal{Q}^{(k-1)} Q^{(k)}
+= [\mathcal{Q}^{(k)}]^T A\,\mathcal{Q}^{(k)} ,
+```
+
+donde se usó que la transpuesta de un producto es el producto de las
+transpuestas en orden inverso. Por eso las $Q$ se multiplican en ese
+orden.
+
+**Primera relación,** $`A^k = \mathcal{Q}^{(k)}\mathcal{R}^{(k)}`$. Para
+$k = 0$ es $I = I\cdot I$. Si vale para $k - 1$:
+
+```math
+A^k = A\,A^{k-1}
+= A\,\mathcal{Q}^{(k-1)}\mathcal{R}^{(k-1)}
+= \mathcal{Q}^{(k-1)} A^{(k-1)}\mathcal{R}^{(k-1)}
+= \mathcal{Q}^{(k-1)} Q^{(k)} R^{(k)}\mathcal{R}^{(k-1)}
+= \mathcal{Q}^{(k)}\mathcal{R}^{(k)} .
+```
+
+En el tercer paso se usó la segunda relación (ya probada) para $k-1$,
+multiplicada por $`\mathcal{Q}^{(k-1)}`$ por la izquierda:
+$`A\,\mathcal{Q}^{(k-1)} = \mathcal{Q}^{(k-1)}A^{(k-1)}`$. En el cuarto, la
+primera ecuación del método QR.
+
+Así que los dos métodos cumplen las mismas relaciones; con
+$`\mathcal{Q}^{(0)} = I`$ dan, paso a paso, las mismas matrices. ¿Por qué
+preferir el método QR? La iteración simultánea se concentra en los
+eigenvectores ($`\mathcal{Q}^{(k)}`$ sale directo); para tener
+$`A^{(k)}`$ hay que hacer dos productos de matrices extra. El método
+QR calcula directamente $`A^{(k)}`$, de cuya diagonal salen los
+eigenvalores; para tener $`\mathcal{Q}^{(k)}`$ habría que ir
+acumulando el producto (problema 4.35). Y ya no hay magia: la segunda
+ecuación, $`A^{(k)} = R^{(k)}Q^{(k)}`$, **es** una transformación de
+similitud ortogonal.
+
+Tal como está, el método QR es poco eficiente. En la práctica se
+combina con desplazamientos (como en la potencia inversa) y con otros
+trucos.
+
+La parte 3b de [`qr.py`](qr.py) corre los dos métodos lado a lado y
+compara las diagonales de $`A^{(k)}`$: coinciden hasta
+$`\sim 10^{-13}`$. (Los elementos de arriba de la diagonal difieren
+más, $`\sim 10^{-4}`$: la iteración simultánea usa
+$`[\mathcal{Q}^{(k)}]^T`$ como si fuera la inversa, y con Gram-Schmidt
+clásico $Q$ no es del todo ortogonal.)
+
+### Implementación
+
+Con `descomposicion_qr` y `mat_mat`, el método QR es casi trivial:
+
+```python
+def metodo_qr(A, kmax=100):
+    A_k = [renglon[:] for renglon in A]
+    for k in range(1, kmax):
+        Q, R = descomposicion_qr(A_k)
+        A_k = mat_mat(R, Q)
+    return [A_k[i][i] for i in range(len(A))]
+```
+
+Como en el libro, se hace un número fijo de iteraciones, y por eso no
+hace falta guardar los superíndices: `A_k`, `Q` y `R` se van
+reemplazando. Se copia `A` al principio para no modificar la matriz
+de quien llama a la función.
+
+La parte 4 de [`qr.py`](qr.py) lo corre paso a paso con la matriz de
+prueba. La diagonal converge a los cuatro eigenvalores que encontramos
+con la potencia inversa ($21.3166626635$, $-0.0672337148$,
+$`-6.93\times 10^{-5}`$, $`-7.50\times 10^{-8}`$), y la parte de abajo
+de la diagonal se va a cero, unas 300 veces más chica en cada
+iteración: en 8 iteraciones pasa de $0.1$ a $`3\times 10^{-19}`$. El
+factor 300 no es casualidad: el elemento $`A^{(k)}_{i+1,i}`$ decrece
+como $`|\lambda_{i+1}/\lambda_i|^k`$, y el más lento de esos cocientes
+es $`|\lambda_1/\lambda_0| = 3.15\times 10^{-3}`$, el mismo que
+controlaba la potencia.
+
+Con la matriz simétrica $`S = A + A^T`$, la parte de abajo también se
+va a cero, pero la de arriba se queda en $`\sim 10^{-7}`$, aunque en
+aritmética exacta $`A^{(k)}`$ seguiría siendo simétrica (y por lo tanto
+diagonal). Otra vez es culpa de Gram-Schmidt clásico: si $Q$ no es
+ortogonal, $RQ$ no es exactamente una transformación de similitud
+ortogonal. Los eigenvalores, en la diagonal, sí salen bien (coinciden
+con `numpy.linalg.eigvalsh`).
+
+### Conteo de operaciones
+
+En la descomposición QR, lo que más se repite es el ciclo interno:
+para cada par $i < j$, el producto punto $`\mathbf{q}_i^T\mathbf{a}_j`$
+($n$ multiplicaciones y $n-1$ sumas) y la resta
+$`\mathbf{a}'_j - R_{ij}\mathbf{q}_i`$ ($n$ multiplicaciones y $n$
+restas): $\sim 4n$ operaciones. Sumando sobre todos los pares:
+
+```math
+\sum_{j=0}^{n-1}\sum_{i=0}^{j-1} 4n = \sum_{j=0}^{n-1} 4nj = 4n\,\frac{(n-1)n}{2} \sim 2n^3 .
+```
+
+Una descomposición QR cuesta $\sim 2n^3$, **tres veces** más que LU
+($\sim 2n^3/3$). El problema 4.34 pide la cuenta completa.
+
+Cada iteración del método QR hace una descomposición ($\sim 2n^3$) y
+un producto de matrices ($\sim 2n^3$). Con $m$ iteraciones, el total es
+$\sim 4mn^3$. ¿Cuánto vale $m$? Depende de qué tan separados estén los
+eigenvalores, pero no es raro que $m$ sea del orden de $n$, y entonces
+el método QR es $`O(n^4)`$: demasiado para matrices grandes. Lo que se
+hace en la práctica es llevar primero $A$ a la **forma de Hessenberg**
+(ceros abajo de la subdiagonal, con reflexiones de Householder); eso
+baja el costo de cada iteración de $`O(n^3)`$ a $`O(n^2)`$.
+
+## Todos los eigenvalores y eigenvectores
+
+`metodo_qr` da todos los eigenvalores. Para tener también los
+eigenvectores podríamos acumular $`\mathcal{Q}^{(k)}`$, pero para una
+matriz no simétrica eso da el factor ortogonal $\tilde{Q}$, no los
+eigenvectores. Mejor usamos lo que ya tenemos: con una buena
+estimación del eigenvalor, la **potencia inversa con desplazamiento**
+converge en muy pocas iteraciones y da el eigenvector. Esto era lo que
+anunciamos en la sección de la potencia inversa:
+
+```python
+def eigenpares(A, eps=1e-12):
+    eigenvalores = []
+    eigenvectores = []
+    for lam_qr in metodo_qr(A):
+        lam, v, _ = potencia_inversa(A, desplazamiento=lam_qr + eps)
+        eigenvalores.append(lam)
+        eigenvectores.append(v)
+    return eigenvalores, eigenvectores
+```
+
+Detalles:
+
+- Al desplazamiento se le suma `eps`. Si el desplazamiento fuera
+  *exactamente* un eigenvalor, $A - sI$ sería singular y LU
+  dividiría entre cero; con el valor que da QR, que es casi exacto, el
+  sistema queda muy mal condicionado. Lo que queremos es estar muy
+  cerca pero no encima. (Recuerden que estar cerca **no** es problema
+  para la potencia inversa: el error cae en la dirección del
+  eigenvector.)
+- Los eigenvalores que regresa son los de la potencia inversa
+  (cociente de Rayleigh), no los de QR: QR solo da el punto de partida.
+- Regresa una **lista de eigenvectores** (`eigenvectores[i]` es el de
+  `eigenvalores[i]`), que con listas de listas es lo más cómodo. El
+  libro, con NumPy, los regresa como columnas de una matriz.
+- `eigenpares` es tan corta porque usa todo lo anterior:
+  `metodo_qr` usa `descomposicion_qr`, y `potencia_inversa` usa
+  `descomposicion_lu` y las sustituciones.
+
+La parte 5 de [`qr.py`](qr.py) la prueba. Los residuos
+$`\|A\mathbf{v} - \lambda\mathbf{v}\|/\|\mathbf{v}\|`$ son todos
+$`\sim 10^{-15}`$, la suma de los eigenvalores da la traza y su producto
+el determinante, y el primer eigenvector es el de la potencia. Igual
+que en el libro, la potencia inversa cambia un poco el eigenvalor más
+chico: QR da $`-7.501283325\times 10^{-8}`$ y la potencia inversa
+$`-7.501283353\times 10^{-8}`$. (¿Cuál es mejor? Para un eigenvalor tan
+chico comparado con $`\|A\| \approx 21`$, la diferencia es del orden
+del redondeo.)
+
+**Para pensar.**
+
+- Programen el **Gram-Schmidt modificado** (problema 4.25): en cuanto
+  tienen $\mathbf{q}_j$, réstenle su componente a **todas** las
+  columnas que faltan, $`\mathbf{a}'_k \leftarrow \mathbf{a}'_k - (\mathbf{q}_j^T\mathbf{a}'_k)\,\mathbf{q}_j`$
+  para $k > j$. En aritmética exacta es lo mismo; comparen
+  $`\|Q^TQ - I\|`$ para $n = 4, 6, 8$. ¿Se arregla lo de la matriz
+  simétrica?
+- Programen la iteración simultánea como función (problema 4.33),
+  parecida a `potencia`. Prueben primero la versión sin ortonormalizar
+  y vean cómo todas las columnas acaban en $\mathbf{v}_0$.
+- Modifiquen `metodo_qr` para que también acumule
+  $`\mathcal{Q}^{(k)}`$ (problema 4.35). Con la matriz simétrica $S$,
+  comparen sus columnas con los eigenvectores de `eigenpares`.
+- Agreguen a `metodo_qr` un criterio de paro: por ejemplo, que la
+  parte de abajo de la diagonal sea menor que una tolerancia.
+- Prueben `eigenpares` con `eps = 0`.
+
 ## Contenido
 - [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py):
   producto matriz-vector (`mat_vec`), residuo, normas de vectores y de
@@ -2197,8 +2765,9 @@ cosa común, los dos métodos son $`O(n^3)`$.)
   el determinante (`inversa`, `determinante`), el método de Jacobi
   (`paso_jacobi`, `cambio_relativo`, `jacobi`), los métodos de la
   potencia para eigenvalores (`producto_punto`, `normalizar`,
-  `cociente_rayleigh`, `potencia`, `potencia_inversa`) y la matriz de
-  prueba del libro (`crear_prueba`).
+  `cociente_rayleigh`, `potencia`, `potencia_inversa`), el método QR
+  (`transpuesta`, `mat_mat`, `descomposicion_qr`, `metodo_qr`,
+  `eigenpares`) y la matriz de prueba del libro (`crear_prueba`).
   Todo con listas de listas, sin NumPy. Aquí se irá acumulando el
   resto del tema.
 - [`analisis_de_error.py`](analisis_de_error.py): el ejemplo de Kahan
@@ -2245,6 +2814,13 @@ cosa común, los dos métodos son $`O(n^3)`$.)
   comprobados con la traza y el determinante; cuántas iteraciones
   hacen falta según qué tan cerca está el desplazamiento; y el cambio
   de signo con un eigenvalor negativo.
+- [`qr.py`](qr.py): la descomposición QR de la matriz de prueba
+  ($`\|A - QR\|`$ y la pérdida de ortogonalidad de $Q$); por qué la
+  diagonal de $U$ no da los eigenvalores; la iteración simultánea sin
+  y con ortonormalizar, comparada paso a paso con el método QR; el
+  método QR volviendo triangular a $`A^{(k)}`$ (y casi diagonal a una
+  matriz simétrica); y todos los eigenpares con `eigenpares`,
+  comprobados con el residuo, la traza y el determinante.
 
 Se corren desde la raíz del repositorio (con el `.venv` activado), por
 ejemplo `python3 unidades/09_algebra_lineal/triangulares.py`.

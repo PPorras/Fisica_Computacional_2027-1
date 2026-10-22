@@ -15,7 +15,8 @@ Aquí vive lo que se reutiliza en el resto del tema: las sustituciones
 para matrices triangulares, la eliminación gaussiana (con y sin
 pivoteo), la descomposición LU con la inversa y el determinante, el
 método de Jacobi, los métodos de la potencia (directo e inverso con
-desplazamiento) para eigenvalores, y la matriz de prueba del libro.
+desplazamiento) y el método QR para eigenvalores, y la matriz de
+prueba del libro.
 """
 
 from fiscomp.funciones_especiales import raiz_cuadrada
@@ -443,6 +444,94 @@ def potencia_inversa(A, desplazamiento=20.0, kmax=200, tol=1e-8):
         # Solo llega aquí si el for terminó sin break: no convergió.
         return None, None, kmax
     return cociente_rayleigh(A, q), q, k
+
+
+###############################################
+# Eigenvalores: método QR
+###############################################
+
+
+def transpuesta(A):
+    """Transpuesta de una matriz: (A^T)[i][j] = A[j][i]. También sirve
+    para pasar de "lista de renglones" a "lista de columnas".
+    """
+    return [list(columna) for columna in zip(*A)]
+
+
+def mat_mat(A, B):
+    """Producto de matrices C = A B, con C[i][j] = sum_k A[i][k] B[k][j].
+    Para matrices n x n cuesta ~2n^3 operaciones.
+    """
+    B_T = transpuesta(B)
+    return [[producto_punto(renglon, columna) for columna in B_T] for renglon in A]
+
+
+def descomposicion_qr(A):
+    """Descomposición QR (qrdec en el libro) con Gram-Schmidt clásico:
+    A = Q R, con Q ortogonal y R triangular superior. Para cada columna
+    a_j de A (j = 0, 1, ..., n-1):
+
+        R_ij = q_i . a_j                (i = 0, ..., j-1)
+        a'_j = a_j - sum_i R_ij q_i
+        R_jj = ||a'_j||
+        q_j  = a'_j / R_jj
+
+    A: matriz n x n (lista de listas) con columnas linealmente
+    independientes. Regresa (Q, R), las dos como listas de listas.
+    """
+    n = len(A)
+    columnas = transpuesta(A)
+    q = []  # columnas de Q, ya ortonormales
+    R = [[0.0] * n for _ in range(n)]
+    for j in range(n):
+        a_prima = columnas[j][:]
+        for i in range(j):
+            R[i][j] = producto_punto(q[i], columnas[j])
+            a_prima = [a - R[i][j] * q_i for a, q_i in zip(a_prima, q[i])]
+        R[j][j] = norma_euclidea(a_prima)
+        q.append([a / R[j][j] for a in a_prima])
+    return transpuesta(q), R
+
+
+def metodo_qr(A, kmax=100):
+    """Método QR (qrmet en el libro): todos los eigenvalores de A. Empezando
+    con A^(0) = A, para k = 1, 2, ...
+
+        A^(k-1) = Q R     (descomposicion_qr)
+        A^(k)   = R Q     (multiplicar en orden inverso)
+
+    A^(k) tiene los mismos eigenvalores que A y tiende a una matriz
+    triangular superior, así que los eigenvalores se leen de su diagonal.
+
+    A: matriz n x n (lista de listas) con eigenvalores reales y
+    distintos. kmax: se hacen kmax - 1 iteraciones, sin criterio de
+    paro (como en el libro). Regresa la lista de la diagonal de A^(k).
+    """
+    A_k = [renglon[:] for renglon in A]
+    for k in range(1, kmax):
+        Q, R = descomposicion_qr(A_k)
+        A_k = mat_mat(R, Q)
+    return [A_k[i][i] for i in range(len(A))]
+
+
+def eigenpares(A, eps=1e-12):
+    """Todos los eigenvalores y eigenvectores de A (eig en el libro).
+    Los eigenvalores de metodo_qr se usan como desplazamientos de
+    potencia_inversa, que da el eigenvector (y refina el eigenvalor).
+    Al desplazamiento se le suma eps para que A - s I no sea singular.
+
+    A: matriz n x n (lista de listas) con eigenvalores reales y distintos.
+    Regresa (eigenvalores, eigenvectores): una lista de n números y una
+    lista de n vectores de norma 1; eigenvectores[i] es el de
+    eigenvalores[i]. (El libro los regresa como columnas de una matriz.)
+    """
+    eigenvalores = []
+    eigenvectores = []
+    for lam_qr in metodo_qr(A):
+        lam, v, _ = potencia_inversa(A, desplazamiento=lam_qr + eps)
+        eigenvalores.append(lam)
+        eigenvectores.append(v)
+    return eigenvalores, eigenvectores
 
 
 ###############################################
