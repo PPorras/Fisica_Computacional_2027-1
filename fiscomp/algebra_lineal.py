@@ -3,7 +3,8 @@
 Ver unidades/09_algebra_lineal/notas.md para la teoría de sistemas
 lineales (normas, número de condición, sustituciones, eliminación
 gaussiana, LU, Jacobi) y unidades/10_valores_y_vectores_propios/notas.md
-para la de eigenvalores (potencia, potencia inversa, método QR).
+para la de eigenvalores (potencia, potencia inversa, método QR) y la
+SVD.
 
 Convenciones:
 
@@ -17,8 +18,8 @@ Aquí vive lo que se reutiliza en el resto del tema: las sustituciones
 para matrices triangulares, la eliminación gaussiana (con y sin
 pivoteo), la descomposición LU con la inversa y el determinante, el
 método de Jacobi, los métodos de la potencia (directo e inverso con
-desplazamiento) y el método QR para eigenvalores, y la matriz de
-prueba del libro.
+desplazamiento) y el método QR para eigenvalores, la descomposición
+en valores singulares y la matriz de prueba del libro.
 """
 
 from fiscomp.funciones_especiales import raiz_cuadrada
@@ -534,6 +535,71 @@ def eigenpares(A, eps=1e-12):
         eigenvalores.append(lam)
         eigenvectores.append(v)
     return eigenvalores, eigenvectores
+
+
+###############################################
+# Descomposición en valores singulares (SVD)
+###############################################
+
+
+def matriz_h(A):
+    """Matriz simétrica H de 2n x 2n (makeH en el libro):
+
+        H = | 0  A^T |
+            | A   0  |
+
+    Sus eigenvalores son +sigma_i y -sigma_i (los valores singulares de
+    A con los dos signos), y el eigenvector de +sigma_i es (v_i, u_i)
+    / sqrt(2): arriba el vector singular derecho, abajo el izquierdo.
+
+    A: matriz n x n (lista de listas). Regresa H como lista de listas.
+    """
+    n = len(A)
+    H = [[0.0] * (2 * n) for _ in range(2 * n)]
+    for i in range(n):
+        for j in range(n):
+            H[n + i][j] = A[i][j]  # bloque de abajo a la izquierda: A
+            H[j][n + i] = A[i][j]  # bloque de arriba a la derecha: A^T
+    return H
+
+
+def svd(A, desplazamiento=1.0, eps=1e-12):
+    """Descomposición en valores singulares (svd en el libro): A = U S V^T,
+    con U y V ortogonales y S diagonal, sin pasar por A^T A.
+
+    1. Arma H = matriz_h(A), cuyos eigenvalores son +-sigma_i.
+    2. Los eigenvalores de H salen de metodo_qr aplicado a H - s I: el
+       desplazamiento s separa los pares +sigma y -sigma, que tienen el
+       mismo valor absoluto y con los que QR no converge. Luego se le
+       vuelve a sumar s.
+    3. Se quedan los eigenvalores >= 0 (los sigma_i, de mayor a menor),
+       y para cada uno potencia_inversa da el eigenvector w de H (y
+       refina sigma). Los primeros n elementos de w, por sqrt(2), son
+       v_i; los últimos n, por sqrt(2), son u_i.
+
+    A: matriz n x n (lista de listas) con valores singulares distintos
+    y no muy separados en órdenes de magnitud (limitación de metodo_qr).
+    desplazamiento: número real s, el corrimiento del paso 2.
+    eps: como en eigenpares, para que H - sigma I no sea singular.
+    Regresa (U, sigmas, V_T): U como lista de listas, la lista de los
+    valores singulares y V^T como lista de listas. (El libro regresa
+    los valores singulares como una matriz diagonal.)
+    """
+    n = len(A)
+    H = matriz_h(A)
+    H_desplazada = [[H[i][j] - (desplazamiento if i == j else 0.0) for j in range(2 * n)] for i in range(2 * n)]
+    eigenvalores_h = [lam + desplazamiento for lam in metodo_qr(H_desplazada)]
+    sigmas_qr = sorted([lam for lam in eigenvalores_h if lam >= 0], reverse=True)
+    sigmas = []
+    columnas_u = []
+    columnas_v = []
+    for sigma_qr in sigmas_qr:
+        sigma, w, _ = potencia_inversa(H, desplazamiento=sigma_qr + eps)
+        sigmas.append(sigma)
+        columnas_v.append([raiz_cuadrada(2.0) * w_i for w_i in w[:n]])
+        columnas_u.append([raiz_cuadrada(2.0) * w_i for w_i in w[n:]])
+    # Las columnas de V son los renglones de V^T: columnas_v ya es V^T.
+    return transpuesta(columnas_u), sigmas, columnas_v
 
 
 ###############################################

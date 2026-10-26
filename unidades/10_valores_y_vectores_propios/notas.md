@@ -11,9 +11,11 @@
   potencia inversa con desplazamiento; la descomposición QR
   (Gram-Schmidt), las transformaciones de similitud, la iteración
   simultánea y el método QR para todos los eigenvalores; todos los
-  eigenpares combinando QR con la potencia inversa.
-- Corresponde a la sección 4.4 (hasta la 4.4.4) del libro de Gezerlis,
-  y a la parte de eigenvalores de la 4.2.
+  eigenpares combinando QR con la potencia inversa; la descomposición
+  en valores singulares (SVD): definición, prueba de existencia, norma
+  2 y número de condición, y su cálculo como problema de eigenvalores.
+- Corresponde a las secciones 4.4 (hasta la 4.4.4) y 4.5 del libro de
+  Gezerlis, y a la parte de eigenvalores de la 4.2.
 - Se apoya en la [unidad 09](../09_algebra_lineal/) (sistemas de
   ecuaciones lineales): normas, número de condición, descomposición LU
   y el criterio de paro de Jacobi.
@@ -921,7 +923,7 @@ Generalicemos el método de la potencia a $n$ vectores a la vez, para
 sacar los $n$ eigenvectores. En vez de un vector inicial
 $`\mathbf{z}^{(0)}`$ usamos $n$, como columnas de una matriz
 $`Z^{(0)}`$; la elección natural es la identidad, $`Z^{(0)} = I`$
-(columnas $\mathbf{e}_0, \ldots, \mathbf{e}_{n-1}$, linealmente
+(columnas $`\mathbf{e}_0, \ldots, \mathbf{e}_{n-1}`$, linealmente
 independientes). Y multiplicamos por $A$ una y otra vez:
 
 ```math
@@ -1262,12 +1264,433 @@ del redondeo.)
 - Agreguen a `metodo_qr` un criterio de paro: por ejemplo, que la
   parte de abajo de la diagonal sea menor que una tolerancia.
 - Prueben `eigenpares` con `eps = 0`.
+
+## Descomposición en valores singulares (SVD)
+
+Ya llevamos varias factorizaciones de una matriz: la **LU** (para
+resolver sistemas lineales), la **QR** (para ortonormalizar, y como
+paso del método QR) y la **eigendescomposición**
+$`A = V\Lambda V^{-1}`$. Falta una quinta, igual de importante: la
+**descomposición en valores singulares** (SVD, por *singular-value
+decomposition*). En los cursos de álgebra lineal suele aparecer como un
+resultado formal, y para calcularla se usa una biblioteca. Aquí, como
+con todo lo demás, vamos a ver qué significa, probar que existe y
+programarla.
+
+### Definición
+
+La SVD factoriza **cualquier** matriz $A$ como
+
+```math
+A = U\Sigma V^T ,
+```
+
+donde:
+
+- $U$ es una matriz **ortogonal** ($`U^TU = I`$). Sus columnas
+  $`\mathbf{u}_i`$ son los **vectores singulares izquierdos**.
+- $\Sigma$ es **diagonal**, con los **valores singulares**
+  $`\sigma_i \ge 0`$ en la diagonal, ordenados de mayor a menor:
+  $`\sigma_0 \ge \sigma_1 \ge \cdots \ge \sigma_{n-1} \ge 0`$.
+- $V$ también es **ortogonal**. Sus columnas $`\mathbf{v}_i`$ son los
+  **vectores singulares derechos**.
+
+Con ese orden, los valores singulares son únicos. Igual que en el
+libro, nos quedamos con matrices cuadradas de $n\times n$ (y entonces
+$U$, $\Sigma$ y $V$ también lo son), pero toda matriz, cuadrada o no,
+tiene una SVD (problema 4.45 del libro).
+
+Multiplicando $`A = U\Sigma V^T`$ por $V$ por la derecha queda
+$`AV = U\Sigma`$, que columna por columna es
+
+```math
+A\mathbf{v}_i = \sigma_i\mathbf{u}_i .
+```
+
+Se parece al problema de eigenvalores, pero los vectores de la
+izquierda y de la derecha son **distintos**.
+
+**Toda matriz es diagonal en las bases adecuadas.** Tomemos el sistema
+$`A\mathbf{x} = \mathbf{b}`$ de la unidad 09. La eliminación gaussiana
+lo volvía **triangular**; la SVD lo vuelve **diagonal**. Sustituyendo
+la SVD y multiplicando por $`U^T`$ por la izquierda:
+
+```math
+U^TU\Sigma V^T\mathbf{x} = U^T\mathbf{b}
+\quad\Longrightarrow\quad
+\Sigma\mathbf{x}' = \mathbf{b}',
+\qquad
+\mathbf{x}' = V^T\mathbf{x},\quad \mathbf{b}' = U^T\mathbf{b} .
+```
+
+$`\mathbf{x}'`$ es $\mathbf{x}$ escrito en la base de los vectores
+singulares derechos (las columnas de $V$), y $`\mathbf{b}'`$ es
+$\mathbf{b}$ en la base de los izquierdos (las columnas de $U$). En
+esas coordenadas cada ecuación es independiente de las demás:
+$`\sigma_i x'_i = b'_i`$.
+
+**¿No es lo mismo que diagonalizar?** En esta sección llamamos $W$ a
+la matriz de eigenvectores (la $V$ de antes, porque ahora $V$ es otra
+cosa): $`A = W\Lambda W^{-1}`$. Con $`\mathbf{x}' = W^{-1}\mathbf{x}`$ y
+$`\mathbf{b}' = W^{-1}\mathbf{b}`$ el sistema también queda diagonal,
+$`\Lambda\mathbf{x}' = \mathbf{b}'`$. Pero hay diferencias de fondo:
+
+- La SVD existe para **cualquier** matriz. La eigendescomposición solo
+  para las diagonalizables (no para una matriz defectuosa, por
+  ejemplo, ni para una que no sea cuadrada).
+- La SVD usa **dos** bases, $U$ y $V$; la eigendescomposición, una
+  sola ($W$).
+- Las bases de la SVD son **ortonormales**. Los eigenvectores de una
+  matriz no simétrica son linealmente independientes, pero no
+  ortogonales.
+- Los valores singulares son **reales y no negativos**; los
+  eigenvalores pueden ser negativos, o complejos.
+
+La SVD tiene muchísimas aplicaciones. La más cercana a lo que ya vimos:
+la **norma 2** de una matriz es $`\sigma_0`$, y el número de condición
+en esa norma es $`\kappa_2(A) = \sigma_0/\sigma_{n-1}`$ (lo vemos abajo).
+Otras: trabajar con matrices no invertibles (resolver sistemas
+homogéneos $`A\mathbf{x} = \mathbf{0}`$), **aproximar** una matriz por
+otra más sencilla que conserve lo esencial, y el ajuste por mínimos
+cuadrados (capítulo 6 del libro).
+
+### La SVD existe
+
+Antes de calcularla, probemos que toda matriz $A$ de $n\times n$ tiene
+una SVD, sin suponer nada de $A$ (ni que sea simétrica, ni
+diagonalizable). Es una prueba por inducción, como las del método QR.
+
+**Caso base, $n = 1$.** $A$ es un número $a$. Si $a \neq 0$, basta
+$`U = a/|a|`$ (que es $\pm 1$), $`\Sigma = |a|`$ y $V = 1$. (Si $a = 0$,
+$U = V = 1$ y $\Sigma = 0$.)
+
+**La norma 2.** Necesitamos una norma de matrices nueva, la **norma 2**
+o **norma espectral**, definida a partir de la norma euclídea de
+vectores:
+
+```math
+\|A\|_2 = \max_{\mathbf{x}\neq\mathbf{0}} \frac{\|A\mathbf{x}\|}{\|\mathbf{x}\|}
+= \max_{\|\mathbf{x}\| = 1} \|A\mathbf{x}\| .
+```
+
+Es lo más que $A$ puede "estirar" a un vector. (Las dos formas son
+iguales porque $`\|A(c\mathbf{x})\|/\|c\mathbf{x}\|`$ no depende de $c$.)
+Una propiedad que vamos a usar: las matrices ortogonales **no cambian**
+la norma euclídea, porque
+$`\|Q\mathbf{x}\|^2 = \mathbf{x}^TQ^TQ\mathbf{x} = \mathbf{x}^T\mathbf{x} = \|\mathbf{x}\|^2`$.
+Por eso, si $`Q_1`$ y $`Q_2`$ son ortogonales,
+$`\|Q_1AQ_2\|_2 = \|A\|_2`$ (problema 4.40).
+
+**Preparación.** Sea $\mathbf{v}$ el vector de norma 1 en el que se
+alcanza el máximo, y
+
+```math
+\sigma = \|A\|_2 = \|A\mathbf{v}\|,
+\qquad
+\mathbf{u} = \frac{A\mathbf{v}}{\|A\mathbf{v}\|} = \frac{A\mathbf{v}}{\sigma}
+```
+
+(si $A = 0$ no hay nada que probar, así que $\sigma > 0$). Ahora
+completamos $\mathbf{v}$ a una base ortonormal (por ejemplo con
+Gram-Schmidt): $`V = (\mathbf{v}\ \ \tilde{V})`$ es ortogonal de
+$n\times n$, y $`\tilde{V}`$ tiene las otras $n-1$ columnas. Igual con
+$\mathbf{u}$: $`U = (\mathbf{u}\ \ \tilde{U})`$. Multiplicando por bloques,
+
+```math
+U^TAV =
+\begin{pmatrix} \mathbf{u}^T \\ \tilde{U}^T \end{pmatrix}
+A
+\begin{pmatrix} \mathbf{v} & \tilde{V} \end{pmatrix}
+=
+\begin{pmatrix}
+\mathbf{u}^TA\mathbf{v} & \mathbf{u}^TA\tilde{V} \\
+\tilde{U}^TA\mathbf{v} & \tilde{U}^TA\tilde{V}
+\end{pmatrix} .
+```
+
+Veamos cada bloque:
+
+- Arriba a la izquierda (un número):
+  $`\mathbf{u}^TA\mathbf{v} = (A\mathbf{v})^T(A\mathbf{v})/\sigma = \sigma^2/\sigma = \sigma`$.
+- Abajo a la izquierda (una columna de $n-1$ elementos):
+  $`\tilde{U}^TA\mathbf{v} = \sigma\,\tilde{U}^T\mathbf{u} = \mathbf{0}`$,
+  porque las columnas de $`\tilde{U}`$ son ortogonales a $\mathbf{u}$.
+- Arriba a la derecha (un renglón de $n-1$ elementos): le ponemos
+  nombre, $`\mathbf{w}^T = \mathbf{u}^TA\tilde{V}`$.
+- Abajo a la derecha (una matriz de $`(n-1)\times(n-1)`$):
+  $`\tilde{A} = \tilde{U}^TA\tilde{V}`$.
+
+Así que
+
+```math
+U^TAV = \begin{pmatrix} \sigma & \mathbf{w}^T \\ \mathbf{0} & \tilde{A} \end{pmatrix} .
+```
+
+**El bloque de arriba a la derecha también es cero.** Multipliquemos
+esa matriz por el vector que tiene $\sigma$ arriba y $\mathbf{w}$
+abajo:
+
+```math
+\left\| \begin{pmatrix} \sigma & \mathbf{w}^T \\ \mathbf{0} & \tilde{A} \end{pmatrix}
+\begin{pmatrix} \sigma \\ \mathbf{w} \end{pmatrix} \right\|
+=
+\left\| \begin{pmatrix} \sigma^2 + \|\mathbf{w}\|^2 \\ \tilde{A}\mathbf{w} \end{pmatrix} \right\|
+=
+\sqrt{\left(\sigma^2 + \|\mathbf{w}\|^2\right)^2 + \|\tilde{A}\mathbf{w}\|^2}
+\ \ge\ \sigma^2 + \|\mathbf{w}\|^2 .
+```
+
+Entonces
+
+```math
+\sigma = \|A\|_2 = \|U^TAV\|_2
+\ \ge\ \frac{\left\| U^TAV \begin{pmatrix} \sigma \\ \mathbf{w} \end{pmatrix}\right\|}
+{\left\| \begin{pmatrix} \sigma \\ \mathbf{w} \end{pmatrix}\right\|}
+\ \ge\ \frac{\sigma^2 + \|\mathbf{w}\|^2}{\sqrt{\sigma^2 + \|\mathbf{w}\|^2}}
+= \sqrt{\sigma^2 + \|\mathbf{w}\|^2} .
+```
+
+En el segundo paso se usó que $U$ y $V$ son ortogonales; en el
+tercero, que la norma 2 es un **máximo**, así que es mayor o igual que
+el cociente para un vector en particular; en el cuarto, la desigualdad
+anterior. Comparando el principio con el final,
+$`\sigma \ge \sqrt{\sigma^2 + \|\mathbf{w}\|^2}`$, y eso solo puede
+pasar si $`\mathbf{w} = \mathbf{0}`$.
+
+**Paso inductivo.** Supongamos que la SVD existe para matrices de
+$`(n-1)\times(n-1)`$; en particular,
+$`\tilde{A} = U'\Sigma'V'^T`$. Entonces
+
+```math
+U^TAV
+= \begin{pmatrix} \sigma & \mathbf{0}^T \\ \mathbf{0} & U'\Sigma'V'^T \end{pmatrix}
+= \begin{pmatrix} 1 & \mathbf{0}^T \\ \mathbf{0} & U' \end{pmatrix}
+\begin{pmatrix} \sigma & \mathbf{0}^T \\ \mathbf{0} & \Sigma' \end{pmatrix}
+\begin{pmatrix} 1 & \mathbf{0}^T \\ \mathbf{0} & V' \end{pmatrix}^T
+```
+
+(hagan la multiplicación para convencerse). Multiplicando por $U$ por
+la izquierda y por $`V^T`$ por la derecha:
+
+```math
+A =
+\left[ U \begin{pmatrix} 1 & \mathbf{0}^T \\ \mathbf{0} & U' \end{pmatrix} \right]
+\begin{pmatrix} \sigma & \mathbf{0}^T \\ \mathbf{0} & \Sigma' \end{pmatrix}
+\left[ V \begin{pmatrix} 1 & \mathbf{0}^T \\ \mathbf{0} & V' \end{pmatrix} \right]^T .
+```
+
+Las matrices entre corchetes son productos de matrices ortogonales, y
+por lo tanto ortogonales; la de en medio es diagonal y no negativa.
+Esto es una SVD de $A$. (Y quedan bien ordenados:
+$`\sigma'_0 = \|\tilde{A}\|_2 \le \|U^TAV\|_2 = \sigma`$, porque
+$`\tilde{A}`$ es un pedazo de $`U^TAV`$ y no puede estirar más.)
+
+De paso, la prueba dice que $`\sigma_0 = \|A\|_2`$, y que
+$`\mathbf{v}_0`$ es el vector que $A$ más estira.
+
+### Cómo calcular la SVD
+
+Una propiedad muy conocida: los eigenvalores de la matriz simétrica
+$`A^TA`$ son los $`\sigma_i^2`$, y sus eigenvectores son los
+$`\mathbf{v}_i`$. (Pruébenlo: $`A^TA = V\Sigma U^TU\Sigma V^T = V\Sigma^2V^T`$.)
+Muchos libros calculan así la SVD, pero el libro muestra
+(problemas 4.41 y 4.42) que es **inestable**: el resultado es mucho más
+sensible a perturbaciones que el problema original. Lo que se gana en
+intuición se pierde en la práctica.
+
+Seguimos otro camino, igual de sencillo y más estable, que usa la misma
+idea que las bibliotecas profesionales (que además, para ser
+eficientes, llevan primero la matriz a forma *bidiagonal*). Partimos
+de $`AV = U\Sigma`$. Transponiendo $`A = U\Sigma V^T`$ y multiplicando
+por $U$ por la derecha sale la otra mitad:
+
+```math
+AV = U\Sigma,
+\qquad
+A^TU = V\Sigma
+```
+
+(usando $`\Sigma^T = \Sigma`$). Las dos juntas son **una sola**
+ecuación con bloques de $2\times 2$:
+
+```math
+\begin{pmatrix} 0 & A^T \\ A & 0 \end{pmatrix}
+\frac{1}{\sqrt{2}}
+\begin{pmatrix} V & V \\ U & -U \end{pmatrix}
+=
+\frac{1}{\sqrt{2}}
+\begin{pmatrix} V & V \\ U & -U \end{pmatrix}
+\begin{pmatrix} \Sigma & 0 \\ 0 & -\Sigma \end{pmatrix} .
+```
+
+(Hagan las multiplicaciones por bloques: el bloque de arriba a la
+izquierda da $`A^TU = V\Sigma`$, el de abajo a la izquierda
+$`AV = U\Sigma`$, y los de la derecha lo mismo con signos.) Esto es
+la diagonalización $`HW = W\Lambda`$ de la matriz de $2n\times 2n$
+
+```math
+H = \begin{pmatrix} 0 & A^T \\ A & 0 \end{pmatrix},
+\qquad
+W = \frac{1}{\sqrt{2}} \begin{pmatrix} V & V \\ U & -U \end{pmatrix},
+\qquad
+\Lambda = \begin{pmatrix} \Sigma & 0 \\ 0 & -\Sigma \end{pmatrix} .
+```
+
+En palabras: los eigenvalores de $H$ son los $`\sigma_i`$ y los
+$`-\sigma_i`$. El eigenvector de $`+\sigma_i`$ (la columna $i$ de $W$)
+tiene arriba $`\mathbf{v}_i/\sqrt{2}`$ y abajo $`\mathbf{u}_i/\sqrt{2}`$;
+el $`1/\sqrt{2}`$ es para que tenga norma 1. Calcular la SVD de $A$ se
+convirtió en el problema de eigenvalores de $H$, sin pasar por
+$`A^TA`$. Y $H$ es **simétrica**, el mejor caso para eigenvalores.
+
+### Implementación
+
+`matriz_h(A)` arma $H$ (`makeH` en el libro): ceros, $A$ en el bloque
+de abajo a la izquierda y $`A^T`$ en el de arriba a la derecha. La SVD
+la hace `svd(A)`:
+
+```python
+def svd(A, desplazamiento=1.0, eps=1e-12):
+    n = len(A)
+    H = matriz_h(A)
+    H_desplazada = [[H[i][j] - (desplazamiento if i == j else 0.0) for j in range(2 * n)] for i in range(2 * n)]
+    eigenvalores_h = [lam + desplazamiento for lam in metodo_qr(H_desplazada)]
+    sigmas_qr = sorted([lam for lam in eigenvalores_h if lam >= 0], reverse=True)
+    sigmas = []
+    columnas_u = []
+    columnas_v = []
+    for sigma_qr in sigmas_qr:
+        sigma, w, _ = potencia_inversa(H, desplazamiento=sigma_qr + eps)
+        sigmas.append(sigma)
+        columnas_v.append([raiz_cuadrada(2.0) * w_i for w_i in w[:n]])
+        columnas_u.append([raiz_cuadrada(2.0) * w_i for w_i in w[n:]])
+    return transpuesta(columnas_u), sigmas, columnas_v
+```
+
+Conceptualmente es eso: eigenvalores de $H$ y luego eigenvectores. Los
+detalles:
+
+- **El desplazamiento.** Los eigenvalores de $H$ vienen en pares
+  $`\pm\sigma_i`$, con el **mismo valor absoluto**, y el método QR (como
+  lo programamos) solo funciona con eigenvalores de valores absolutos
+  distintos. El remedio más simple es el de la potencia inversa:
+  aplicar QR a $`H - sI`$, cuyos eigenvalores $`\sigma_i - s`$ y
+  $`-\sigma_i - s`$ ya tienen valores absolutos distintos, y al final
+  volver a sumar $s$. Usamos $s = 1$, como el libro.
+- **Solo los no negativos.** De los $2n$ eigenvalores de $H$ nos
+  quedamos con los $`\ge 0`$, que son los $`\sigma_i`$, y los ordenamos
+  de mayor a menor. (El libro usa `np.nonzero` para encontrar sus
+  índices.)
+- **Los vectores singulares.** Como en `eigenpares`, cada $`\sigma_i`$
+  (más `eps`) es el desplazamiento de la potencia inversa, que da el
+  eigenvector $\mathbf{w}$ de $H$ y refina $`\sigma_i`$. Sus primeros
+  $n$ elementos, por $\sqrt{2}$, son $`\mathbf{v}_i`$; los últimos $n$,
+  por $\sqrt{2}$, son $`\mathbf{u}_i`$. El signo de $\mathbf{w}$ no
+  importa: si cambia, cambian $`\mathbf{u}_i`$ y $`\mathbf{v}_i`$ a la
+  vez, y $`\sigma_i\mathbf{u}_i\mathbf{v}_i^T`$ sigue igual.
+- **Qué regresa.** $U$ como matriz, los $`\sigma_i`$ como **lista** y
+  $`V^T`$ (no $V$), como hacen las bibliotecas. Como `columnas_v` es
+  la lista de las columnas de $V$, que son los renglones de $`V^T`$,
+  ya es $`V^T`$ sin transponer. El libro regresa $\Sigma$ como matriz
+  diagonal.
+- El libro le pasa a `svd` el método para los eigenvalores como
+  parámetro (`solver`), para poder cambiar `qrmet` por
+  `np.linalg.eigvals`. Nosotros usamos siempre `metodo_qr`.
+
+### Resultados
+
+[`svd.py`](svd.py) usa, como el libro, la matriz de prueba **menos la
+identidad**, `crear_prueba(4, 21)` $- I$ (abajo vemos por qué).
+
+**La parte 1** muestra el desplazamiento en acción. Con $H$ tal cual,
+la diagonal de $`H^{(k)}`$ se queda en **ceros**: QR no puede separar
+$\sigma$ de $-\sigma$. Con $s = 1$, los cuatro eigenvalores positivos
+salen bien. Los negativos convergen mal (los tres más chicos quedan
+en $`-\sigma_i - 1 \approx -2`$, casi empatados en valor absoluto),
+pero esos se descartan. Incluso $`\sigma_0`$ sale de QR con un error de
+$`\sim 10^{-7}`$, porque $`|\sigma_0 - 1| = 19.36`$ y
+$`|-\sigma_0 - 1| = 21.36`$ están cerca (cociente $0.9$); la potencia
+inversa lo corrige.
+
+**La parte 2** calcula la SVD. Los valores singulares son
+$20.3559952277$, $1.0652108300$, $1.0000326288$ y $0.9999998880$
+(coinciden con `numpy.linalg.svd`). Se comprueba de varias formas:
+
+- $`A\mathbf{v}_i = \sigma_i\mathbf{u}_i`$, con residuos $`\sim 10^{-14}`$.
+- $`\sum_i \sigma_i^2 = \|A\|_F^2`$ y $`\prod_i \sigma_i = |\det A|`$, a
+  10 cifras. (Las dos salen de que $U$ y $V$ son ortogonales; para la
+  segunda, $`|\det U| = |\det V| = 1`$.)
+- $`\|A - U\Sigma V^T\|`$, $`\|U^TU - I\|`$ y $`\|V^TV - I\|`$ son
+  $`\sim 2\times 10^{-10}`$, no $`10^{-16}`$. No es un error del
+  programa: $`\sigma_2`$ y $`\sigma_3`$ están a solo $`3\times 10^{-5}`$
+  uno del otro, y como vimos en "Sensibilidad de los eigenvectores",
+  un eigenvector con un vecino tan cercano es sensible: el redondeo lo
+  puede girar hacia el otro unos
+  $`\epsilon\|H\|/(3\times 10^{-5}) \approx 10^{-10}`$. Por eso cada
+  par por separado cumple $`A\mathbf{v}_i = \sigma_i\mathbf{u}_i`$ muy
+  bien, pero $`\mathbf{v}_2`$ y $`\mathbf{v}_3`$ ya no son del todo
+  ortogonales entre sí.
+
+**La parte 3** comprueba que $`\|A\|_2 = \sigma_0`$: con 10000 vectores
+al azar, el mayor $`\|A\mathbf{x}\|/\|\mathbf{x}\|`$ es $20.3486$, un
+poco menos que $`\sigma_0 = 20.3560`$, que se alcanza justo en
+$`\mathbf{v}_0`$. De la misma forma, $`\|A^{-1}\|_2 = 1/\sigma_{n-1}`$
+(los valores singulares de $`A^{-1} = V\Sigma^{-1}U^T`$ son los
+$`1/\sigma_i`$), así que el número de condición en norma 2 es
+
+```math
+\kappa_2(A) = \|A\|_2\,\|A^{-1}\|_2 = \frac{\sigma_0}{\sigma_{n-1}} .
+```
+
+Para esta matriz, $`\kappa_2 \approx 20.4`$: restarle $I$ la volvió
+bien condicionada.
+
+**La parte 4** resuelve $`A\mathbf{x} = \mathbf{b}`$ con la SVD:
+$`\mathbf{b}' = U^T\mathbf{b}`$, luego $`x'_i = b'_i/\sigma_i`$ y
+$`\mathbf{x} = V\mathbf{x}'`$. Da lo mismo que LU. (Es más caro que
+LU, pero si algún $`\sigma_i`$ es cero o casi, se ve de inmediato qué
+componente de $`\mathbf{x}'`$ está mal determinada.)
+
+**La parte 5** muestra el límite de nuestra `svd`. Sin restarle $I$,
+los valores singulares de la matriz de prueba van de $21.35$ a
+$`7.5\times 10^{-8}`$. Con $s = 1$, los dos más chicos dan
+$`\sigma_i - 1 \approx -1`$ y sus compañeros negativos
+$`-\sigma_i - 1 \approx -1`$: valores absolutos que difieren en
+$`\sim 10^{-7}`$, y el método QR no los separa en 100 iteraciones. Se
+nota en todo: $`\sigma_2`$ sale mal, $`\prod_i\sigma_i`$ no da el
+determinante, $`\mathbf{v}_2\cdot\mathbf{v}_3 \approx -0.8`$ (la
+potencia inversa encontró casi el mismo vector dos veces) y
+$`\|A - U\Sigma V^T\| \sim 10^{-4}`$. Esto pasa en general cuando los
+valores singulares abarcan muchos órdenes de magnitud, y **es culpa del
+método para los eigenvalores**, no de la idea de usar $H$: con
+`np.linalg.eigvals` en lugar de `qrmet`, el libro obtiene la SVD
+correcta también para estas matrices.
+
+**Para pensar.**
+
+- Calculen la SVD por el camino de $`A^TA`$ (problema 4.41): los
+  eigenvalores de $`A^TA`$ (con `eigenpares`) son los $`\sigma_i^2`$, y
+  sus eigenvectores los $`\mathbf{v}_i`$; los $`\mathbf{u}_i`$ salen de
+  $`A\mathbf{v}_i = \sigma_i\mathbf{u}_i`$. Comparen con `svd`. ¿Cuánto
+  vale $`\kappa_2(A^TA)`$ comparado con $`\kappa_2(A)`$? (Problema 4.42.)
+- ¿Hay algún desplazamiento $s$ con el que `svd` funcione para la
+  matriz de la parte 5? Piensen en los valores absolutos de
+  $`\sigma_i - s`$ y $`-\sigma_i - s`$ cuando $`\sigma_i`$ es muy chico.
+- **Aproximación de rango bajo.** La SVD se puede escribir como una
+  suma, $`A = \sum_i \sigma_i\mathbf{u}_i\mathbf{v}_i^T`$. Quédense con
+  los primeros $k$ términos, $`A_k`$, y comparen $`\|A - A_k\|_F`$ con
+  $`\sqrt{\sigma_k^2 + \cdots + \sigma_{n-1}^2}`$.
+- Si $A$ es singular, su último valor singular es cero, y
+  $`\mathbf{v}_{n-1}`$ resuelve el sistema homogéneo
+  $`A\mathbf{x} = \mathbf{0}`$. ¿Por qué? Prueben con una matriz cuyo
+  último renglón sea la suma de los otros. ¿Lo logra nuestra `svd`?
+
 ## Contenido
 - [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py): los
   métodos de la potencia (`producto_punto`, `normalizar`,
   `cociente_rayleigh`, `potencia`, `potencia_inversa`) y el método QR
   (`transpuesta`, `mat_mat`, `descomposicion_qr`, `metodo_qr`,
-  `eigenpares`). Es el mismo módulo de la unidad 09: la potencia
+  `eigenpares`) y la SVD (`matriz_h`, `svd`). Es el mismo módulo de la unidad 09: la potencia
   inversa usa `descomposicion_lu` y `resolver_lu`, y todos los
   ejemplos usan su matriz de prueba (`crear_prueba`).
 - [`condicion_eigenvalores.py`](condicion_eigenvalores.py): el número
@@ -1290,6 +1713,12 @@ del redondeo.)
   método QR volviendo triangular a $`A^{(k)}`$ (y casi diagonal a una
   matriz simétrica); y todos los eigenpares con `eigenpares`,
   comprobados con el residuo, la traza y el determinante.
+- [`svd.py`](svd.py): los eigenvalores de $H$ con y sin desplazamiento;
+  la SVD de la matriz de prueba menos la identidad, comprobada con la
+  reconstrucción $`U\Sigma V^T`$, la norma de Frobenius y el
+  determinante; la norma 2 y $`\kappa_2`$; resolver
+  $`A\mathbf{x} = \mathbf{b}`$ en las bases de la SVD; y un caso en el
+  que falla (valores singulares de muchos órdenes de magnitud).
 
 Se corren desde la raíz del repositorio (con el `.venv` activado), por
 ejemplo `python3 unidades/10_valores_y_vectores_propios/qr.py`.

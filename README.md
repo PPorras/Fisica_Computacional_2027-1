@@ -93,9 +93,8 @@ Los temas marcados como *(pendiente)* aún no se han visto en clase.
   condición para eigenvalores y sensibilidad de los eigenvectores,
   método de la potencia y de la potencia inversa con desplazamiento,
   descomposición QR (Gram-Schmidt), iteración simultánea y el método
-  QR, todos los eigenpares —
-  [unidad 10](unidades/10_valores_y_vectores_propios/)
-- Descomposición en valores singulares (SVD) *(pendiente)*
+  QR, todos los eigenpares, y la descomposición en valores singulares
+  (SVD) — [unidad 10](unidades/10_valores_y_vectores_propios/)
 - **Proyecto:** la ecuación de Schrödinger como problema de
   eigenvalores (espines 1/2) —
   [`simulaciones/espines/`](simulaciones/espines/); por ahora con
