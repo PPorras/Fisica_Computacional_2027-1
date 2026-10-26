@@ -14,15 +14,16 @@
   eigenpares combinando QR con la potencia inversa; la descomposición
   en valores singulares (SVD): definición, prueba de existencia, norma
   2 y número de condición, y su cálculo como problema de eigenvalores.
-- Corresponde a las secciones 4.4 (hasta la 4.4.4) y 4.5 del libro de
-  Gezerlis, y a la parte de eigenvalores de la 4.2.
+- La mayor parte de este material se ha tomado de las secciones 4.4
+  (hasta la 4.4.4) y 4.5 de [1], y de la parte de eigenvalores de la
+  4.2.
 - Se apoya en la [unidad 09](../09_algebra_lineal/) (sistemas de
   ecuaciones lineales): normas, número de condición, descomposición LU
   y el criterio de paro de Jacobi.
 
 ## Notación
 
-Los índices van de $0$ a $n-1$, como en el libro y en Python. Las
+Los índices van de $0$ a $n-1$, como en Python. Las
 matrices se escriben con mayúsculas ($A$, $L$, $U$) y los vectores en
 negritas minúsculas ($\mathbf{x}$, $\mathbf{b}$). Cuando hace falta,
 los dos índices de un elemento se separan con una coma: $A_{1,n-1}$.
@@ -326,7 +327,7 @@ V^{-1} A V = \Lambda,
 V = \begin{pmatrix} \mathbf{v}_0 & \mathbf{v}_1 & \cdots & \mathbf{v}_{n-1}\end{pmatrix}.
 ```
 
-(La prueba es el problema 4.21 del libro: escriban $AV$ columna por
+(La prueba es el problema 4.21 de [1]: escriban $AV$ columna por
 columna.) Por eso a resolver el problema de eigenvalores también se le
 llama **diagonalizar** la matriz, y a $A = V\Lambda V^{-1}$ se le
 llama la **eigendescomposición**.
@@ -335,7 +336,7 @@ No vamos a suponer que $A$ es simétrica: muchos problemas de física
 dan matrices simétricas, pero no todos. Eso sí, una matriz no
 simétrica puede tener eigenvalores complejos; aquí solo veremos
 matrices no simétricas con eigenvalores reales (y distintos). La
-matriz de prueba del libro, `crear_prueba(4, 21)`, es de ese tipo.
+matriz de prueba de [1], `crear_prueba(4, 21)`, es de ese tipo.
 
 **¿Por qué no usar el polinomio característico?** En la sección "El
 problema de eigenvalores" vimos que los eigenvalores son las raíces de
@@ -476,16 +477,16 @@ def potencia(A, kmax=6):
     return cociente_rayleigh(A, q), q
 ```
 
-Igual que en el libro, el vector inicial es $`(1, 1, \ldots, 1)`$
+El vector inicial es $`(1, 1, \ldots, 1)`$
 normalizado, se hace un número fijo de iteraciones, y el cociente de
 Rayleigh se calcula **una sola vez**, al final: calcularlo en cada
 iteración sería desperdiciar un producto matriz-vector por vuelta.
 
 La primera parte de [`potencia.py`](potencia.py) lo prueba con la
-matriz de prueba del libro y reproduce su resultado,
+matriz de prueba y reproduce el resultado de [1],
 $\lambda_0 = 21.3166626635$ y
 $`\mathbf{v}_0 = (0.44439562, 0.48218122, 0.51720906, 0.55000781)`$.
-El libro compara contra `numpy.linalg.eig`; como aquí no usamos NumPy,
+Como aquí no usamos NumPy (y por lo tanto tampoco `numpy.linalg.eig`),
 comprobamos con el residuo
 $`\|A\mathbf{v} - \lambda\mathbf{v}\|/\|\mathbf{v}\|`$, que sale
 $\sim 5\times 10^{-13}$. El script también imprime el error relativo
@@ -634,7 +635,7 @@ Comparada con `potencia`:
   `for`-`else` de `jacobi`. Si converge regresa
   `(eigenvalor, eigenvector, iteraciones)`; si no,
   `(None, None, kmax)`. Igual que en Jacobi, `q` y `q_nuevo` son
-  listas distintas (`normalizar` crea una lista nueva); el libro tiene
+  listas distintas (`normalizar` crea una lista nueva); con NumPy habría
   que usar `np.copy` para lograrlo.
 - **El signo.** Si el eigenvalor de $A - sI$ que domina es negativo,
   cada iteración multiplica por un número negativo y $\mathbf{q}$
@@ -690,8 +691,8 @@ cosa común, los dos métodos son $`O(n^3)`$.)
 **Para pensar.**
 
 - Agreguen a `potencia` un criterio de paro con `cambio_relativo`,
-  como en `potencia_inversa` (problema 4.23 del libro). Prueben con
-  `crear_prueba(20, 21)`: el libro dice que bastan 6 iteraciones.
+  como en `potencia_inversa` (problema 4.23 de [1]). Prueben con
+  `crear_prueba(20, 21)`: según [1], bastan 6 iteraciones.
   ¿Qué pasa con $-A$ si no corrigen el signo?
 - Repitan el desarrollo de $`\mathbf{z}^{(k)} = A^k\mathbf{z}^{(0)}`$
   para la versión normalizada y muestren que $`\mathbf{q}^{(k)}`$ es
@@ -813,7 +814,7 @@ con *funciones* si el producto punto se cambia por la integral del
 producto de dos funciones (el espacio de Hilbert de mecánica
 cuántica). Ortonormalizando los monomios $1, x, x^2, \ldots$ en
 $[-1, 1]$ salen (múltiplos de) los **polinomios de Legendre**
-(problema 4.27 del libro).
+(problema 4.27 de [1]).
 
 ### Implementación
 
@@ -1150,7 +1151,7 @@ def metodo_qr(A, kmax=100):
     return [A_k[i][i] for i in range(len(A))]
 ```
 
-Como en el libro, se hace un número fijo de iteraciones, y por eso no
+Se hace un número fijo de iteraciones, y por eso no
 hace falta guardar los superíndices: `A_k`, `Q` y `R` se van
 reemplazando. Se copia `A` al principio para no modificar la matriz
 de quien llama a la función.
@@ -1231,8 +1232,8 @@ Detalles:
 - Los eigenvalores que regresa son los de la potencia inversa
   (cociente de Rayleigh), no los de QR: QR solo da el punto de partida.
 - Regresa una **lista de eigenvectores** (`eigenvectores[i]` es el de
-  `eigenvalores[i]`), que con listas de listas es lo más cómodo. El
-  libro, con NumPy, los regresa como columnas de una matriz.
+  `eigenvalores[i]`), que con listas de listas es lo más cómodo. Con
+  NumPy sería más natural regresarlos como columnas de una matriz.
 - `eigenpares` es tan corta porque usa todo lo anterior:
   `metodo_qr` usa `descomposicion_qr`, y `potencia_inversa` usa
   `descomposicion_lu` y las sustituciones.
@@ -1240,8 +1241,8 @@ Detalles:
 La parte 5 de [`qr.py`](qr.py) la prueba. Los residuos
 $`\|A\mathbf{v} - \lambda\mathbf{v}\|/\|\mathbf{v}\|`$ son todos
 $`\sim 10^{-15}`$, la suma de los eigenvalores da la traza y su producto
-el determinante, y el primer eigenvector es el de la potencia. Igual
-que en el libro, la potencia inversa cambia un poco el eigenvalor más
+el determinante, y el primer eigenvector es el de la potencia. Como se
+reporta en [1], la potencia inversa cambia un poco el eigenvalor más
 chico: QR da $`-7.501283325\times 10^{-8}`$ y la potencia inversa
 $`-7.501283353\times 10^{-8}`$. (¿Cuál es mejor? Para un eigenvalor tan
 chico comparado con $`\|A\| \approx 21`$, la diferencia es del orden
@@ -1295,10 +1296,10 @@ donde:
 - $V$ también es **ortogonal**. Sus columnas $`\mathbf{v}_i`$ son los
   **vectores singulares derechos**.
 
-Con ese orden, los valores singulares son únicos. Igual que en el
-libro, nos quedamos con matrices cuadradas de $n\times n$ (y entonces
+Con ese orden, los valores singulares son únicos. Aquí nos quedamos
+con matrices cuadradas de $n\times n$ (y entonces
 $U$, $\Sigma$ y $V$ también lo son), pero toda matriz, cuadrada o no,
-tiene una SVD (problema 4.45 del libro).
+tiene una SVD (problema 4.45 de [1]).
 
 Multiplicando $`A = U\Sigma V^T`$ por $V$ por la derecha queda
 $`AV = U\Sigma`$, que columna por columna es
@@ -1352,7 +1353,7 @@ en esa norma es $`\kappa_2(A) = \sigma_0/\sigma_{n-1}`$ (lo vemos abajo).
 Otras: trabajar con matrices no invertibles (resolver sistemas
 homogéneos $`A\mathbf{x} = \mathbf{0}`$), **aproximar** una matriz por
 otra más sencilla que conserve lo esencial, y el ajuste por mínimos
-cuadrados (capítulo 6 del libro).
+cuadrados (capítulo 6 de [1]).
 
 ### La SVD existe
 
@@ -1493,8 +1494,8 @@ $`\mathbf{v}_0`$ es el vector que $A$ más estira.
 Una propiedad muy conocida: los eigenvalores de la matriz simétrica
 $`A^TA`$ son los $`\sigma_i^2`$, y sus eigenvectores son los
 $`\mathbf{v}_i`$. (Pruébenlo: $`A^TA = V\Sigma U^TU\Sigma V^T = V\Sigma^2V^T`$.)
-Muchos libros calculan así la SVD, pero el libro muestra
-(problemas 4.41 y 4.42) que es **inestable**: el resultado es mucho más
+Muchos libros calculan así la SVD, pero se puede mostrar
+(problemas 4.41 y 4.42 de [1]) que es **inestable**: el resultado es mucho más
 sensible a perturbaciones que el problema original. Lo que se gana en
 intuición se pierde en la práctica.
 
@@ -1545,7 +1546,7 @@ $`A^TA`$. Y $H$ es **simétrica**, el mejor caso para eigenvalores.
 
 ### Implementación
 
-`matriz_h(A)` arma $H$ (`makeH` en el libro): ceros, $A$ en el bloque
+`matriz_h(A)` arma $H$: ceros, $A$ en el bloque
 de abajo a la izquierda y $`A^T`$ en el de arriba a la derecha. La SVD
 la hace `svd(A)`:
 
@@ -1576,11 +1577,10 @@ detalles:
   distintos. El remedio más simple es el de la potencia inversa:
   aplicar QR a $`H - sI`$, cuyos eigenvalores $`\sigma_i - s`$ y
   $`-\sigma_i - s`$ ya tienen valores absolutos distintos, y al final
-  volver a sumar $s$. Usamos $s = 1$, como el libro.
+  volver a sumar $s$. Usamos $s = 1$.
 - **Solo los no negativos.** De los $2n$ eigenvalores de $H$ nos
   quedamos con los $`\ge 0`$, que son los $`\sigma_i`$, y los ordenamos
-  de mayor a menor. (El libro usa `np.nonzero` para encontrar sus
-  índices.)
+  de mayor a menor.
 - **Los vectores singulares.** Como en `eigenpares`, cada $`\sigma_i`$
   (más `eps`) es el desplazamiento de la potencia inversa, que da el
   eigenvector $\mathbf{w}$ de $H$ y refina $`\sigma_i`$. Sus primeros
@@ -1591,15 +1591,11 @@ detalles:
 - **Qué regresa.** $U$ como matriz, los $`\sigma_i`$ como **lista** y
   $`V^T`$ (no $V$), como hacen las bibliotecas. Como `columnas_v` es
   la lista de las columnas de $V$, que son los renglones de $`V^T`$,
-  ya es $`V^T`$ sin transponer. El libro regresa $\Sigma$ como matriz
-  diagonal.
-- El libro le pasa a `svd` el método para los eigenvalores como
-  parámetro (`solver`), para poder cambiar `qrmet` por
-  `np.linalg.eigvals`. Nosotros usamos siempre `metodo_qr`.
+  ya es $`V^T`$ sin transponer.
 
 ### Resultados
 
-[`svd.py`](svd.py) usa, como el libro, la matriz de prueba **menos la
+[`svd.py`](svd.py) usa la matriz de prueba **menos la
 identidad**, `crear_prueba(4, 21)` $- I$ (abajo vemos por qué).
 
 **La parte 1** muestra el desplazamiento en acción. Con $H$ tal cual,
@@ -1662,9 +1658,9 @@ determinante, $`\mathbf{v}_2\cdot\mathbf{v}_3 \approx -0.8`$ (la
 potencia inversa encontró casi el mismo vector dos veces) y
 $`\|A - U\Sigma V^T\| \sim 10^{-4}`$. Esto pasa en general cuando los
 valores singulares abarcan muchos órdenes de magnitud, y **es culpa del
-método para los eigenvalores**, no de la idea de usar $H$: con
-`np.linalg.eigvals` en lugar de `qrmet`, el libro obtiene la SVD
-correcta también para estas matrices.
+método para los eigenvalores**, no de la idea de usar $H$: con un método
+para eigenvalores más robusto (por ejemplo `numpy.linalg.eigvals`),
+la SVD sale correcta también para estas matrices [1].
 
 **Para pensar.**
 
@@ -1722,3 +1718,8 @@ correcta también para estas matrices.
 
 Se corren desde la raíz del repositorio (con el `.venv` activado), por
 ejemplo `python3 unidades/10_valores_y_vectores_propios/qr.py`.
+
+## Referencias
+
+[1] A. Gezerlis, *Numerical Methods in Physics with Python*, vol. 1.
+Cambridge University Press, Cambridge, UK, 2023.

@@ -11,15 +11,15 @@
   inversa, el número de condición y el determinante); inestabilidad
   sin mal condicionamiento y pivoteo parcial; el método iterativo de
   Jacobi.
-- Corresponde a las secciones 4.1 a 4.3 del libro de Gezerlis (de la
-  4.2, solo la parte de sistemas lineales).
+- La mayor parte de este material se ha tomado de las secciones 4.1 a
+  4.3 de [1] (de la 4.2, solo la parte de sistemas lineales).
 - El otro gran problema del álgebra lineal, el de eigenvalores
   $A\mathbf{v} = \lambda\mathbf{v}$, está en la
   [unidad 10](../10_valores_y_vectores_propios/).
 
 ## Notación
 
-Los índices van de $0$ a $n-1$, como en el libro y en Python. Las
+Los índices van de $0$ a $n-1$, como en Python. Las
 matrices se escriben con mayúsculas ($A$, $L$, $U$) y los vectores en
 negritas minúsculas ($\mathbf{x}$, $\mathbf{b}$). Cuando hace falta,
 los dos índices de un elemento se separan con una coma: $A_{1,n-1}$.
@@ -329,7 +329,7 @@ Algunas observaciones:
   ambas): el resultado vuelve a involucrar a $\kappa(A)$.
 
 La sensibilidad de los eigenvalores y de los eigenvectores es otra
-historia (no se mide con $\kappa(A)$); la vemos en la
+historia (no se mide con $`\kappa(A)`$); la vemos en la
 [unidad 10](../10_valores_y_vectores_propios/).
 
 
@@ -477,11 +477,11 @@ Algunos detalles:
   que las funciones dan el mismo resultado si se les pasa la matriz
   completa en vez de su parte triangular.
 
-En el libro (código 4.1) estas funciones se escriben con NumPy, y la
-suma interna se hace con un producto punto, `L[i,:i] @ xs[:i]`, sin el
-ciclo sobre `j`. Nosotros escribimos ese ciclo explícitamente.
+Con NumPy, la suma interna se puede escribir como un producto punto,
+`L[i,:i] @ xs[:i]`, sin el ciclo sobre `j`. Nosotros escribimos ese
+ciclo explícitamente.
 
-Para probarlas, `triangulares.py` arma la matriz de prueba del libro,
+Para probarlas, `triangulares.py` arma la matriz de prueba de [1],
 $A_{ij} = \sqrt{21 + 4i + j}$ ($4\times 4$, no simétrica), toma su
 parte triangular inferior y superior (`triangular_inferior`,
 `triangular_superior`, el equivalente de `numpy.tril` y `numpy.triu`)
@@ -723,7 +723,7 @@ Algunos detalles:
 - Los dos ciclos externos son exactamente $j = 0, \ldots, n-2$ e
   $i = j+1, \ldots, n-1$. Aquí empieza a valer la pena haber numerado
   todo desde $0$.
-- En el libro, con NumPy, el ciclo sobre `k` se escribe en una línea,
+- Con NumPy, el ciclo sobre `k` se escribe en una línea,
   `A[i,j:] -= coeff*A[j,j:]`: se actualiza todo un pedazo del renglón
   a la vez. Nosotros escribimos ese tercer ciclo explícitamente.
 - `k` empieza en `j`, no en `j + 1`: calculamos $A_{ij}$ aunque ya
@@ -735,13 +735,12 @@ Algunos detalles:
   otros métodos).
 - Al final reutilizamos `sustitucion_atras`.
 
-Con la matriz de prueba del libro, $A_{ij} = \sqrt{21 + 4i + j}$ de
+Con la matriz de prueba, $A_{ij} = \sqrt{21 + 4i + j}$ de
 $4\times 4$, el residuo es diminuto, del orden de $10^{-11}$. Pero si
 resolvemos un sistema con solución conocida, eligiendo
 $\mathbf{x} = (1, 2, 3, 4)$ y calculando $\mathbf{b} = A\mathbf{x}$,
-recuperamos $\mathbf{x}$ solo con unos 8 dígitos correctos, no 16. El
-libro lo deja como pregunta abierta; nosotros ya tenemos con qué
-contestarla: es el número de condición. En la sección "Descomposición
+recuperamos $\mathbf{x}$ solo con unos 8 dígitos correctos, no 16.
+¿Por qué? Ya tenemos con qué contestarlo: es el número de condición. En la sección "Descomposición
 LU" calculamos $A^{-1}$ y resulta $\kappa(A) \approx 4\times 10^{8}$.
 Como vimos en "Análisis de error", el error relativo en $\mathbf{x}$
 puede ser hasta $\kappa(A)$ veces el error relativo de los datos, que
@@ -976,10 +975,10 @@ def resolver_lu(L, U, b):
 - cada coeficiente se guarda en `L[i][j]`, y `L` empieza como la
   identidad para que su diagonal ya tenga los unos.
 
-**Una diferencia con el libro.** En el libro, `lusolve(A, bs)` recibe
-la matriz $A$ y llama a `ludec` adentro, así que cada vez que se
-resuelve un sistema se vuelve a descomponer $A$: justo lo que queríamos
-evitar. Aquí lo separamos en dos funciones: `descomposicion_lu(A)` se
+**Descomponer una sola vez.** Si la función que resuelve el sistema
+recibiera la matriz $A$ y la descompusiera adentro (como `lusolve` en
+[1]), cada vez que se resuelve un sistema se volvería a descomponer
+$A$: justo lo que queríamos evitar. Por eso lo separamos en dos funciones: `descomposicion_lu(A)` se
 llama **una vez**, y `resolver_lu(L, U, b)` se llama con cada
 $\mathbf{b}$ distinto:
 
@@ -989,7 +988,7 @@ for b in lados_derechos:
     x = resolver_lu(L, U, b)       # 2n^2 cada vez
 ```
 
-Con la matriz de prueba del libro, la solución por LU no es idéntica
+Con la matriz de prueba, la solución por LU no es idéntica
 bit a bit a la de eliminación gaussiana: coinciden en unos 13 dígitos.
 Matemáticamente hacen las mismas operaciones con $\mathbf{b}$, pero en
 distinto orden (la eliminación va restando de $b_i$ un término a la
@@ -1082,7 +1081,7 @@ si fueran renglones, así que hay que transponer.
 
 Con $A^{-1}$ podemos calcular el número de condición de cualquier
 matriz, no solo de las $2\times 2$ de `analisis_de_error.py`. Para la
-matriz de prueba del libro, `eliminacion_gaussiana_lu.py` obtiene
+matriz de prueba, `eliminacion_gaussiana_lu.py` obtiene
 $`\kappa_\infty(A) \approx 3.9\times 10^{8}`$: la explicación de los
 8 dígitos perdidos de la sección "Eliminación gaussiana".
 
@@ -1109,7 +1108,7 @@ $n!$: para $n = 20$, unas $10^{18}$ operaciones contra unas
 $5\times 10^{3}$.
 
 La función `determinante(A)` de `fiscomp/algebra_lineal.py` hace
-exactamente esto. Para la matriz de prueba del libro da
+exactamente esto. Para la matriz de prueba da
 $`\det(A) \approx -7\times 10^{-12}`$. Recordemos la sección "¿Determinante
 chico?": eso no dice nada por sí solo. Lo que importa es
 $`\kappa \approx 4\times 10^{8}`$. El proyecto de espines
@@ -1143,9 +1142,9 @@ del método. Veamos tres ejemplos.
 Está bien condicionado, con $`\kappa_\infty(A) = 4`$, y su solución
 es fácil de obtener a mano: $\mathbf{x} = (3, -1)$. Pero la
 eliminación gaussiana empieza (y termina) con el pivote $j = 0$, y el
-coeficiente $A_{10}/A_{00}$ divide entre $A_{00} = 0$. En el libro,
-con NumPy, el resultado es `[nan nan]` (*not a number*); con nuestras
-listas, Python levanta `ZeroDivisionError`.
+coeficiente $A_{10}/A_{00}$ divide entre $A_{00} = 0$. Con NumPy, el
+resultado es `[nan nan]` (*not a number*); con nuestras listas, Python
+levanta `ZeroDivisionError`.
 
 **Ejemplo 2: un cero escondido.** Si en el ejemplo $3\times 3$ de la
 sección "Eliminación gaussiana" cambiamos un par de elementos (sin
@@ -1286,15 +1285,15 @@ def eliminacion_gaussiana_pivoteo(A, b):
 
 Algunos detalles:
 
-- Para encontrar $k$, el libro usa `numpy.argmax`. Nosotros recorremos
+- Para encontrar $k$, con NumPy se usaría `numpy.argmax`. Nosotros recorremos
   la columna con un ciclo. Como la comparación es `>` estricta, en un
   empate se queda el primero.
 - `if k != j`: intercambiar un renglón consigo mismo no hace nada.
 - El intercambio usa la asignación múltiple de Python,
   `A[j], A[k] = A[k], A[j]`, sin variable temporal. Con listas de
   listas esto intercambia los renglones completos de un golpe: lo que
-  se intercambia son las referencias a las dos sublistas. (El libro
-  tiene que escribir `A[j,:].copy()`, porque con NumPy un pedazo de un
+  se intercambia son las referencias a las dos sublistas. (Con NumPy
+  hay que escribir `A[j,:].copy()`, porque un pedazo de un
   arreglo es una *vista* del original, y sin la copia se sobreescribe
   en vez de intercambiar. Con listas no hay ese problema.)
 - El ciclo interno usa `k_col` en vez de `k` para no confundirlo con el
@@ -1302,17 +1301,15 @@ Algunos detalles:
 
 `pivoteo.py` resuelve los tres ejemplos: sin pivoteo, los dos primeros
 levantan `ZeroDivisionError` y el tercero da $(0, -1)$; con pivoteo,
-los tres dan la respuesta correcta. Con la matriz de prueba del libro,
-en cambio, los dos métodos pierden unos 8 dígitos. Ahí el problema es
-$\kappa(A)$, y eso no lo arregla ningún método. En el libro, el
-pivoteo acerca el resultado al de `numpy.linalg.solve`, que también
-pivotea; con nuestra matriz de $4\times 4$ las diferencias son solo de
-redondeo.
+los tres dan la respuesta correcta. Con la matriz de prueba, en
+cambio, los dos métodos pierden unos 8 dígitos. Ahí el problema es
+$\kappa(A)$, y eso no lo arregla ningún método: con nuestra matriz de
+$4\times 4$, las diferencias entre los dos son solo de redondeo.
 
 **Para pensar.**
 
-1. Agreguen pivoteo parcial a `descomposicion_lu` (problema 4.16 del
-   libro). La LU no modifica $\mathbf{b}$, así que hay que guardar qué
+1. Agreguen pivoteo parcial a `descomposicion_lu` (problema 4.16 de
+   [1]). La LU no modifica $\mathbf{b}$, así que hay que guardar qué
    renglones se intercambiaron, para luego intercambiar igual los
    elementos de $\mathbf{b}$ antes de las sustituciones.
 2. Con pivoteo, `determinante` tiene que cambiar el signo en cada
@@ -1336,8 +1333,8 @@ el segundo renglón por $10^{-20}$:
 
 Son exactamente las mismas ecuaciones, así que la respuesta debería
 ser la misma. Pero ahora los dos candidatos a pivote tienen la misma
-magnitud, no hay intercambio, y volvemos a obtener $(0, -1)$. El libro
-reporta que `numpy.linalg.solve` también falla aquí.
+magnitud, no hay intercambio, y volvemos a obtener $(0, -1)$. Según [1],
+`numpy.linalg.solve` también falla aquí.
 
 El remedio es el **pivoteo parcial escalado**: elegir el pivote con el
 mayor tamaño *relativo* a su propio renglón. Para cada renglón $i$ se
@@ -1355,7 +1352,7 @@ y se busca el $k$ más chico tal que
 
 En el ejemplo, el primer renglón tiene $s_0 = 1$ y razón $10^{-20}$, y
 el segundo $s_1 = 10^{-20}$ y razón $1$: sí se intercambian.
-Implementarlo es el problema 4.15 del libro.
+Implementarlo es el problema 4.15 de [1].
 
 Ni siquiera el pivoteo escalado garantiza estabilidad. Lo que sí la
 garantiza es el **pivoteo completo**, que intercambia renglones y
@@ -1462,7 +1459,7 @@ que mide directamente qué tan bien se cumple $A\mathbf{x} = \mathbf{b}$.)
 
 **¿Converge?** No siempre, aunque la propuesta inicial sea buena. Una
 condición **suficiente** es que $A$ sea diagonalmente dominante: así
-converge para cualquier $\mathbf{x}^{(0)}$ (problema 4.20 del libro).
+converge para cualquier $\mathbf{x}^{(0)}$ (problema 4.20 de [1]).
 Un sistema que no lo es a veces se vuelve dominante reacomodando las
 ecuaciones; y algunos sistemas que no lo son convergen de todos modos
 con ciertas propuestas iniciales.
@@ -1506,14 +1503,14 @@ def jacobi(A, b, kmax=50, tol=1e-6):
 Algunos detalles:
 
 - `paso_jacobi` junta las dos sumas de la fórmula en una sola,
-  saltándose $j = i$. El libro las escribe por separado con NumPy.
+  saltándose $j = i$.
 - `paso_jacobi` construye una lista **nueva** y no toca `x`. Si fuéramos
   modificando `x` en su lugar, al calcular $x_i$ ya estaríamos usando
   algunos valores nuevos (eso es otro método, Gauss-Seidel). Y si
   escribiéramos `x_viejo = x` creyendo que es una copia, los dos nombres
   apuntarían a la misma lista, el cambio relativo daría siempre cero,
-  y el método "convergería" en la primera iteración. El libro insiste
-  en este punto: hay que usar `np.copy`.
+  y el método "convergería" en la primera iteración. (Con NumPy pasa
+  lo mismo: hay que usar `np.copy`.)
 - `jacobi` usa una construcción de Python que no habíamos visto: un
   `for` con `else`. El bloque `else` de un ciclo se ejecuta solo si
   el ciclo termina **sin** pasar por un `break`. Aquí eso quiere decir
@@ -1521,9 +1518,8 @@ Algunos detalles:
   función regresa `(None, kmax)`. Si converge, el `break` se salta el
   `else` y la función regresa la solución y el número de iteraciones.
 
-`jacobi.py` lo prueba con la matriz de prueba del libro más $21I$ (que
-la vuelve diagonalmente dominante): converge en 33 iteraciones, "unas
-tres docenas" como dice el libro, y coincide con la eliminación
+`jacobi.py` lo prueba con la matriz de prueba más $21I$ (que la
+vuelve diagonalmente dominante): converge en 33 iteraciones y coincide con la eliminación
 gaussiana en unos 7 dígitos, lo que permite la tolerancia de
 $10^{-6}$. Con la matriz original, que no es dominante, las
 componentes crecen en cada iteración y `jacobi` regresa `None`.
@@ -1539,8 +1535,8 @@ iteración costaría solo unas $5n$ operaciones.
 **Para pensar.** El método de **Gauss-Seidel** cambia un solo detalle:
 al calcular $x_i^{(k)}$, usa los valores *nuevos*
 $x_0^{(k)}, \ldots, x_{i-1}^{(k)}$, que ya se calcularon en esta misma
-iteración, en vez de los viejos. Impleméntenlo (problema 4.19 del
-libro) y comparen cuántas iteraciones necesita con la matriz de prueba
+iteración, en vez de los viejos. Impleméntenlo (problema 4.19 de
+[1]) y comparen cuántas iteraciones necesita con la matriz de prueba
 más $21I$.
 
 ## Contenido
@@ -1552,7 +1548,7 @@ más $21I$.
   descomposición LU (`descomposicion_lu`, `resolver_lu`), la inversa y
   el determinante (`inversa`, `determinante`), el método de Jacobi
   (`paso_jacobi`, `cambio_relativo`, `jacobi`) y la matriz de prueba
-  del libro (`crear_prueba`). Todo con listas de listas, sin NumPy. El
+  (`crear_prueba`). Todo con listas de listas, sin NumPy. El
   mismo módulo tiene también los métodos de eigenvalores de la
   [unidad 10](../10_valores_y_vectores_propios/), que reutilizan LU.
 - [`analisis_de_error.py`](analisis_de_error.py): el ejemplo de Kahan
@@ -1567,16 +1563,16 @@ más $21I$.
   de condición ya se calcula para cualquier $n$ (ver
   `eliminacion_gaussiana_lu.py`).
 - [`triangulares.py`](triangulares.py): sustitución hacia adelante y
-  hacia atrás con la matriz de prueba del libro, comprobación de las
+  hacia atrás con la matriz de prueba, comprobación de las
   soluciones, conteo de operaciones y medición de tiempos.
 - [`eliminacion_gaussiana_lu.py`](eliminacion_gaussiana_lu.py): el
   ejemplo $3\times 3$ paso a paso (imprime la matriz aumentada después
   de cada operación), su $L$ y su $U$ con la comprobación $LU = A$, el
-  sistema de prueba del libro resuelto con los dos métodos, la
+  sistema de prueba resuelto con los dos métodos, la
   inversa, $\kappa(A)$ y el determinante con LU, el conteo de
   operaciones contra las fórmulas, el tiempo de resolver muchos
   sistemas con la misma $A$, y qué pasa con un pivote cero.
-- [`pivoteo.py`](pivoteo.py): los tres ejemplos del libro de
+- [`pivoteo.py`](pivoteo.py): los tres ejemplos de
   inestabilidad sin mal condicionamiento (un cero en el primer pivote,
   uno escondido y un pivote diminuto), resueltos sin y con pivoteo
   parcial; la matriz de prueba con los dos métodos; el caso en el que
@@ -1589,3 +1585,8 @@ más $21I$.
 
 Se corren desde la raíz del repositorio (con el `.venv` activado), por
 ejemplo `python3 unidades/09_algebra_lineal/triangulares.py`.
+
+## Referencias
+
+[1] A. Gezerlis, *Numerical Methods in Physics with Python*, vol. 1.
+Cambridge University Press, Cambridge, UK, 2023.
