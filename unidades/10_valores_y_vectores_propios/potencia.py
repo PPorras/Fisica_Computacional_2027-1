@@ -26,21 +26,14 @@ from fiscomp.algebra_lineal import (
     cambio_relativo,
     potencia,
     potencia_inversa,
+    residuo_eigen,
     determinante,
-    norma_euclidea,
     crear_prueba,
 )
 
 
 def formatear(x):
     return "[" + ", ".join(f"{x_i:13.10f}" for x_i in x) + "]"
-
-
-def residuo_eigen(A, eigenvalor, v):
-    """||A v - lambda v|| / ||v||: cero si (lambda, v) es un eigenpar exacto."""
-    Av = mat_vec(A, v)
-    r = [Av_i - eigenvalor * v_i for Av_i, v_i in zip(Av, v)]
-    return norma_euclidea(r) / norma_euclidea(v)
 
 
 n, val = 4, 21

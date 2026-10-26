@@ -23,6 +23,8 @@ import random
 
 from fiscomp.algebra_lineal import (
     mat_vec,
+    identidad,
+    resta,
     transpuesta,
     mat_mat,
     producto_punto,
@@ -40,14 +42,6 @@ from fiscomp.algebra_lineal import (
 
 def formatear(x):
     return "[" + ", ".join(f"{x_i:13.10f}" for x_i in x) + "]"
-
-
-def identidad(n):
-    return [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
-
-
-def resta(A, B):
-    return [[a - b for a, b in zip(renglon_A, renglon_B)] for renglon_A, renglon_B in zip(A, B)]
 
 
 def producto_svd(U, sigmas, V_T):

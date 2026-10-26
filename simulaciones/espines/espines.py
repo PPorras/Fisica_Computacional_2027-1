@@ -13,7 +13,7 @@ Unidades: hbar = 1.
     Cambridge University Press, Cambridge, UK, 2023.
 """
 
-from fiscomp.matrices import Matrix
+from fiscomp.matrices import Identity, Matrix
 
 HBAR = 1.0
 
@@ -33,11 +33,6 @@ def matrices_de_pauli():
     sigma_y = Matrix([[0.0, -1j], [1j, 0.0]])
     sigma_z = Matrix([[1.0, 0.0], [0.0, -1.0]])
     return sigma_x, sigma_y, sigma_z
-
-
-def identidad(n: int):
-    """Matriz identidad n x n, como Matrix."""
-    return Matrix([[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)])
 
 
 def kron(U, V):
@@ -96,7 +91,7 @@ def operadores_de_espin(posicion: int, numero_de_particulas: int):
     numero_de_particulas: cuántas partículas hay en total.
     Regresa una lista de tres Matrix de 2^N x 2^N.
     """
-    iden = identidad(2)
+    iden = Identity(2)
     operadores = []
     for sigma in matrices_de_pauli():
         factores = [sigma * (HBAR / 2) if k == posicion else iden for k in range(numero_de_particulas)]

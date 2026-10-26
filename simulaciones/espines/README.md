@@ -310,7 +310,7 @@ de muchos espines usa además que $H$ es casi toda ceros (se dice que es
   4.12 de [1]: $\sigma_x$ por Kronecker con una matriz de unos de
   $3\times 3$, y al revés.
 - [`eigenvalores.py`](eigenvalores.py): `eigenvalores_qr` (el método QR
-  desplazado), `multiplicidades` y `residuo_eigen` para comprobar, el
+  desplazado), `multiplicidades` para comprobar, el
   barrido del polinomio característico (la versión anterior a QR) y
   los eigenvalores exactos de dos espines (bloque $2\times 2$).
 - [`niveles_de_energia.py`](niveles_de_energia.py): el programa

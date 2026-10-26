@@ -5,7 +5,8 @@
    desplazamiento que deja todos los eigenvalores positivos: así QR
    no se atora con eigenvalores de igual valor absoluto y signo
    contrario, ni divide entre cero si H es singular.
-2. Utilidades para comprobar: residuo, multiplicidades.
+2. Para comprobar: multiplicidades (el residuo de un eigenpar es
+   residuo_eigen, de fiscomp/algebra_lineal.py).
 3. La primera versión del proyecto, antes de tener QR: las raíces de
    det(H - lambda I), calculado con LU, buscando cambios de signo en
    una malla. Se queda para comparar: no ve los eigenvalores de
@@ -15,18 +16,11 @@
 
 from fiscomp.algebra_lineal import (
     determinante,
-    mat_vec,
+    menos_lambda_identidad,
     metodo_qr,
     norma_infinito,
-    norma_infinito_vec,
 )
 from fiscomp.funciones_especiales import raiz_cuadrada
-
-
-def menos_lambda_identidad(H, lam: float):
-    """H - lambda I, como lista de listas (H también es lista de listas)."""
-    n = len(H)
-    return [[H[i][j] - (lam if i == j else 0.0) for j in range(n)] for i in range(n)]
 
 
 ###############################################
@@ -60,14 +54,6 @@ def eigenvalores_qr(H, kmax: int = 500):
 ###############################################
 # 2. Comprobaciones
 ###############################################
-
-
-def residuo_eigen(H, eigenvalor: float, v):
-    """||H v - lambda v||_inf / ||v||_inf: cero si (lambda, v) es un
-    eigenpar exacto."""
-    Hv = mat_vec(H, v)
-    r = [Hv_i - eigenvalor * v_i for Hv_i, v_i in zip(Hv, v)]
-    return norma_infinito_vec(r) / norma_infinito_vec(v)
 
 
 def multiplicidades(valores, tolerancia: float = 1e-6):

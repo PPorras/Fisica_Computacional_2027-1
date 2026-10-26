@@ -10,7 +10,7 @@ Convenciones:
 
 - Una matriz es una lista de listas rectangular, un renglón por
   sublista: A[i][j] es el elemento del renglón i, columna j (índices
-  desde 0, como en el libro y en Python). Si tienen una Matrix
+  desde 0, como en [1] y en Python). Si tienen una Matrix
   (fiscomp/matrices.py), pasen su atributo .data.
 - Un vector es una lista simple de números: x[i].
 
@@ -19,7 +19,11 @@ para matrices triangulares, la eliminación gaussiana (con y sin
 pivoteo), la descomposición LU con la inversa y el determinante, el
 método de Jacobi, los métodos de la potencia (directo e inverso con
 desplazamiento) y el método QR para eigenvalores, la descomposición
-en valores singulares y la matriz de prueba del libro.
+en valores singulares y la matriz de prueba de [1]. Entre paréntesis,
+en cada docstring, el nombre de la función equivalente en [1].
+
+[1] A. Gezerlis, Numerical Methods in Physics with Python, vol. 1.
+    Cambridge University Press, Cambridge, UK, 2023.
 """
 
 from fiscomp.funciones_especiales import raiz_cuadrada
@@ -52,7 +56,7 @@ def mat_vec(A, x):
 
 
 def residuo(A, x, b):
-    """Vector residuo r = b - A x (ec. 4.17 del libro).
+    """Vector residuo r = b - A x (ec. 4.17 de [1]).
 
     Si x es la solución exacta de A x = b, r es el vector cero. Un
     residuo chico NO garantiza que x esté cerca de la solución
@@ -60,6 +64,29 @@ def residuo(A, x, b):
     """
     Ax = mat_vec(A, x)
     return [b_i - Ax_i for b_i, Ax_i in zip(b, Ax)]
+
+
+###############################################
+# Matrices auxiliares
+###############################################
+
+
+def identidad(n: int):
+    """Matriz identidad n x n, como lista de listas. (Para la versión
+    con la clase Matrix, ver Identity en fiscomp/matrices.py.)"""
+    return [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+
+
+def resta(A, B):
+    """Resta de matrices del mismo tamaño: (A - B)[i][j] = A[i][j] - B[i][j]."""
+    return [[a - b for a, b in zip(renglon_A, renglon_B)] for renglon_A, renglon_B in zip(A, B)]
+
+
+def menos_lambda_identidad(A, lam: float):
+    """A - lambda I, la matriz desplazada de la potencia inversa, la SVD
+    y el polinomio característico det(A - lambda I). A: matriz n x n."""
+    n = len(A)
+    return [[A[i][j] - (lam if i == j else 0.0) for j in range(n)] for i in range(n)]
 
 
 ###############################################
@@ -108,7 +135,7 @@ def triangular_superior(A):
 
 
 def sustitucion_adelante(L, b):
-    """Resuelve L x = b con L triangular inferior (forsub en el libro):
+    """Resuelve L x = b con L triangular inferior (forsub en [1]):
 
         x_i = (b_i - sum_{j=0}^{i-1} L_ij x_j) / L_ii,  i = 0, 1, ..., n-1
 
@@ -128,7 +155,7 @@ def sustitucion_adelante(L, b):
 
 
 def sustitucion_atras(U, b):
-    """Resuelve U x = b con U triangular superior (backsub en el libro):
+    """Resuelve U x = b con U triangular superior (backsub en [1]):
 
         x_i = (b_i - sum_{j=i+1}^{n-1} U_ij x_j) / U_ii,  i = n-1, ..., 1, 0
 
@@ -153,7 +180,7 @@ def sustitucion_atras(U, b):
 
 
 def eliminacion_gaussiana(A, b):
-    """Resuelve A x = b con eliminación gaussiana (gauelim en el libro).
+    """Resuelve A x = b con eliminación gaussiana (gauelim en [1]).
 
     Fase de eliminación: para cada renglón pivote j = 0, ..., n-2 y
     cada renglón i = j+1, ..., n-1 de abajo,
@@ -176,7 +203,7 @@ def eliminacion_gaussiana(A, b):
     for j in range(n - 1):
         for i in range(j + 1, n):
             coeficiente = A[i][j] / A[j][j]
-            # En el libro, con NumPy: A[i,j:] -= coeficiente*A[j,j:]
+            # En [1], con NumPy: A[i,j:] -= coeficiente*A[j,j:]
             for k in range(j, n):
                 A[i][k] -= coeficiente * A[j][k]
             b[i] -= coeficiente * b[j]
@@ -184,7 +211,7 @@ def eliminacion_gaussiana(A, b):
 
 
 def descomposicion_lu(A):
-    """Descomposición LU de Doolittle: A = L U (ludec en el libro).
+    """Descomposición LU de Doolittle: A = L U (ludec en [1]).
 
     Es la misma eliminación gaussiana, pero sin b: lo que queda de A
     al final es U (triangular superior), y los coeficientes que se
@@ -269,8 +296,8 @@ def determinante(A):
 
 
 def eliminacion_gaussiana_pivoteo(A, b):
-    """Eliminación gaussiana con pivoteo parcial (gauelim_pivot en el
-    libro).
+    """Eliminación gaussiana con pivoteo parcial (gauelim_pivot en
+    [1]).
 
     Igual que eliminacion_gaussiana, pero antes de usar el renglón j
     como pivote se busca, en la columna j y del renglón j para abajo,
@@ -328,9 +355,14 @@ def paso_jacobi(A, b, x):
 
 
 def cambio_relativo(x_viejo, x_nuevo):
-    """Criterio de paro del libro (termcrit):
+    """Criterio de paro de [1] (termcrit):
 
         sum_i |(x_nuevo_i - x_viejo_i) / x_nuevo_i|
+
+    Divide entre cada componente de x_nuevo: si alguna vale cero
+    exactamente, levanta ZeroDivisionError. (Les pasa, por ejemplo, a
+    los eigenvectores de los hamiltonianos de espín, que tienen ceros
+    exactos: ver simulaciones/espines.)
     """
     return sum(abs((xn - xv) / xn) for xv, xn in zip(x_viejo, x_nuevo))
 
@@ -378,7 +410,7 @@ def normalizar(x):
 
 
 def cociente_rayleigh(A, x):
-    """Cociente de Rayleigh (ec. 4.133 del libro):
+    """Cociente de Rayleigh (ec. 4.133 de [1]):
 
         mu(x) = x.(A x) / x.x
 
@@ -389,7 +421,7 @@ def cociente_rayleigh(A, x):
 
 
 def potencia(A, kmax=6):
-    """Método de la potencia (power en el libro): el eigenvalor de mayor
+    """Método de la potencia (power en [1]): el eigenvalor de mayor
     valor absoluto de A (el dominante) y su eigenvector. Para k = 1, 2, ...
 
         z = A q
@@ -399,7 +431,7 @@ def potencia(A, kmax=6):
     eigenvalor es el cociente de Rayleigh de q.
 
     A: matriz n x n (lista de listas). kmax: se hacen kmax - 1
-    iteraciones, sin criterio de paro (como en el libro).
+    iteraciones, sin criterio de paro (como en [1]).
     Regresa (eigenvalor, eigenvector), con el eigenvector de norma 1.
     """
     q = normalizar([1.0] * len(A))
@@ -411,7 +443,7 @@ def potencia(A, kmax=6):
 
 def potencia_inversa(A, desplazamiento=20.0, kmax=200, tol=1e-8):
     """Método de la potencia inversa con desplazamiento (invpowershift en
-    el libro): el eigenvalor de A más cercano a `desplazamiento` (s) y su
+    [1]): el eigenvalor de A más cercano a `desplazamiento` (s) y su
     eigenvector. Se factoriza A - s I = L U una sola vez, y para
     k = 1, 2, ...
 
@@ -428,12 +460,12 @@ def potencia_inversa(A, desplazamiento=20.0, kmax=200, tol=1e-8):
     kmax: número máximo de iteraciones (entero); tol: tolerancia.
     Regresa (eigenvalor, eigenvector, k): el eigenvalor (cociente de
     Rayleigh con la A original), el eigenvector de norma 1 y el número
-    de iteraciones, o (None, None, kmax) si no convergió.
+    de iteraciones, o (None, None, kmax) si no convergió. Si el
+    eigenvector tiene alguna componente exactamente cero, levanta
+    ZeroDivisionError (ver cambio_relativo).
     """
-    n = len(A)
-    A_desplazada = [[A[i][j] - (desplazamiento if i == j else 0.0) for j in range(n)] for i in range(n)]
-    L, U = descomposicion_lu(A_desplazada)
-    q = normalizar([1.0] * n)
+    L, U = descomposicion_lu(menos_lambda_identidad(A, desplazamiento))
+    q = normalizar([1.0] * len(A))
     for k in range(1, kmax):
         z = resolver_lu(L, U, q)
         q_nuevo = normalizar(z)
@@ -447,6 +479,14 @@ def potencia_inversa(A, desplazamiento=20.0, kmax=200, tol=1e-8):
         # Solo llega aquí si el for terminó sin break: no convergió.
         return None, None, kmax
     return cociente_rayleigh(A, q), q, k
+
+
+def residuo_eigen(A, eigenvalor: float, v):
+    """||A v - lambda v|| / ||v|| (norma euclídea): cero si (lambda, v)
+    es un eigenpar exacto."""
+    Av = mat_vec(A, v)
+    r = [Av_i - eigenvalor * v_i for Av_i, v_i in zip(Av, v)]
+    return norma_euclidea(r) / norma_euclidea(v)
 
 
 ###############################################
@@ -470,7 +510,7 @@ def mat_mat(A, B):
 
 
 def descomposicion_qr(A):
-    """Descomposición QR (qrdec en el libro) con Gram-Schmidt clásico:
+    """Descomposición QR (qrdec en [1]) con Gram-Schmidt clásico:
     A = Q R, con Q ortogonal y R triangular superior. Para cada columna
     a_j de A (j = 0, 1, ..., n-1):
 
@@ -480,7 +520,9 @@ def descomposicion_qr(A):
         q_j  = a'_j / R_jj
 
     A: matriz n x n (lista de listas) con columnas linealmente
-    independientes. Regresa (Q, R), las dos como listas de listas.
+    independientes; si no lo son (A singular), algún R_jj vale cero y
+    levanta ZeroDivisionError. Regresa (Q, R), las dos como listas de
+    listas.
     """
     n = len(A)
     columnas = transpuesta(A)
@@ -497,7 +539,7 @@ def descomposicion_qr(A):
 
 
 def metodo_qr(A, kmax=100):
-    """Método QR (qrmet en el libro): todos los eigenvalores de A. Empezando
+    """Método QR (qrmet en [1]): todos los eigenvalores de A. Empezando
     con A^(0) = A, para k = 1, 2, ...
 
         A^(k-1) = Q R     (descomposicion_qr)
@@ -506,9 +548,14 @@ def metodo_qr(A, kmax=100):
     A^(k) tiene los mismos eigenvalores que A y tiende a una matriz
     triangular superior, así que los eigenvalores se leen de su diagonal.
 
-    A: matriz n x n (lista de listas) con eigenvalores reales y
-    distintos. kmax: se hacen kmax - 1 iteraciones, sin criterio de
-    paro (como en el libro). Regresa la lista de la diagonal de A^(k).
+    A: matriz n x n (lista de listas) con eigenvalores reales, de
+    valores absolutos distintos (con lambda y -lambda no converge) y
+    sin ninguno igual a cero (A singular: descomposicion_qr divide
+    entre cero). Las dos cosas se arreglan aplicándolo a A - s I con un
+    desplazamiento s (ver svd y simulaciones/espines).
+    kmax: se hacen kmax - 1 iteraciones, sin criterio de paro (como en
+    [1]); con eigenvalores muy juntos hacen falta muchas.
+    Regresa la lista de la diagonal de A^(k).
     """
     A_k = [renglon[:] for renglon in A]
     for k in range(1, kmax):
@@ -518,15 +565,18 @@ def metodo_qr(A, kmax=100):
 
 
 def eigenpares(A, eps=1e-12):
-    """Todos los eigenvalores y eigenvectores de A (eig en el libro).
+    """Todos los eigenvalores y eigenvectores de A (eig en [1]).
     Los eigenvalores de metodo_qr se usan como desplazamientos de
     potencia_inversa, que da el eigenvector (y refina el eigenvalor).
     Al desplazamiento se le suma eps para que A - s I no sea singular.
 
-    A: matriz n x n (lista de listas) con eigenvalores reales y distintos.
+    A: matriz n x n (lista de listas) con las mismas condiciones que
+    metodo_qr, eigenvalores distintos (con uno repetido, la potencia
+    inversa da el mismo eigenvector varias veces) y eigenvectores sin
+    componentes cero (ver potencia_inversa).
     Regresa (eigenvalores, eigenvectores): una lista de n números y una
     lista de n vectores de norma 1; eigenvectores[i] es el de
-    eigenvalores[i]. (El libro los regresa como columnas de una matriz.)
+    eigenvalores[i]. ([1] los regresa como columnas de una matriz.)
     """
     eigenvalores = []
     eigenvectores = []
@@ -543,7 +593,7 @@ def eigenpares(A, eps=1e-12):
 
 
 def matriz_h(A):
-    """Matriz simétrica H de 2n x 2n (makeH en el libro):
+    """Matriz simétrica H de 2n x 2n (makeH en [1]):
 
         H = | 0  A^T |
             | A   0  |
@@ -564,7 +614,7 @@ def matriz_h(A):
 
 
 def svd(A, desplazamiento=1.0, eps=1e-12):
-    """Descomposición en valores singulares (svd en el libro): A = U S V^T,
+    """Descomposición en valores singulares (svd en [1]): A = U S V^T,
     con U y V ortogonales y S diagonal, sin pasar por A^T A.
 
     1. Arma H = matriz_h(A), cuyos eigenvalores son +-sigma_i.
@@ -582,13 +632,12 @@ def svd(A, desplazamiento=1.0, eps=1e-12):
     desplazamiento: número real s, el corrimiento del paso 2.
     eps: como en eigenpares, para que H - sigma I no sea singular.
     Regresa (U, sigmas, V_T): U como lista de listas, la lista de los
-    valores singulares y V^T como lista de listas. (El libro regresa
-    los valores singulares como una matriz diagonal.)
+    valores singulares y V^T como lista de listas. ([1] regresa los
+    valores singulares como una matriz diagonal.)
     """
     n = len(A)
     H = matriz_h(A)
-    H_desplazada = [[H[i][j] - (desplazamiento if i == j else 0.0) for j in range(2 * n)] for i in range(2 * n)]
-    eigenvalores_h = [lam + desplazamiento for lam in metodo_qr(H_desplazada)]
+    eigenvalores_h = [lam + desplazamiento for lam in metodo_qr(menos_lambda_identidad(H, desplazamiento))]
     sigmas_qr = sorted([lam for lam in eigenvalores_h if lam >= 0], reverse=True)
     sigmas = []
     columnas_u = []
@@ -608,7 +657,7 @@ def svd(A, desplazamiento=1.0, eps=1e-12):
 
 
 def crear_prueba(n, val):
-    """Matriz de prueba del libro (testcreate): A_ij = sqrt(val + n i + j),
+    """Matriz de prueba de [1] (testcreate): A_ij = sqrt(val + n i + j),
     y b_j = (A_0j)^2.1. No es simétrica. Regresa (A, b).
     """
     A = [[raiz_cuadrada(val + n * i + j) for j in range(n)] for i in range(n)]

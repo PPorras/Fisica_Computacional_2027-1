@@ -12,14 +12,16 @@ estándar, aproximaciones numéricas de funciones como:
 - cosecante(x)     -- 1 / seno(x)
 - cotangente(x)    -- coseno(x) / seno(x)
 - exponencial(x)   -- serie de Taylor (para x < 0, usa 1 / e^|x|)
-- ln(x)            -- serie de ln((1+y)/(1-y)), y = (x-1)/(x+1)
+- ln(x)            -- serie de ln((1+y)/(1-y)), y = (x-1)/(x+1),
+                      con reducción de rango x = m 2^k
 - raiz_cuadrada(x) -- método de Newton-Raphson
 - arcotangente(x)  -- serie de Taylor, para |x| <= 1
 - calcular_pi()    -- fórmula de Machin, a partir de arcotangente
 
 PI (mayúsculas, como constante que es) guarda calcular_pi() ya
 evaluada una sola vez al importar el módulo, igual que EPS guarda
-epsilon_maquina() en fiscomp.precision_numerica.
+epsilon_maquina() en fiscomp.precision_numerica. LN2 guarda ln(2) de
+la misma manera.
 
 Las funciones basadas en series (seno, coseno, exponencial, ln) usan
 EPS (fiscomp.precision_numerica) como criterio de convergencia: se
@@ -173,20 +175,19 @@ def exponencial(x, precision=EPS):
     return suma
 
 
-def ln(x, precision=EPS):
+def serie_ln(x, precision=EPS):
     """Aproxima ln(x), para x > 0, con la serie:
 
         ln(x) = 2 * suma_{k=0}^inf y^(2k+1) / (2k+1),   y = (x-1)/(x+1)
 
     A diferencia de la serie de Taylor de ln(x) alrededor de x = 1
     (que solo converge para 0 < x <= 2), esta serie converge para
-    cualquier x > 0: entre más lejos esté x de 1, más cerca de 1 (o
-    de -1) está y, y más términos hacen falta para que el término
-    caiga por debajo de `precision`.
+    cualquier x > 0. Pero entre más lejos esté x de 1, más cerca de 1
+    (o de -1) está y, y más términos hacen falta para que el término
+    caiga por debajo de `precision`: con x = 1e8 son cientos de
+    millones. Por eso ln() solo la usa con x entre 1/2 y 2, donde
+    |y| <= 1/3 y bastan unos 15 términos.
     """
-    if x <= 0:
-        raise ValueError("ln(x) solo está definido para x > 0")
-
     y = (x - 1) / (x + 1)
     suma = 0.0
     k = 0
@@ -197,6 +198,35 @@ def ln(x, precision=EPS):
         suma += termino
         k += 1
     return 2 * suma
+
+
+LN2 = serie_ln(2.0)
+
+
+def ln(x, precision=EPS):
+    """Aproxima ln(x), para x > 0, con reducción de rango y serie_ln.
+
+    Se escribe x = m * 2^k, dividiendo (o multiplicando) x entre 2
+    hasta que m queda entre 1/2 y 2, y entonces
+
+        ln(x) = k ln(2) + ln(m),
+
+    con ln(m) y ln(2) (la constante LN2) de serie_ln. Es la misma idea
+    que reducir_angulo() para seno y coseno, pero aquí la reducción no
+    agrega error: multiplicar o dividir entre 2 es exacto en punto
+    flotante (solo cambia el exponente, unidad 06).
+    """
+    if x <= 0:
+        raise ValueError("ln(x) solo está definido para x > 0")
+
+    k = 0
+    while x > 2.0:
+        x /= 2.0
+        k += 1
+    while x < 0.5:
+        x *= 2.0
+        k -= 1
+    return k * LN2 + serie_ln(x, precision)
 
 
 def raiz_cuadrada(x, precision=EPS):
@@ -311,11 +341,11 @@ if __name__ == "__main__":
         )
 
     print()
-    for x in (1.0, 0.1, 0.5, 2.0, 5.0, 100.0):
+    for x in (1.0, 0.1, 0.5, 2.0, 5.0, 100.0, 1e-8, 1e8):
         aproximado = ln(x)
         exacto = math.log(x)
         print(
-            f"ln({x:.4f}) = {aproximado:.12f}  "
+            f"ln({x:.4g}) = {aproximado:.12f}  "
             f"math.log = {exacto:.12f}  "
             f"error_relativo = {error_relativo(aproximado, exacto):.2e}"
         )

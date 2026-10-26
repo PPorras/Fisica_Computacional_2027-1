@@ -20,11 +20,12 @@ metodo_qr y eigenpares viven en fiscomp/algebra_lineal.py. Este script:
 """
 
 from fiscomp.algebra_lineal import (
-    mat_vec,
+    identidad,
+    resta,
+    residuo_eigen,
     transpuesta,
     mat_mat,
     normalizar,
-    norma_euclidea,
     norma_frobenius,
     descomposicion_lu,
     descomposicion_qr,
@@ -39,14 +40,6 @@ def formatear(x):
     return "[" + ", ".join(f"{x_i:13.10f}" for x_i in x) + "]"
 
 
-def identidad(n):
-    return [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
-
-
-def resta(A, B):
-    return [[a - b for a, b in zip(renglon_A, renglon_B)] for renglon_A, renglon_B in zip(A, B)]
-
-
 def parte_de_abajo(A):
     """Norma de Frobenius de lo que está abajo de la diagonal: cero si A es
     triangular superior."""
@@ -59,13 +52,6 @@ def fuera_de_la_diagonal(A):
     es diagonal."""
     n = len(A)
     return norma_frobenius([[A[i][j] if i != j else 0.0 for j in range(n)] for i in range(n)])
-
-
-def residuo_eigen(A, eigenvalor, v):
-    """||A v - lambda v|| / ||v||: cero si (lambda, v) es un eigenpar exacto."""
-    Av = mat_vec(A, v)
-    r = [Av_i - eigenvalor * v_i for Av_i, v_i in zip(Av, v)]
-    return norma_euclidea(r) / norma_euclidea(v)
 
 
 n, val = 4, 21
