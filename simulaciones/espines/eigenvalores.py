@@ -1,43 +1,92 @@
 #!/usr/bin/env python3
-"""Eigenvalores de una matriz simétrica sin el método QR (ver README.md).
+"""Eigenvalores de los hamiltonianos de espín (ver README.md).
 
-Todavía no hemos visto un método general para eigenvalores (QR). Aquí
-usamos lo que sí tenemos, la descomposición LU de la unidad 09:
-
-1. det(H - lambda I) con LU: el producto de la diagonal de U.
-2. Los eigenvalores son las raíces de det(H - lambda I): se barre
-   lambda en una malla y se buscan cambios de signo.
-3. Cada raíz se afina subdividiendo el intervalo donde cambió el signo.
-4. (Adelanto del tema de eigenvalores) Iteración inversa: con un
-   valor aproximado sigma, resolver (H - sigma I) x_nuevo = x una y
-   otra vez con LU converge al eigenvector, y de ahí sale el
-   eigenvalor con precisión de máquina.
-
-Limitaciones (ver README.md, "Lo que todavía no se puede"): un
-eigenvalor con multiplicidad par no cambia el signo del determinante,
-y dos eigenvalores en la misma celda de la malla se cancelan. Para
-eso hace falta QR.
+1. El método QR (metodo_qr de fiscomp/algebra_lineal.py), con un
+   desplazamiento que deja todos los eigenvalores positivos: así QR
+   no se atora con eigenvalores de igual valor absoluto y signo
+   contrario, ni divide entre cero si H es singular.
+2. Utilidades para comprobar: residuo, multiplicidades.
+3. La primera versión del proyecto, antes de tener QR: las raíces de
+   det(H - lambda I), calculado con LU, buscando cambios de signo en
+   una malla. Se queda para comparar: no ve los eigenvalores de
+   multiplicidad par ni los que caen juntos en una celda.
+4. Para dos espines, los eigenvalores exactos con el bloque 2x2.
 """
 
 from fiscomp.algebra_lineal import (
     determinante,
-    descomposicion_lu,
-    resolver_lu,
     mat_vec,
+    metodo_qr,
     norma_infinito,
     norma_infinito_vec,
 )
 from fiscomp.funciones_especiales import raiz_cuadrada
-
-###############################################
-# El polinomio característico, con el determinante de LU
-###############################################
 
 
 def menos_lambda_identidad(H, lam: float):
     """H - lambda I, como lista de listas (H también es lista de listas)."""
     n = len(H)
     return [[H[i][j] - (lam if i == j else 0.0) for j in range(n)] for i in range(n)]
+
+
+###############################################
+# 1. El método QR, desplazado
+###############################################
+
+
+def eigenvalores_qr(H, kmax: int = 500):
+    """Todos los eigenvalores de H (real y simétrica) con el método QR.
+
+    metodo_qr solo funciona si los eigenvalores tienen valores absolutos
+    distintos, y divide entre cero si H es singular. Los hamiltonianos
+    de espín tienen las dos cosas: sin campo hay eigenvalores +-lambda,
+    y sin interacción puede haber un cero. Por eso se aplica a
+
+        H - s I,   con s = -(||H||_inf + 0.1),
+
+    cuyos eigenvalores lambda_i - s están entre 0.1 y 2||H||_inf + 0.1:
+    todos positivos, así que dos eigenvalores distintos tienen valores
+    absolutos distintos, y ninguno es cero. Al final se le suma s.
+    (Los eigenvalores repetidos de verdad no le estorban a QR.)
+
+    H: matriz n x n (lista de listas). kmax: iteraciones de metodo_qr;
+    con eigenvalores muy juntos hacen falta muchas.
+    Regresa la lista de eigenvalores, de menor a mayor.
+    """
+    s = -(norma_infinito(H) + 0.1)
+    return sorted(lam + s for lam in metodo_qr(menos_lambda_identidad(H, s), kmax))
+
+
+###############################################
+# 2. Comprobaciones
+###############################################
+
+
+def residuo_eigen(H, eigenvalor: float, v):
+    """||H v - lambda v||_inf / ||v||_inf: cero si (lambda, v) es un
+    eigenpar exacto."""
+    Hv = mat_vec(H, v)
+    r = [Hv_i - eigenvalor * v_i for Hv_i, v_i in zip(Hv, v)]
+    return norma_infinito_vec(r) / norma_infinito_vec(v)
+
+
+def multiplicidades(valores, tolerancia: float = 1e-6):
+    """Agrupa los valores (ordenados de menor a mayor) que difieren en
+    menos de `tolerancia`. Regresa una lista de tuplas (valor, veces),
+    con el valor promedio de cada grupo.
+    """
+    grupos = []
+    for v in valores:
+        if grupos and abs(v - grupos[-1][-1]) < tolerancia:
+            grupos[-1].append(v)
+        else:
+            grupos.append([v])
+    return [(sum(grupo) / len(grupo), len(grupo)) for grupo in grupos]
+
+
+###############################################
+# 3. Sin QR: las raíces de det(H - lambda I)
+###############################################
 
 
 def polinomio_caracteristico(H, lam: float):
@@ -47,11 +96,6 @@ def polinomio_caracteristico(H, lam: float):
         return determinante(menos_lambda_identidad(H, lam))
     except ZeroDivisionError:
         return None
-
-
-###############################################
-# Barrido y refinamiento
-###############################################
 
 
 def barrido_de_signo(H, a: float, b: float, puntos: int):
@@ -90,7 +134,7 @@ def refinar(H, a: float, b: float, rondas: int = 10):
 
 
 def eigenvalores_por_barrido(H, puntos: int = 2000, rondas: int = 6):
-    """Todos los eigenvalores de H (simétrica) que el barrido encuentra.
+    """Los eigenvalores de H (simétrica) que el barrido encuentra.
 
     Como H es simétrica, sus eigenvalores son reales y cumplen
     |lambda| <= ||H||_inf, así que basta barrer ese intervalo. (Se
@@ -103,49 +147,7 @@ def eigenvalores_por_barrido(H, puntos: int = 2000, rondas: int = 6):
 
 
 ###############################################
-# Iteración inversa
-###############################################
-
-
-def iteracion_inversa(H, sigma: float, iteraciones: int = 30):
-    """Eigenvalor de H más cercano a sigma, y su eigenvector.
-
-    Se factoriza H - sigma I = L U una sola vez y se repite
-
-        (H - sigma I) x_nuevo = x     (sustitución adelante y atrás)
-        x <- x_nuevo / (su componente más grande)
-
-    El vector converge al eigenvector cuyo eigenvalor está más cerca de
-    sigma (es la componente que (H - sigma I)^-1 amplifica más). El
-    eigenvalor se calcula al final con el cociente de Rayleigh,
-    x.Hx / x.x, que para H simétrica es muy preciso.
-
-    Regresa (eigenvalor, eigenvector).
-    """
-    n = len(H)
-    L, U = descomposicion_lu(menos_lambda_identidad(H, sigma))
-    # Vector inicial con todas sus componentes distintas, para no
-    # empezar justo sin componente en el eigenvector buscado.
-    x = [1.0 + 0.1 * i for i in range(n)]
-    for _ in range(iteraciones):
-        x_nuevo = resolver_lu(L, U, x)
-        mas_grande = max(x_nuevo, key=abs)
-        x = [x_i / mas_grande for x_i in x_nuevo]
-    Hx = mat_vec(H, x)
-    eigenvalor = sum(a * b for a, b in zip(x, Hx)) / sum(a * a for a in x)
-    return eigenvalor, x
-
-
-def residuo_eigen(H, eigenvalor: float, v):
-    """||H v - lambda v||_inf / ||v||_inf: cero si (lambda, v) es un
-    eigenpar exacto."""
-    Hv = mat_vec(H, v)
-    r = [Hv_i - eigenvalor * v_i for Hv_i, v_i in zip(Hv, v)]
-    return norma_infinito_vec(r) / norma_infinito_vec(v)
-
-
-###############################################
-# Dos espines: el bloque 2x2
+# 4. Dos espines: el bloque 2x2
 ###############################################
 
 
@@ -161,7 +163,7 @@ def eigenvalores_bloque_2x2(a: float, b: float, d: float):
 
 
 def eigenvalores_dos_espines(H):
-    """Los 4 eigenvalores del hamiltoniano de dos espines, sin barrido.
+    """Los 4 eigenvalores exactos del hamiltoniano de dos espines.
 
     En la base (arriba-arriba, arriba-abajo, abajo-arriba, abajo-abajo),
     H[0][0] y H[3][3] están solos en su renglón y columna (son

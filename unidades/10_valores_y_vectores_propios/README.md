@@ -591,8 +591,8 @@ inversa con ese desplazamiento la refina. Y si ya conocemos un
 eigenvalor con mucha precisión pero no su eigenvector, unas cuantas
 iteraciones con $s \approx \lambda_i$ dan $\mathbf{v}_i$. Así lo
 usaremos después de QR, que da los eigenvalores pero no los
-eigenvectores. (El proyecto de espines ya lo hacía, en
-`iteracion_inversa`.)
+eigenvectores. (La primera versión del proyecto de espines ya lo hacía,
+para refinar los eigenvalores que encontraba con el determinante.)
 
 **Rapidez.** Por el mismo argumento que en la potencia directa, la
 potencia inversa converge según el cociente entre el eigenvalor de

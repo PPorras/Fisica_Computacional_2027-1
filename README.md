@@ -97,8 +97,8 @@ Los temas marcados como *(pendiente)* aún no se han visto en clase.
   (SVD) — [unidad 10](unidades/10_valores_y_vectores_propios/)
 - **Proyecto:** la ecuación de Schrödinger como problema de
   eigenvalores (espines 1/2) —
-  [`simulaciones/espines/`](simulaciones/espines/); por ahora con
-  el determinante calculado con LU, el método QR *(pendiente)*
+  [`simulaciones/espines/`](simulaciones/espines/): dos, tres y
+  cuatro espines con el método QR, niveles degenerados y espín total
 
 ### 5. Ceros y mínimos *(pendiente)*
 

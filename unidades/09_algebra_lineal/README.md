@@ -1111,9 +1111,10 @@ La función `determinante(A)` de `fiscomp/algebra_lineal.py` hace
 exactamente esto. Para la matriz de prueba da
 $`\det(A) \approx -7\times 10^{-12}`$. Recordemos la sección "¿Determinante
 chico?": eso no dice nada por sí solo. Lo que importa es
-$`\kappa \approx 4\times 10^{8}`$. El proyecto de espines
-([`simulaciones/espines/`](../../simulaciones/espines/)) usa esta
-función para buscar eigenvalores como raíces de $\det(H - \lambda I)$.
+$`\kappa \approx 4\times 10^{8}`$. En su primera versión, el
+proyecto de espines ([`simulaciones/espines/`](../../simulaciones/espines/))
+usaba esta función para buscar eigenvalores como raíces de
+$\det(H - \lambda I)$; ahora usa el método QR de la unidad 10.
 
 ## Pivoteo
 

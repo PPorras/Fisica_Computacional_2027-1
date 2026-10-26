@@ -1,30 +1,38 @@
 #!/usr/bin/env python3
-"""Niveles de energía de dos y tres espines 1/2 (ver README.md).
+"""Niveles de energía de dos, tres y cuatro espines 1/2 (ver README.md).
 
-1. Construye H para dos espines, comprueba que es real y simétrica, y
-   calcula sus 4 eigenvalores de dos formas: con el bloque 2x2 y con
-   el barrido de det(H - lambda I).
-2. Lo mismo para tres espines (8x8), donde ya no hay atajo: barrido,
-   refinamiento e iteración inversa, con comprobaciones (residuo,
-   traza, estados con todos los espines alineados).
-3. Dos casos límite: sin interacción (H diagonal) y sin campo
-   (niveles degenerados, que el barrido no puede ver).
-4. Guarda en datos/ las energías contra omega_I, para las dos gráficas
-   de la Fig. 4.1 del libro.
+1. Dos espines: H de 4x4 y sus eigenvalores con QR, comparados con
+   los exactos del bloque 2x2.
+2. Tres espines: H de 8x8 y sus eigenvalores con QR, con
+   comprobaciones (traza, estados con todos los espines alineados) y
+   comparados con el barrido de det(H - lambda I).
+3. Casos límite (problema 4.48 de [1]): sin interacción y sin campo.
+   metodo_qr sin desplazar falla en los dos; eigenvalores_qr no. Sin
+   campo, las multiplicidades y el espín total S^2.
+4. Por qué no usamos eigenpares (problema 4.49 de [1]).
+5. Guarda en datos/ las energías contra omega_I para dos, tres y
+   cuatro espines (Fig. 4.1 de [1] y problema 4.50).
+6. Diez espines (problema 4.51 de [1]): cuánto tardaría.
 
-Unidades: hbar = 1 y gamma = 1, así que las energías están en unidades
-de gamma (en el libro, E/(hbar^2 gamma) contra omega_I/(hbar gamma)).
+Unidades: hbar = 1 y gamma = 1 en las gráficas, así que las energías
+están en unidades de gamma (en [1], E/(hbar^2 gamma) contra
+omega_I/(hbar gamma)).
+
+[1] A. Gezerlis, Numerical Methods in Physics with Python, vol. 1.
+    Cambridge University Press, Cambridge, UK, 2023.
 """
 
+import time
 from pathlib import Path
 
-from espines import dos_espines, tres_espines, es_simetrica
+from fiscomp.algebra_lineal import eigenpares, metodo_qr
+from espines import dos_espines, tres_espines, hamiltoniano, espin_total_cuadrado, es_simetrica
 from eigenvalores import (
+    eigenvalores_qr,
     eigenvalores_dos_espines,
     eigenvalores_bloque_2x2,
     eigenvalores_por_barrido,
-    iteracion_inversa,
-    residuo_eigen,
+    multiplicidades,
 )
 
 CARPETA_DATOS = Path(__file__).resolve().parent / "datos"
@@ -39,6 +47,12 @@ def imprimir_lista(nombre, valores):
     print(f"{nombre}: [" + ", ".join(f"{v:.10f}" for v in valores) + "]")
 
 
+def imprimir_multiplicidades(nombre, valores):
+    grupos = multiplicidades(valores)
+    textos = [f"{valor:.6f} ({veces} {'vez' if veces == 1 else 'veces'})" for valor, veces in grupos]
+    print(f"{nombre}: " + ", ".join(textos))
+
+
 ###############################################
 # 1. Dos espines
 ###############################################
@@ -48,8 +62,8 @@ H = dos_espines(1.0, 2.0, 0.5)
 imprimir_matriz(H)
 print(f"¿Simétrica? {es_simetrica(H)}")
 
-imprimir_lista("Bloque 2x2", eigenvalores_dos_espines(H.data))
-imprimir_lista("Barrido   ", eigenvalores_por_barrido(H.data))
+imprimir_lista("QR         ", eigenvalores_qr(H.data))
+imprimir_lista("Bloque 2x2 ", eigenvalores_dos_espines(H.data))
 
 ###############################################
 # 2. Tres espines
@@ -60,18 +74,9 @@ H = tres_espines(1.0, 2.0, 3.0, 0.5)
 imprimir_matriz(H)
 print(f"¿Simétrica? {es_simetrica(H)}")
 
-aproximados = eigenvalores_por_barrido(H.data)
-print(f"\nEl barrido encontró {len(aproximados)} eigenvalores:")
-imprimir_lista("Barrido           ", aproximados)
-
-eigenvalores = []
-residuos = []
-for sigma in aproximados:
-    eigenvalor, v = iteracion_inversa(H.data, sigma)
-    eigenvalores.append(eigenvalor)
-    residuos.append(residuo_eigen(H.data, eigenvalor, v))
-imprimir_lista("Iteración inversa ", eigenvalores)
-print(f"Residuo máximo ||H v - lambda v|| / ||v|| = {max(residuos):.1e}")
+eigenvalores = eigenvalores_qr(H.data)
+imprimir_lista("QR      ", eigenvalores)
+imprimir_lista("Barrido ", eigenvalores_por_barrido(H.data))
 
 # Comprobaciones sin conocer la respuesta:
 # - La suma de los eigenvalores es la traza de H.
@@ -88,30 +93,61 @@ print(f"Todos abajo:  exacta = {6.0 / 2 + 3 * 0.5 / 4}, calculada = {eigenvalore
 
 print("\n--- 3a. Sin interacción (gamma = 0): H es diagonal ---")
 H = tres_espines(1.0, 2.0, 3.0, 0.0)
-diagonal = sorted(H.data[i][i] for i in range(H.rows))
-imprimir_lista("Diagonal", diagonal)
-imprimir_lista("Barrido ", eigenvalores_por_barrido(H.data))
-print("Una matriz diagonal es triangular: sus eigenvalores son su diagonal.")
-print("El barrido no ve el 0, que está dos veces (multiplicidad par; ver 3b).")
+imprimir_lista("Diagonal ordenada ", sorted(H.data[i][i] for i in range(H.rows)))
+try:
+    metodo_qr(H.data)
+except ZeroDivisionError:
+    print("metodo_qr(H):       ZeroDivisionError")
+imprimir_lista("eigenvalores_qr(H)", eigenvalores_qr(H.data))
+print("Con omega_I + omega_II = omega_III, los estados arriba-arriba-abajo y")
+print("abajo-abajo-arriba tienen energía 0: H es singular, y Gram-Schmidt divide")
+print("entre R_jj = 0. Con el desplazamiento, H - s I ya no es singular.")
 
 print("\n--- 3b. Sin campo (omega = 0): niveles degenerados ---")
 H = tres_espines(0.0, 0.0, 0.0, 0.5)
-encontrados = eigenvalores_por_barrido(H.data)
-print(f"El barrido encontró {len(encontrados)} de 8 eigenvalores: {[round(e, 6) for e in encontrados]}")
-print("Los 8 son 3 gamma/4 = 0.375 (4 veces) y -3 gamma/4 = -0.375 (4 veces).")
-print("Una raíz de multiplicidad par no cambia el signo de det(H - lambda I):")
-print("el barrido no la ve. Para esto hace falta otro método (QR).")
+imprimir_lista("metodo_qr(H), ordenados", sorted(metodo_qr(H.data)))
+imprimir_multiplicidades("eigenvalores_qr(H)     ", eigenvalores_qr(H.data))
+print(f"El barrido encuentra {len(eigenvalores_por_barrido(H.data))} de 8.")
+print("Sin desplazar, QR no puede separar +3 gamma/4 de -3 gamma/4 (mismo valor")
+print("absoluto) y da números que no son eigenvalores. El barrido no ve raíces de")
+print("multiplicidad par. Desplazado, QR da los 8.")
+
+print("\nEl espín total: eigenvalores de S^2 = S(S + 1), tres espines:")
+imprimir_multiplicidades("  S^2", eigenvalores_qr(espin_total_cuadrado(3).data))
+print("  15/4 = 3.75 (S = 3/2) 4 veces: un cuadruplete, M = -3/2, ..., 3/2.")
+print("  3/4 = 0.75 (S = 1/2) 4 veces: DOS dobletes, M = -1/2, 1/2 cada uno.")
+print("  Sin campo, H = (gamma/2)(S^2 - 9/4): E = 3 gamma/4 para S = 3/2 y")
+print("  E = -3 gamma/4 para S = 1/2. El cuadruplete y los dos dobletes.")
+
+print("\nDos espines sin campo (gamma = 0.5):")
+imprimir_multiplicidades("  H  ", eigenvalores_qr(dos_espines(0.0, 0.0, 0.5).data))
+imprimir_multiplicidades("  S^2", eigenvalores_qr(espin_total_cuadrado(2).data))
+print("  El triplete (S = 1, S^2 = 2) en gamma/4 y el singulete (S = 0) en -3 gamma/4.")
 
 ###############################################
-# 4. Datos para las gráficas (Fig. 4.1)
+# 4. ¿Y los eigenvectores?
+###############################################
+
+print("\n--- 4. eigenpares (QR + potencia inversa) con tres espines ---")
+H = tres_espines(1.0, 2.0, 3.0, 0.5)
+try:
+    eigenpares(H.data)
+except ZeroDivisionError:
+    print("eigenpares(H): ZeroDivisionError")
+print("H no mezcla estados con distinto número de espines hacia arriba (bloques")
+print("de 1, 3, 3 y 1), así que cada eigenvector tiene ceros exactos fuera de su")
+print("bloque. El criterio de paro de potencia_inversa, cambio_relativo, divide")
+print("entre cada componente del vector: con un cero, ZeroDivisionError. Y sin")
+print("campo, con eigenvalores repetidos, la potencia inversa no podría dar")
+print("varios eigenvectores distintos para un mismo eigenvalor.")
+
+###############################################
+# 5. Datos para las gráficas (Fig. 4.1 y cuatro espines)
 ###############################################
 
 
-def escribir_renglon(archivo, omega: float, energias, total: int):
-    """omega y las energías ordenadas; '?' (dato faltante para gnuplot)
-    si se encontraron menos de `total`."""
-    columnas = [f"{e:.12f}" for e in sorted(energias)] + ["?"] * (total - len(energias))
-    archivo.write(f"{omega:.4f} " + " ".join(columnas) + "\n")
+def escribir_renglon(archivo, omega: float, energias):
+    archivo.write(f"{omega:.4f} " + " ".join(f"{e:.12f}" for e in energias) + "\n")
 
 
 CARPETA_DATOS.mkdir(exist_ok=True)
@@ -120,31 +156,52 @@ gamma = 1.0
 ruta = CARPETA_DATOS / "dos_espines.dat"
 with open(ruta, "w") as archivo:
     archivo.write("# dos espines, omega_II = 2 omega_I, gamma = hbar = 1\n")
-    # Aquí no ordenamos las energías: cada columna sigue a un mismo
-    # estado (los dos alineados y los dos del bloque 2x2), así las
-    # líneas de la gráfica se cruzan donde de verdad se cruzan.
-    archivo.write("# omega_I  E_arriba_arriba  E_bloque_menor  E_bloque_mayor  E_abajo_abajo\n")
+    # Las columnas 2-5 son de QR, ordenadas de menor a mayor. Las 6-9 son
+    # las exactas, sin ordenar: cada columna sigue a un mismo estado (los
+    # dos alineados y los dos del bloque 2x2), para dibujar los cruces.
+    archivo.write("# omega_I  E_0..E_3 (QR)  E_arriba_arriba  E_bloque_menor  E_bloque_mayor  E_abajo_abajo\n")
     for k in range(101):
         omega = 0.02 * k
         H = dos_espines(omega, 2 * omega, gamma).data
         menor, mayor = eigenvalores_bloque_2x2(H[1][1], H[1][2], H[2][2])
-        archivo.write(f"{omega:.4f} {H[0][0]:.12f} {menor:.12f} {mayor:.12f} {H[3][3]:.12f}\n")
+        escribir_renglon(archivo, omega, eigenvalores_qr(H) + [H[0][0], menor, mayor, H[3][3]])
 print(f"\nEnergías de dos espines guardadas en {ruta.name}")
 
 ruta = CARPETA_DATOS / "tres_espines.dat"
-faltantes = []
+inicio = time.perf_counter()
 with open(ruta, "w") as archivo:
     archivo.write("# tres espines, omega_II = 2 omega_I, omega_III = 3 omega_I, gamma = hbar = 1\n")
-    archivo.write("# omega_I  E_0 ... E_7  ('?' = el barrido no lo encontró)\n")
+    archivo.write("# omega_I  E_0 ... E_7 (QR, de menor a mayor)\n")
     for k in range(81):
         omega = 0.025 * k
         H = tres_espines(omega, 2 * omega, 3 * omega, gamma)
-        aproximados = eigenvalores_por_barrido(H.data, puntos=1000, rondas=3)
-        energias = [iteracion_inversa(H.data, sigma)[0] for sigma in aproximados]
-        escribir_renglon(archivo, omega, energias, 8)
-        if len(energias) < 8:
-            faltantes.append((omega, 8 - len(energias)))
-print(f"Energías de tres espines guardadas en {ruta.name}")
-print("Valores de omega_I donde el barrido no encontró los 8 eigenvalores:")
-for omega, cuantos in faltantes:
-    print(f"  omega_I = {omega:.2f}: faltan {cuantos}")
+        escribir_renglon(archivo, omega, eigenvalores_qr(H.data))
+tiempo_tres = (time.perf_counter() - inicio) / 81
+print(f"Energías de tres espines guardadas en {ruta.name} ({tiempo_tres:.3f} s por punto)")
+
+ruta = CARPETA_DATOS / "cuatro_espines.dat"
+print("Cuatro espines (16x16), unos segundos...")
+inicio = time.perf_counter()
+with open(ruta, "w") as archivo:
+    archivo.write("# cuatro espines, omega_k = k omega_I (k = 1..4), gamma = hbar = 1\n")
+    archivo.write("# omega_I  E_0 ... E_15 (QR, de menor a mayor)\n")
+    for k in range(81):
+        omega = 0.025 * k
+        H = hamiltoniano([omega, 2 * omega, 3 * omega, 4 * omega], gamma)
+        escribir_renglon(archivo, omega, eigenvalores_qr(H.data))
+tiempo_cuatro = (time.perf_counter() - inicio) / 81
+print(f"Energías de cuatro espines guardadas en {ruta.name} ({tiempo_cuatro:.3f} s por punto)")
+
+###############################################
+# 6. Diez espines
+###############################################
+
+print("\n--- 6. ¿Y diez espines? ---")
+cociente = tiempo_cuatro / tiempo_tres
+print(f"De 8x8 a 16x16 el tiempo por punto creció {cociente:.1f} veces (QR es O(n^3) por")
+print("iteración: se esperaría 2^3 = 8).")
+n = 2**10
+estimado = tiempo_cuatro * (n / 16) ** 3
+print(f"Con 10 espines H es de {n}x{n}: ({n}/16)^3 = {(n // 16) ** 3} veces más que con cuatro,")
+print(f"unos {estimado / 3600:.0f} horas por punto con QR en Python puro (sin contar")
+print("construir H, que también tiene productos de matrices de 1024x1024).")

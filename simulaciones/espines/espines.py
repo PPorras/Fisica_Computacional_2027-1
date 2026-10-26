@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 """Partículas de espín 1/2: matrices de Pauli, producto de Kronecker y
-hamiltonianos de dos y tres espines (ver README.md de esta carpeta;
-libro de Gezerlis, sección 4.6, códigos 4.12 a 4.14).
+hamiltonianos de dos, tres o más espines (ver README.md de esta
+carpeta; basado en la sección 4.6 de [1], códigos 4.12 a 4.14).
 
 Todo se construye con la clase Matrix (fiscomp/matrices.py), sin
 NumPy. Las matrices pueden tener números complejos (sigma_y los
 tiene): Python los trae integrados, se escriben como 1j.
 
 Unidades: hbar = 1.
+
+[1] A. Gezerlis, Numerical Methods in Physics with Python, vol. 1.
+    Cambridge University Press, Cambridge, UK, 2023.
 """
 
 from fiscomp.matrices import Matrix
@@ -61,7 +64,7 @@ def kron(U, V):
 def parte_real(M):
     """Copia de M con solo la parte real de cada elemento.
 
-    El libro hace H.real con NumPy; Matrix no tiene ese atributo.
+    Con NumPy sería H.real; Matrix no tiene ese atributo.
     complex(x).real funciona igual si x es float o complejo.
     """
     return Matrix([[complex(x).real for x in renglon] for renglon in M.data])
@@ -107,7 +110,7 @@ def operadores_de_espin(posicion: int, numero_de_particulas: int):
 def producto_punto_espin(S_A, S_B):
     """S_A . S_B = S_Ax S_Bx + S_Ay S_By + S_Az S_Bz.
 
-    El libro usa sum([...]) con NumPy; con Matrix eso no funciona:
+    Con NumPy se podría usar sum([...]); con Matrix eso no funciona:
     sum() empieza sumando 0 + matriz, y Matrix no sabe sumarse a un
     número (no tiene __radd__). Por eso sumamos los tres términos a
     mano.
@@ -121,7 +124,7 @@ def producto_punto_espin(S_A, S_B):
 
 
 def dos_espines(omega_I: float, omega_II: float, gamma: float):
-    """Hamiltoniano de dos espines 1/2 (ec. 4.232 del libro), 4x4:
+    """Hamiltoniano de dos espines 1/2 (ec. 4.232 de [1]), 4x4:
 
         H = -omega_I S_Iz - omega_II S_IIz + gamma S_I . S_II
 
@@ -137,7 +140,7 @@ def dos_espines(omega_I: float, omega_II: float, gamma: float):
 
 
 def tres_espines(omega_I: float, omega_II: float, omega_III: float, gamma: float):
-    """Hamiltoniano de tres espines 1/2 (ec. 4.234 del libro), 8x8:
+    """Hamiltoniano de tres espines 1/2 (ec. 4.234 de [1]), 8x8:
 
         H = -omega_I S_Iz - omega_II S_IIz - omega_III S_IIIz
             + gamma (S_I . S_II + S_I . S_III + S_II . S_III)
@@ -156,8 +159,47 @@ def tres_espines(omega_I: float, omega_II: float, omega_III: float, gamma: float
     return parte_real(H + interaccion * gamma)
 
 
+def hamiltoniano(omegas, gamma: float):
+    """Hamiltoniano de N espines 1/2, para cualquier N:
+
+        H = - sum_k omega_k S_kz + gamma sum_(a < b) S_a . S_b
+
+    Con N = 2 y N = 3 da lo mismo que dos_espines y tres_espines; con
+    N = 4 es el problema 4.50 de [1]. Es de 2^N x 2^N.
+
+    omegas: lista con un omega por partícula (su longitud es N).
+    gamma: acoplamiento entre cada par de espines.
+    Regresa una Matrix real.
+    """
+    numero_de_particulas = len(omegas)
+    S = [operadores_de_espin(k, numero_de_particulas) for k in range(numero_de_particulas)]
+    H = S[0][2] * (-omegas[0])
+    for k in range(1, numero_de_particulas):
+        H = H + S[k][2] * (-omegas[k])
+    for a in range(numero_de_particulas):
+        for b in range(a + 1, numero_de_particulas):
+            H = H + producto_punto_espin(S[a], S[b]) * gamma
+    return parte_real(H)
+
+
+def espin_total_cuadrado(numero_de_particulas: int):
+    """S^2 = S . S del espín total S = S_I + S_II + ..., de 2^N x 2^N.
+    Sus eigenvalores son S(S + 1) (con hbar = 1), donde S es el espín
+    total: 3/4 para S = 1/2, 2 para S = 1, 15/4 para S = 3/2.
+    Regresa una Matrix real.
+    """
+    S = [operadores_de_espin(k, numero_de_particulas) for k in range(numero_de_particulas)]
+    S_total = []
+    for componente in range(3):
+        suma = S[0][componente]
+        for k in range(1, numero_de_particulas):
+            suma = suma + S[k][componente]
+        S_total.append(suma)
+    return parte_real(producto_punto_espin(S_total, S_total))
+
+
 if __name__ == "__main__":
-    # La prueba del libro (código 4.12): sigma_x (x) (matriz de unos 3x3).
+    # La prueba del código 4.12 de [1]: sigma_x (x) (matriz de unos 3x3).
     sigma_x, sigma_y, sigma_z = matrices_de_pauli()
     unos = Matrix([[1.0] * 3 for _ in range(3)])
     print("sigma_x (x) unos:")
