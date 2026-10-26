@@ -18,7 +18,7 @@ def diff_forward(f, x0, h):
 junto con las funciones de prueba (`const_5`, `ident`, `sqr`,
 `sin_x2`) y un ejemplo de uso. El resto de la unidad — derivado a
 partir de la serie de Taylor en
-[`notas.md`](../../unidades/08_diferencias_finitas/notas.md) — lo
+[las notas de la unidad 08](../../unidades/08_diferencias_finitas/) — lo
 completan ustedes, en ese mismo archivo.
 
 ## Ejercicio 1 — `diff_backward` y `diff_central`
@@ -30,7 +30,7 @@ Agreguen, junto a `diff_forward`:
 - `diff_central(f, x0, h)`: diferencia central,
   `(f(x0 + h/2) - f(x0 - h/2)) / h`.
 
-Ambas fórmulas están deducidas paso a paso en `notas.md`, a partir de
+Ambas fórmulas están deducidas paso a paso en las notas de la unidad 08, a partir de
 la serie de Taylor de $f$ alrededor de $x_0$.
 
 ## Ejercicio 2 — derivadas exactas, para comparar
@@ -85,7 +85,7 @@ y
 
 Con los datos del Ejercicio 3, encuentren **con código** (no a ojo)
 la `h` que da el menor error para cada método, y compárenla contra la
-fórmula de `notas.md` (que asume que $f$ y sus derivadas son de orden
+fórmula de las notas de la unidad 08 (que asume que $f$ y sus derivadas son de orden
 1):
 
 ```

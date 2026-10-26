@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Pivoteo: inestabilidad sin mal condicionamiento.
 
-Ver notas.md, sección "Pivoteo". Las funciones eliminacion_gaussiana y
+Ver README.md, sección "Pivoteo". Las funciones eliminacion_gaussiana y
 eliminacion_gaussiana_pivoteo viven en fiscomp/algebra_lineal.py.
 Este script:
 
@@ -95,7 +95,7 @@ print("  Son las mismas ecuaciones, así que la solución sigue siendo ~[3, -1].
 print("  Pero ahora los dos candidatos a pivote miden 1e-20: no hay")
 print("  intercambio, y el pivoteo parcial falla igual que sin pivoteo.")
 resolver_con_ambos(A, b)
-print("  El pivoteo parcial escalado (notas.md) compara cada candidato")
+print("  El pivoteo parcial escalado (README.md) compara cada candidato")
 print("  contra el elemento más grande de su renglón, y sí intercambia.")
 
 ###############################################

@@ -1,7 +1,7 @@
 # Energía cinética local en mecánica cuántica
 
 Proyecto que usa la segunda derivada con diferencias finitas
-([unidad 08](../../unidades/08_diferencias_finitas/notas.md), sección
+([unidad 08](../../unidades/08_diferencias_finitas/README.md), sección
 "Segunda derivada") para calcular la energía cinética de una partícula
 cuántica en una dimensión. Si todavía no han llevado mecánica cuántica,
 pueden leer la física por encima: la parte de programación (una misma

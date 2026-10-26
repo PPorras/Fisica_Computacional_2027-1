@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Sistemas triangulares: sustitución hacia adelante y hacia atrás.
 
-Ver notas.md, sección "Matrices triangulares". Las funciones
+Ver README.md, sección "Matrices triangulares". Las funciones
 sustitucion_adelante y sustitucion_atras viven en
 fiscomp/algebra_lineal.py, porque las reutilizan la eliminación
 gaussiana y la descomposición LU (eliminacion_gaussiana_lu.py).
@@ -85,7 +85,7 @@ def sustitucion_adelante_contando(L, b):
             suma += L[i][j] * x[j]
             # Una multiplicación y una suma/resta: sumar los i productos
             # toma i - 1 sumas, y restar el resultado de b[i] una más,
-            # así que son i sumas/restas en total (ver notas.md).
+            # así que son i sumas/restas en total (ver README.md).
             operaciones += 2
         x[i] = (b[i] - suma) / L[i][i]
         operaciones += 1  # la división

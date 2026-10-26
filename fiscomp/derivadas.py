@@ -1,6 +1,6 @@
 """Derivadas numéricas con diferencias finitas.
 
-Ver unidades/08_diferencias_finitas/notas.md para la deducción de cada
+Ver unidades/08_diferencias_finitas/README.md para la deducción de cada
 fórmula (a partir de la serie de Taylor) y su análisis de error.
 
 Por ahora solo contiene la segunda derivada, que se usa en varios
@@ -13,7 +13,7 @@ from fiscomp.precision_numerica import EPS
 
 
 def h_optimo_segunda(f_x0: float = 1.0, f4_x0: float = 1.0) -> float:
-    """Paso h óptimo para diff2_central (ver notas.md de la unidad 08):
+    """Paso h óptimo para diff2_central (ver las notas de la unidad 08):
 
         h_opt = (768 * EPS * |f(x0)| / |f^(4)(x0)|) ** (1/4)
 

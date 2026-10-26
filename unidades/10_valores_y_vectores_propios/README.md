@@ -128,7 +128,7 @@ el primer índice dice de qué eigenvector se trata, el segundo de qué
 componente.
 ## Análisis de error
 
-En la [unidad 09](../09_algebra_lineal/notas.md) (sección "Análisis de
+En la [unidad 09](../09_algebra_lineal/README.md) (sección "Análisis de
 error") vimos qué tan sensible es un sistema lineal a cambios en sus
 datos, con el número de condición $\kappa(A)$ y las normas de
 matrices. Aquí hacemos lo mismo para los eigenvalores y los

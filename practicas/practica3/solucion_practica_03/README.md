@@ -18,9 +18,9 @@ Además trae cosas que la práctica no pedía:
 - `h` óptimo por defecto en cada método (`h_optimo_adelante`,
   `h_optimo_central`);
 - los métodos más precisos de la sección "Diferencias finitas más
-  precisas" de `notas.md` (`diff_forward2`, `diff_central2`), que
+  precisas" de las notas de la unidad 08 (`diff_forward2`, `diff_central2`), que
   generan `datos/derivada_sin_x2_precisas.dat`;
-- la respuesta del "Para pensar" de `notas.md` (extrapolación de
+- la respuesta del "Para pensar" de las notas de la unidad 08 (extrapolación de
   Richardson).
 
 ## Cómo correrla

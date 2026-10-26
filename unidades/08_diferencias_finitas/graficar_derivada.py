@@ -4,10 +4,10 @@ diff_central contra h.
 
 Versión en Python de graficar_derivada.gp (gnuplot); hace lo mismo:
 error relativo contra h en escala log-log, con una línea vertical en
-la h_opt teórica de cada método (ver notas.md).
+la h_opt teórica de cada método (ver README.md).
 
 Si además existe datos/derivada_sin_x2_precisas.dat (la parte de
-"diferencias finitas más precisas" de notas.md), abre una segunda
+"diferencias finitas más precisas" de README.md), abre una segunda
 ventana que compara los cinco métodos: adelante O(h), central y
 segunda adelante O(h^2), segunda central y Richardson O(h^4).
 
@@ -49,7 +49,7 @@ RUTA_DATOS_PRECISAS = CARPETA_DATOS / "derivada_sin_x2_precisas.dat"
 # constante que fiscomp.precision_numerica.EPS.
 EPS = 2.220446049250313e-16
 
-# h_opt "de juguete" de notas.md (asumiendo f y sus derivadas de orden
+# h_opt "de juguete" de README.md (asumiendo f y sus derivadas de orden
 # 1): el mínimo teórico de cada curva de error, donde el error de
 # truncamiento y el de redondeo quedan balanceados.
 H_OPT_ADELANTE = (4.0 * EPS) ** 0.5

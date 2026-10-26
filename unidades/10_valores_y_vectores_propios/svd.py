@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Descomposición en valores singulares (SVD).
 
-Ver notas.md, sección "Descomposición en valores singulares". Las
+Ver README.md, sección "Descomposición en valores singulares". Las
 funciones matriz_h y svd viven en fiscomp/algebra_lineal.py. Este
 script usa la matriz de prueba del libro menos la identidad,
 A = crear_prueba(4, 21) - I (como el libro):

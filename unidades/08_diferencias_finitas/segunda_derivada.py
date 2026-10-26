@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Segunda derivada con diferencias finitas.
 
-Ejemplos ejecutables de la sección "Segunda derivada" de notas.md:
+Ejemplos ejecutables de la sección "Segunda derivada" de README.md:
 la diferencia central para f'', que sale de *sumar* las series de
 Taylor de f(x0+h/2) y f(x0-h/2) (en vez de restarlas, como para f'),
 con error de truncamiento O(h^2). Al final, un barrido de h sobre
@@ -22,7 +22,7 @@ CARPETA_DATOS = Path(__file__).resolve().parent / "datos"
 
 
 def h_optimo_segunda(f_x0: float = 1.0, f4_x0: float = 1.0) -> float:
-    """Paso h óptimo para diff2_central (ver notas.md):
+    """Paso h óptimo para diff2_central (ver README.md):
 
         h_opt = (768 * EPS * |f(x0)| / |f^(4)(x0)|) ** (1/4)
 
@@ -49,7 +49,7 @@ def diff2_central(f, x0: float, h: float = h_optimo_segunda()) -> float:
     return 4.0 * (f(x0 + h / 2.0) + f(x0 - h / 2.0) - 2.0 * f(x0)) / h**2
 
 
-# Respuesta del "Para pensar" de notas.md: la cuarta derivada.
+# Respuesta del "Para pensar" de README.md: la cuarta derivada.
 # Las dos sumas de series de Taylor son
 #     S1 = f(x0+h/2) + f(x0-h/2) = 2f + (h^2/4) f'' + (h^4/192) f^(4) + (h^6/23040) f^(6) + ...
 #     S2 = f(x0+h)   + f(x0-h)   = 2f +  h^2    f'' + (h^4/12)  f^(4) + (h^6/360)   f^(6) + ...
@@ -159,7 +159,7 @@ for nombre, f, f_segunda in FUNCIONES_DE_PRUEBA:
 # Para f(x)=5 y f(x)=x la segunda derivada es 0, y la aproximación da
 # (casi) 0. Para f(x)=x^2 el error de truncamiento es cero (depende de
 # f^(4), que para x^2 vale 0) y solo queda redondeo. Para sin(x^2) el
-# error queda en ~1e-7/1e-8, como predice notas.md: mucho peor que el
+# error queda en ~1e-7/1e-8, como predice README.md: mucho peor que el
 # ~1e-10 de la diferencia central para f', aunque ambas son O(h^2).
 print(30 * "=")
 

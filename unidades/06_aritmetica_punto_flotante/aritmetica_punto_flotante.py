@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Underflow, overflow y cancelación catastrófica en punto flotante.
 
-Ejemplos ejecutables de lo visto en notas.md: qué pasa quando un
+Ejemplos ejecutables de lo visto en README.md: qué pasa quando un
 cálculo se sale del rango representable (UFL, OFL) y qué pasa cuando
 se restan dos números casi iguales (cancelación catastrófica).
 """

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Descomposición QR, iteración simultánea y método QR.
 
-Ver notas.md, sección "Método QR" y "Todos los eigenvalores y
+Ver README.md, sección "Método QR" y "Todos los eigenvalores y
 eigenvectores". Las funciones transpuesta, mat_mat, descomposicion_qr,
 metodo_qr y eigenpares viven en fiscomp/algebra_lineal.py. Este script:
 

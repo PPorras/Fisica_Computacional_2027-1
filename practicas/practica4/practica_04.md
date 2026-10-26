@@ -3,7 +3,7 @@
 Cubre lo visto en la unidad
 [09 (álgebra lineal)](../../unidades/09_algebra_lineal/), secciones
 "Matrices triangulares", "Eliminación gaussiana" y "Descomposición
-LU" de [`notas.md`](../../unidades/09_algebra_lineal/notas.md), y retoma la
+LU" de [las notas de la unidad 09](../../unidades/09_algebra_lineal/), y retoma la
 clase `Matrix` de la [Práctica 2](../practica2/practica_02.md).
 
 ## Contexto
@@ -211,7 +211,7 @@ algo va a fallar, y lo que se hace es intentar y reaccionar.
 Cada vez que se resuelve el sistema, `self.flops` debe quedar con el
 número de operaciones de punto flotante que se hicieron (sumas,
 restas, multiplicaciones y divisiones), contadas como en la sección
-"Conteo de operaciones" de `notas.md`. Debe reiniciarse en cada
+"Conteo de operaciones" de las notas de la unidad 09. Debe reiniciarse en cada
 llamada: resolver dos veces el mismo sistema no duplica el conteo. Lo
 van a usar en el Ejercicio 3; si lo hacen bien, debe dar exactamente
 $n^2$.
@@ -240,11 +240,11 @@ script, usando `Path(__file__).resolve().parent / "datos"`.
 
 ### 3a. Contar a mano
 
-En `notas.md` contamos los flops del producto matriz-vector
+En las notas de la unidad 09 contamos los flops del producto matriz-vector
 ($`2n^2 - n`$) y de la sustitución hacia adelante ($`n^2`$), y dejamos
 pendientes otros dos. En un comentario al inicio del script (o en el
 docstring del módulo), cuenten, con el mismo razonamiento que en
-`notas.md`, los flops de:
+las notas de la unidad 09, los flops de:
 
 - el producto punto de dos vectores de $n$ componentes;
 - el producto de dos matrices $n \times n$.
@@ -272,7 +272,7 @@ la sustitución no hace falta una función nueva: usen
 
 Para `n` en `[1, 2, 4, 8, 16, 32, 64]` (o más valores), calculen los
 cuatro conteos e impriman una tabla que los compare contra sus
-fórmulas del 3a y las de `notas.md`. Escriban los resultados en
+fórmulas del 3a y las de la unidad 09. Escriban los resultados en
 `datos/conteo_flops.dat`, con una línea de encabezado que empiece con
 `#` y luego **cinco columnas separadas por espacios**:
 
@@ -355,7 +355,7 @@ En [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py) ya
 están, como funciones sobre listas de listas, la eliminación
 gaussiana, la descomposición LU, la inversa y el determinante
 (secciones "Eliminación gaussiana" y "Descomposición LU" de
-[`notas.md`](../../unidades/09_algebra_lineal/notas.md)). Ahora las
+[las notas de la unidad 09](../../unidades/09_algebra_lineal/)). Ahora las
 vamos a construir con objetos, **por piezas y en orden**, de forma
 que cada pieza nueva use las anteriores en vez de repetir su código:
 
@@ -415,7 +415,7 @@ ciclo, pregúntense si ya existe una pieza que lo hace.
 Primero, una excepción para cuando la eliminación encuentra un pivote
 cero. Sin pivoteo, la eliminación falla si un pivote $A_{jj}$ vale
 cero, **aunque la matriz no sea singular** (sección "Un pivote cero"
-de `notas.md`: el ejemplo $`\begin{pmatrix} 0 & -1 \\ 1 & 1 \end{pmatrix}`$
+de las notas de la unidad 09: el ejemplo $`\begin{pmatrix} 0 & -1 \\ 1 & 1 \end{pmatrix}`$
 tiene determinante 1). Ese error no es "la matriz es singular" sino
 "este método no sirve para esta matriz", así que merece su propia
 excepción:
@@ -434,7 +434,7 @@ el pivoteo.
 
 La clase `EliminacionGaussiana(A, b=None, coeficientes=False)` hace
 **solo la fase de eliminación** (sección "Caso general" de
-`notas.md`), al crearse, sobre **copias** de `A.data` y de `b`:
+las notas de la unidad 09), al crearse, sobre **copias** de `A.data` y de `b`:
 
 - `A` debe ser una `Matrix` cuadrada; `b` es opcional.
 - Si se pasa `b`, se le aplican las mismas operaciones de renglón que
@@ -483,7 +483,7 @@ es no calcularlo: asígnenle `0.0` directamente (o hagan que el ciclo
 sobre las columnas empiece en `j + 1`). Las pruebas incluyen una
 matriz con ese problema.
 
-**Para probar a mano:** con el ejemplo $3\times 3$ de `notas.md`,
+**Para probar a mano:** con el ejemplo $3\times 3$ de las notas de la unidad 09,
 
 ```python
 A = Matrix([[2, 1, 1], [1, 1, -2], [5, 10, 5]])
@@ -493,7 +493,7 @@ e = EliminacionGaussiana(A, [8, -2, 10], coeficientes=True)
 deben obtener `e.U.data == [[2, 1, 1], [0, 0.5, -2.5], [0, 0, 40]]`,
 `e.b_nuevo == [8, -6, 80]` y
 `e.L.data == [[1, 0, 0], [0.5, 1, 0], [2.5, 15, 1]]` (compárenlo con
-las cuentas a mano de `notas.md`).
+las cuentas a mano de las notas de la unidad 09).
 
 ### 4b. Resolver por eliminación gaussiana: `SistemaLineal`
 
@@ -558,7 +558,7 @@ Agreguen a `FactorizacionLU`:
 - **`inversa(self)`**: la inversa como `Matrix`. Su columna $k$ es la
   solución de $A\mathbf{x}_k = \mathbf{e}_k$, con $`\mathbf{e}_k`$ la
   columna $k$ de la identidad (sección "La matriz inversa" de
-  `notas.md`): saquen $`\mathbf{e}_k`$ de `Identity(n).get_col(k)` y
+  las notas de la unidad 09): saquen $`\mathbf{e}_k`$ de `Identity(n).get_col(k)` y
   resuelvan con `self.resolver`, sin volver a factorizar.
 
 Con la matriz singular de arriba, `determinante()` da 0 e `inversa()`
@@ -577,7 +577,7 @@ entender qué salió mal.
 
 No lo revisan las pruebas. Escriban una clase hija
 `EliminacionConPivoteo(EliminacionGaussiana)` que haga pivoteo parcial
-(sección "Pivoteo" de `notas.md`): antes de eliminar la columna $j$,
+(sección "Pivoteo" de las notas de la unidad 09): antes de eliminar la columna $j$,
 intercambia el renglón $j$ con el que tenga el $|A_{ij}|$ más grande
 (en `A`, en `b` y, si `coeficientes=True`, en los coeficientes ya
 guardados). Comprueben que resuelve el ejemplo

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Aritmética de intervalos como ejemplo de programación orientada a objetos.
 
-Ejemplos ejecutables de lo visto en notas.md: la clase Intervalo
+Ejemplos ejecutables de lo visto en README.md: la clase Intervalo
 sobrecarga los operadores aritméticos para que [a, b] + [c, d], etc.
 se comporten como en las fórmulas de la aritmética de intervalos, y
 al final se usa esa clase para acotar el rango de una función.
@@ -14,7 +14,7 @@ class Intervalo:
     Los operadores aritméticos (+, -, *, /) están sobrecargados para
     que devuelvan el intervalo que contiene todos los resultados
     posibles de operar cualquier par de reales tomados de los
-    intervalos originales (ver las fórmulas en notas.md).
+    intervalos originales (ver las fórmulas en README.md).
     """
 
     def __init__(self, lo, hi=None):
@@ -96,7 +96,7 @@ class Intervalo:
     def __pow__(self, n):
         """Potencia entera no negativa. A diferencia de encadenar
         self * self * ..., no sufre el problema de dependencia porque
-        se calcula directamente sobre lo y hi (ver notas.md)."""
+        se calcula directamente sobre lo y hi (ver README.md)."""
         if not isinstance(n, int) or n < 0:
             raise ValueError("solo se soporta potencia entera no negativa")
         if n == 0:

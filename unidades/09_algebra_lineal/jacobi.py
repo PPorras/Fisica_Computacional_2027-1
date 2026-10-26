@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Método iterativo de Jacobi.
 
-Ver notas.md, sección "Método iterativo de Jacobi". Las funciones
+Ver README.md, sección "Método iterativo de Jacobi". Las funciones
 paso_jacobi, cambio_relativo y jacobi viven en
 fiscomp/algebra_lineal.py. Este script:
 

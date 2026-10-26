@@ -1,8 +1,8 @@
 """Álgebra lineal numérica, escrita desde cero con listas de listas.
 
-Ver unidades/09_algebra_lineal/notas.md para la teoría de sistemas
+Ver unidades/09_algebra_lineal/README.md para la teoría de sistemas
 lineales (normas, número de condición, sustituciones, eliminación
-gaussiana, LU, Jacobi) y unidades/10_valores_y_vectores_propios/notas.md
+gaussiana, LU, Jacobi) y unidades/10_valores_y_vectores_propios/README.md
 para la de eigenvalores (potencia, potencia inversa, método QR) y la
 SVD.
 
@@ -35,7 +35,7 @@ def mat_vec(A, x):
     A: matriz n x m (lista de listas).
     x: vector de m componentes (lista).
     Regresa una lista de n componentes. Cuesta 2n^2 - n operaciones
-    de punto flotante cuando A es cuadrada (ver notas.md).
+    de punto flotante cuando A es cuadrada (ver las notas de la unidad 09).
     """
     if len(A[0]) != len(x):
         raise ValueError(
@@ -56,7 +56,7 @@ def residuo(A, x, b):
 
     Si x es la solución exacta de A x = b, r es el vector cero. Un
     residuo chico NO garantiza que x esté cerca de la solución
-    exacta (ver el ejemplo de Kahan en notas.md).
+    exacta (ver el ejemplo de Kahan en las notas de la unidad 09).
     """
     Ax = mat_vec(A, x)
     return [b_i - Ax_i for b_i, Ax_i in zip(b, Ax)]
@@ -166,7 +166,7 @@ def eliminacion_gaussiana(A, b):
 
     A: matriz n x n (lista de listas). b: vector de n componentes.
     No modifica A ni b: trabaja sobre copias. Sin pivoteo: si algún
-    pivote A_jj vale cero, levanta ZeroDivisionError (ver notas.md).
+    pivote A_jj vale cero, levanta ZeroDivisionError (ver las notas de la unidad 09).
     Cuesta 2n^3/3 + 3n^2/2 - 13n/6 operaciones la eliminación, más n^2
     la sustitución hacia atrás.
     """

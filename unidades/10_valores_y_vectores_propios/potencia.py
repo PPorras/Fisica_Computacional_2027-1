@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Métodos de la potencia y de la potencia inversa con desplazamiento.
 
-Ver notas.md, secciones "El problema de eigenvalores, numéricamente",
+Ver README.md, secciones "El problema de eigenvalores, numéricamente",
 "Método de la potencia" y "Método de la potencia inversa con
 desplazamiento". Las funciones producto_punto, normalizar,
 cociente_rayleigh, potencia y potencia_inversa viven en

@@ -1,12 +1,12 @@
 #!/usr/bin/env gnuplot
 # Grafica, en escala log-log, el error relativo de diff_forward y
 # diff_central contra h, para ver las dos fuentes de error de
-# notas.md compitiendo: el error de truncamiento baja con h
+# README.md compitiendo: el error de truncamiento baja con h
 # (pendiente O(h) o O(h^2)) hasta que el error de redondeo lo detiene
 # y lo hace volver a subir.
 #
 # Despues, si existe datos/derivada_sin_x2_precisas.dat (la parte de
-# "diferencias finitas mas precisas" de notas.md), abre una segunda
+# "diferencias finitas mas precisas" de README.md), abre una segunda
 # grafica que compara los cinco metodos: adelante O(h), central y
 # segunda adelante O(h^2), segunda central y Richardson O(h^4).
 #
@@ -27,7 +27,7 @@ archivo = "datos/derivada_sin_x2.dat"
 # constante que fiscomp.precision_numerica.EPS.
 EPS = 2.220446049250313e-16
 
-# h_opt "de juguete" de notas.md (asumiendo f y sus derivadas de orden
+# h_opt "de juguete" de README.md (asumiendo f y sus derivadas de orden
 # 1): el minimo teorico de cada curva de error, donde el error de
 # truncamiento y el de redondeo quedan balanceados.
 h_opt_adelante = sqrt(4.0 * EPS)
@@ -77,7 +77,7 @@ if (!exists("STATS_records")) {
 
 pause -1 "Presiona Enter para ver la comparacion de los cinco metodos..."
 
-# h_opt "de juguete" de notas.md para los dos metodos nuevos (f y sus
+# h_opt "de juguete" de README.md para los dos metodos nuevos (f y sus
 # derivadas de orden 1).
 h_opt_adelante2 = (48.0 * EPS)**(1.0 / 3.0)
 h_opt_central2  = (1120.0 * EPS / 9.0)**(1.0 / 5.0)

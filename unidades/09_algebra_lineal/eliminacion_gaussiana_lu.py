@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Eliminación gaussiana y descomposición LU.
 
-Ver notas.md, secciones "Eliminación gaussiana" y "Descomposición LU".
+Ver README.md, secciones "Eliminación gaussiana" y "Descomposición LU".
 Las funciones eliminacion_gaussiana, descomposicion_lu y resolver_lu
 viven en fiscomp/algebra_lineal.py. Este script:
 
@@ -122,7 +122,7 @@ print(f"Error relativo máximo = {max(errores):.2e}")
 
 print("\n--- 4. Inversa, número de condición y determinante ---")
 # inversa() resuelve A x_k = e_k (e_k: columna k de la identidad) para
-# cada k: n sistemas con la misma A, una sola LU (ver notas.md).
+# cada k: n sistemas con la misma A, una sola LU (ver README.md).
 A_inv = inversa(A)
 print("A^-1 A (debe ser la identidad):")
 for renglon in (Matrix(A_inv) * Matrix(A)).data:

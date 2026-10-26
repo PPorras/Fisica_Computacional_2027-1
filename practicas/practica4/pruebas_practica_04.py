@@ -82,7 +82,7 @@ L_DATOS = [[2.0, 0.0, 0.0], [1.0, 4.0, 0.0], [-1.0, 3.0, 5.0]]
 U_DATOS = [[2.0, 1.0, -1.0], [0.0, 4.0, 3.0], [0.0, 0.0, 5.0]]
 X_EXACTA = [1.0, -2.0, 3.0]
 
-# Ejercicio 4: el ejemplo 3x3 de notas.md (solución [4, -2, 2], det 40,
+# Ejercicio 4: el ejemplo 3x3 de las notas de la unidad 09 (solución [4, -2, 2], det 40,
 # con su U, su b transformado y su L, todos exactos en punto flotante),
 # una matriz donde la eliminación deja un "cero" de -1.1e-16, una con
 # pivote cero sin ser singular, y una singular.
@@ -574,7 +574,7 @@ class TestFactorizacionLU(CasoEjercicio4):
         self.assertVectoresCercanos(sistema.resolver_lu(), X_DATOS)
 
     def test_determinante(self):
-        with self.subTest(caso="ejemplo de notas.md"):
+        with self.subTest(caso="ejemplo de las notas de la unidad 09"):
             self.assertAlmostEqual(FactorizacionLU(Matrix(A_DATOS)).determinante(), 40.0)
         with self.subTest(caso="matriz con ceros de redondeo"):
             self.assertAlmostEqual(FactorizacionLU(Matrix(A_REDONDEO)).determinante(), -0.1)

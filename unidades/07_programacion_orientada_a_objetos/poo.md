@@ -1,7 +1,7 @@
 # Programación orientada a objetos (POO)
 
 Notas de teoría sobre POO en general. Para la aritmética de intervalos
-como aplicación concreta, ver [`notas.md`](notas.md); el código vive en
+como aplicación concreta, ver [`README.md`](README.md); el código vive en
 [`aritmetica_intervalos.py`](aritmetica_intervalos.py). Los ejemplos
 de aquí usan una clase `Punto` más simple, solo para ilustrar cada
 concepto por separado antes de verlos combinados en `Intervalo`; la

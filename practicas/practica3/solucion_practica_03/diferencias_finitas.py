@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """Diferenciación numérica con diferencias finitas.
 
-Ejemplos ejecutables de lo visto en notas.md: diff_forward,
+Ejemplos ejecutables de lo visto en las notas de la unidad 08: diff_forward,
 diff_backward y diff_central se derivan cada una de la serie de
 Taylor de f alrededor de x0, con distinto orden de error de
 truncamiento (O(h), O(h) y O(h^2), respectivamente). Al final, un
 barrido de h sobre f(x) = sin(x^2) muestra en números la competencia
 entre el error de truncamiento (que baja con h) y el error de
-redondeo (que sube con h) descrita en notas.md.
+redondeo (que sube con h) descrita en las notas de la unidad 08.
 """
 
 from pathlib import Path
@@ -21,10 +21,10 @@ CARPETA_DATOS = Path(__file__).resolve().parent / "datos"
 # El paso h óptimo de cada método
 ###############################################
 
-# Las fórmulas de notas.md piden f(x0), f''(x0) y f'''(x0), que en la
+# Las fórmulas de las notas de la unidad 08 piden f(x0), f''(x0) y f'''(x0), que en la
 # práctica casi nunca conocemos (¡si conociéramos f''', seguramente
 # también conoceríamos f'!). Por eso valen 1.0 por defecto: así se
-# obtienen las fórmulas "de juguete" de notas.md, que suponen f y sus
+# obtienen las fórmulas "de juguete" de las notas de la unidad 08, que suponen f y sus
 # derivadas de orden 1.
 #
 # Limitación: si x0 es muy grande (|x0| > ~1e8 para adelante/atrás),
@@ -36,7 +36,7 @@ CARPETA_DATOS = Path(__file__).resolve().parent / "datos"
 
 
 def h_optimo_adelante(f_x0: float = 1.0, f2_x0: float = 1.0) -> float:
-    """Paso h óptimo para diff_forward y diff_backward (ver notas.md):
+    """Paso h óptimo para diff_forward y diff_backward (ver las notas de la unidad 08):
 
         h_opt = sqrt(4 * EPS * |f(x0)| / |f''(x0)|)
 
@@ -48,7 +48,7 @@ def h_optimo_adelante(f_x0: float = 1.0, f2_x0: float = 1.0) -> float:
 
 
 def h_optimo_central(f_x0: float = 1.0, f3_x0: float = 1.0) -> float:
-    """Paso h óptimo para diff_central (ver notas.md):
+    """Paso h óptimo para diff_central (ver las notas de la unidad 08):
 
         h_opt = (24 * EPS * |f(x0)| / |f'''(x0)|) ** (1/3)
 
@@ -114,12 +114,12 @@ def diff_central(f, x0: float, h: float = h_optimo_central()) -> float:
 
 
 ###############################################
-# Diferencias finitas más precisas (ver notas.md)
+# Diferencias finitas más precisas (ver las notas de la unidad 08)
 ###############################################
 
 
 def h_optimo_adelante2(f_x0: float = 1.0, f3_x0: float = 1.0) -> float:
-    """Paso h óptimo para diff_forward2 (ver notas.md):
+    """Paso h óptimo para diff_forward2 (ver las notas de la unidad 08):
 
         h_opt = (48 * EPS * |f(x0)| / |f'''(x0)|) ** (1/3)
 
@@ -131,7 +131,7 @@ def h_optimo_adelante2(f_x0: float = 1.0, f3_x0: float = 1.0) -> float:
 
 
 def h_optimo_central2(f_x0: float = 1.0, f5_x0: float = 1.0) -> float:
-    """Paso h óptimo para diff_central2 (ver notas.md):
+    """Paso h óptimo para diff_central2 (ver las notas de la unidad 08):
 
         h_opt = (1120 * EPS * |f(x0)| / (9 * |f^(5)(x0)|)) ** (1/5)
 
@@ -180,7 +180,7 @@ def diff_central2(f, x0: float, h: float = h_optimo_central2()) -> float:
     ) / (24.0 * h)
 
 
-# Respuesta del "Para pensar" de notas.md: otra fórmula O(h^4),
+# Respuesta del "Para pensar" de las notas de la unidad 08: otra fórmula O(h^4),
 # combinando la diferencia central con paso h,
 #     D1 = (f(x0+h/2) - f(x0-h/2)) / h  = f' + (h^2/24) f''' + (h^4/1920) f^(5) + ...
 # con la diferencia central con paso 2h,
@@ -312,7 +312,7 @@ for nombre, f, f_prima in FUNCIONES_DE_PRUEBA:
 
 # Con el h óptimo, el error de sin(x^2) queda en ~1e-8 (adelante/
 # atrás) y ~1e-10 (central): los órdenes de magnitud de los
-# errores mínimos de notas.md.
+# errores mínimos de las notas de la unidad 08.
 print(30 * "=")
 
 ###############################################
@@ -355,7 +355,7 @@ print(
     f"  (error {h_mejor_central[4]:.2e})"
 )
 
-# Comparación contra las h_opt "de juguete" de notas.md, que asumen f
+# Comparación contra las h_opt "de juguete" de las notas de la unidad 08, que asumen f
 # y sus derivadas de orden 1 (con lo que los cocientes f/f'' y f/f'''
 # de las fórmulas completas se vuelven ~1): es lo que dan
 # h_optimo_adelante() y h_optimo_central() sin argumentos.
@@ -411,7 +411,7 @@ with open(ruta_datos, "w") as archivo:
 print(f"Barrido guardado en {ruta_datos.name}")
 print(
     "Graficando log(error) contra log(h) se ven las dos pendientes de "
-    "notas.md: el error de adelante cae como O(h) hasta que el "
+    "las notas de la unidad 08: el error de adelante cae como O(h) hasta que el "
     "redondeo lo detiene, y el de central cae más rápido, como O(h^2), "
     "antes de que el redondeo también lo alcance (más tarde, con h "
     "más chica, porque parte de un error mucho menor)."

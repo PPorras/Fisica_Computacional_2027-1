@@ -22,7 +22,7 @@ El temario sigue, de manera general, el libro de Gezerlis (ver
 
 El repositorio está organizado así:
 
-- [`unidades/`](unidades/) — notas (`notas.md`) y ejemplos ejecutables
+- [`unidades/`](unidades/) — notas (el `README.md` de cada unidad) y ejemplos ejecutables
   de cada tema.
 - [`practicas/`](practicas/) — enunciados de las prácticas y sus
   archivos de pruebas.

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Sensibilidad de eigenvalores y eigenvectores, con matrices 2x2.
 
-Ver notas.md, secciones "Número de condición para eigenvalores
+Ver README.md, secciones "Número de condición para eigenvalores
 simples" y "Sensibilidad de los eigenvectores". Aquí se comprueba,
 con números:
 

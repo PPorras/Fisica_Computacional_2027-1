@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Diferenciación numérica con diferencias finitas -- punto de partida.
 
-Ver notas.md para la teoría (cada método se deriva de la serie de
+Ver README.md para la teoría (cada método se deriva de la serie de
 Taylor de f alrededor de x0, con un orden de error distinto) y
 practica.md para el enunciado completo de lo que falta completar
 aquí.
@@ -22,7 +22,7 @@ from fiscomp.funciones_especiales import seno
 def diff_forward(f, x0, h):
     """Diferencia hacia adelante: (f(x0+h) - f(x0)) / h.
 
-    Usa f en x0 y x0+h; error de truncamiento O(h) (ver notas.md).
+    Usa f en x0 y x0+h; error de truncamiento O(h) (ver README.md).
     """
     return (f(x0 + h) - f(x0)) / h
 
@@ -76,6 +76,6 @@ print(f"La derivada de f(x)=sin(x^2), en x0={x0} con h={h}, es {diff_forward(sin
 #                h, diff_forward, error_forward, diff_central,
 #                error_central en datos/derivada_sin_x2.dat.
 #   Ejercicio 4: encontrar el h que minimiza cada error y comparalo
-#                contra la formula de h_opt de notas.md.
+#                contra la formula de h_opt de README.md.
 #   Ejercicio 5 (opcional): graficar con graficar_derivada.gp o
 #                graficar_derivada.py.

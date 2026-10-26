@@ -7,7 +7,7 @@ La energía cinética local es
 
 y la segunda derivada se aproxima con diff2_central de
 fiscomp/derivadas.py, la diferencia central de la unidad 08
-(unidades/08_diferencias_finitas/notas.md, sección "Segunda
+(unidades/08_diferencias_finitas/README.md, sección "Segunda
 derivada"). energia_cinetica_local() funciona con *cualquier* función
 de onda que siga la interfaz psi(x, parametros) de
 funciones_de_onda.py: aquí se usa con el oscilador armónico y con la

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Análisis de error para sistemas lineales: el ejemplo de Kahan.
 
-Ver notas.md, sección "Análisis de error". Este script reproduce, con
+Ver README.md, sección "Análisis de error". Este script reproduce, con
 números, lo que ahí se discute:
 
 1. Un residuo diminuto no garantiza una buena solución (a posteriori).

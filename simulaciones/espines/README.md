@@ -2,7 +2,7 @@
 
 Proyecto basado en la sección 4.6 del libro de Gezerlis (códigos 4.12
 a 4.14). Usa la clase `Matrix` y la descomposición LU de la
-[unidad 09](../../unidades/09_algebra_lineal/notas.md), sin NumPy.
+[unidad 09](../../unidades/09_algebra_lineal/README.md), sin NumPy.
 
 El libro calcula los eigenvalores con su función `qrmet()` (el método
 QR), que todavía no hemos visto. Aquí hacemos todo lo demás con lo que

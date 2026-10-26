@@ -20,7 +20,7 @@ archivo = "datos/segunda_derivada_sin_x2.dat"
 # constante que fiscomp.precision_numerica.EPS).
 EPS = 2.220446049250313e-16
 
-# h_opt "de juguete" de notas.md (f y f^(4) de orden 1).
+# h_opt "de juguete" de README.md (f y f^(4) de orden 1).
 h_opt = (768.0 * EPS)**(1.0 / 4.0)
 
 set title "Segunda derivada: error vs. tamano de paso h"

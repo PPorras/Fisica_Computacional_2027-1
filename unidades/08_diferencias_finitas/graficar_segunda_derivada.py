@@ -4,7 +4,7 @@ diferencia central para la segunda derivada) contra h.
 
 Versión en Python de graficar_segunda_derivada.gp (gnuplot); hace lo
 mismo: error relativo contra h en escala log-log, con una línea
-vertical en la h_opt teórica (ver notas.md).
+vertical en la h_opt teórica (ver README.md).
 
 matplotlib no es parte del entorno base del curso. Para instalarlo,
 con el entorno virtual activado (desde la raíz del repositorio):
@@ -39,7 +39,7 @@ RUTA_DATOS = CARPETA_DATOS / "segunda_derivada_sin_x2.dat"
 # constante que fiscomp.precision_numerica.EPS).
 EPS = 2.220446049250313e-16
 
-# h_opt "de juguete" de notas.md (f y f^(4) de orden 1).
+# h_opt "de juguete" de README.md (f y f^(4) de orden 1).
 H_OPT = (768.0 * EPS) ** (1.0 / 4.0)
 
 
