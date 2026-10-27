@@ -27,6 +27,9 @@ Los índices van de $0$ a $n-1$, como en Python. Las
 matrices se escriben con mayúsculas ($A$, $L$, $U$) y los vectores en
 negritas minúsculas ($\mathbf{x}$, $\mathbf{b}$). Cuando hace falta,
 los dos índices de un elemento se separan con una coma: $A_{1,n-1}$.
+Un superíndice entre paréntesis es el número de iteración
+($`A^{(k)}`$ es la matriz de la iteración $k$) y uno sin paréntesis es
+una potencia ($`A^k`$ es $A$ multiplicada por sí misma $k$ veces).
 Usamos "eigenvalor" y "valor propio" como sinónimos (igual
 "eigenvector" y "vector propio"); "eigenpar" es un eigenvalor junto
 con su eigenvector.
@@ -922,107 +925,230 @@ Solo coinciden los productos.
 
 ### Iteración simultánea: primer intento
 
-Generalicemos el método de la potencia a $n$ vectores a la vez, para
-sacar los $n$ eigenvectores. En vez de un vector inicial
-$`\mathbf{z}^{(0)}`$ usamos $n$, como columnas de una matriz
-$`Z^{(0)}`$; la elección natural es la identidad, $`Z^{(0)} = I`$
-(columnas $`\mathbf{e}_0, \ldots, \mathbf{e}_{n-1}`$, linealmente
-independientes). Y multiplicamos por $A$ una y otra vez:
+El método de la potencia sigue **un** vector: lo multiplica por $A$
+una y otra vez, y el vector se va alineando con el eigenvector
+dominante $\mathbf{v}_0$. La idea ahora es seguir $n$ vectores a la
+vez, con la esperanza de sacar los $n$ eigenvectores.
+
+En vez de un vector inicial $`\mathbf{z}^{(0)}`$ usamos $n$, y los
+acomodamos como columnas de una matriz:
 
 ```math
-Z^{(k)} = A Z^{(k-1)} = A^k Z^{(0)}, \qquad k = 1, 2, \ldots
+Z^{(0)} = \begin{pmatrix} \mathbf{z}_0^{(0)} & \mathbf{z}_1^{(0)} & \cdots & \mathbf{z}_{n-1}^{(0)}\end{pmatrix} .
 ```
 
-Cada columna se expande en eigenvectores, ahora con coeficientes de
-dos índices (uno para la suma y otro para saber de qué columna se
-trata):
+La elección natural es la identidad, $`Z^{(0)} = I`$: sus columnas
+$`\mathbf{e}_0, \ldots, \mathbf{e}_{n-1}`$ son linealmente
+independientes. Multiplicar $A$ por una matriz es multiplicar $A$ por
+cada una de sus columnas (la columna $j$ de $AZ$ es
+$`A\mathbf{z}_j`$), así que hacer la potencia con las $n$ columnas a
+la vez es un solo producto de matrices:
+
+```math
+Z^{(k)} = A Z^{(k-1)}, \qquad k = 1, 2, \ldots
+```
+
+Aplicándolo $k$ veces, $`Z^{(k)} = A A \cdots A\, Z^{(0)} = A^k Z^{(0)}`$,
+y como $`Z^{(0)} = I`$, simplemente $`Z^{(k)} = A^k`$.
+
+(Cuidado con la notación: un superíndice **entre paréntesis** es el
+número de iteración, y $`Z^{(k)}`$ es "la $Z$ de la iteración $k$". Un
+superíndice **sin paréntesis** es una potencia: $`A^k`$ es $A$
+multiplicada por sí misma $k$ veces.)
+
+¿Qué le pasa a cada columna? Como en la potencia, expandimos en
+eigenvectores, ahora con coeficientes de dos índices: $i$ dice de qué
+eigenvector se trata y $j$ de qué columna:
 
 ```math
 \mathbf{z}_j^{(0)} = \sum_{i=0}^{n-1} c_{ij}\mathbf{v}_i
 \quad\Longrightarrow\quad
-\mathbf{z}_j^{(k)} = \sum_{i=0}^{n-1} c_{ij}\lambda_i^k\mathbf{v}_i .
+\mathbf{z}_j^{(k)} = \sum_{i=0}^{n-1} c_{ij}\lambda_i^k\mathbf{v}_i
+= \lambda_0^k\left[c_{0j}\mathbf{v}_0 + \sum_{i=1}^{n-1} c_{ij}\left(\frac{\lambda_i}{\lambda_0}\right)^k\mathbf{v}_i\right] .
 ```
 
 Uno esperaría que cada columna se quedara con "su" eigenvector. No
-pasa: por el mismo argumento que en la potencia, en **todas** las
-columnas domina el término de $\lambda_0$, y todas tienden a
-$\mathbf{v}_0$. La parte 3a de [`qr.py`](qr.py) calcula $`A^{10}`$ y
-normaliza sus columnas: las cuatro son
+pasa: si $`|\lambda_0| > |\lambda_i|`$, los cocientes
+$`(\lambda_i/\lambda_0)^k`$ se van a cero, y en **todas** las columnas
+(las que tengan $`c_{0j} \neq 0`$) domina el término de
+$\mathbf{v}_0$. Cada columna está haciendo, por su cuenta, el método de
+la potencia, y todas llegan al mismo lugar.
+
+**Un ejemplo a mano.** Tomemos
+
+```math
+A = \begin{pmatrix} 2 & 1 \\ 1 & 2 \end{pmatrix},
+\qquad
+\lambda_0 = 3,\ \ \mathbf{v}_0 = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 \\ 1 \end{pmatrix},
+\qquad
+\lambda_1 = 1,\ \ \mathbf{v}_1 = \frac{1}{\sqrt{2}}\begin{pmatrix} 1 \\ -1 \end{pmatrix} .
+```
+
+Como $`\mathbf{e}_0 = (\mathbf{v}_0 + \mathbf{v}_1)/\sqrt{2}`$ y
+$`\mathbf{e}_1 = (\mathbf{v}_0 - \mathbf{v}_1)/\sqrt{2}`$, al multiplicar
+$k$ veces por $A$ cada $\mathbf{v}_i$ se multiplica por $`\lambda_i^k`$:
+
+```math
+Z^{(k)} = A^k = \frac{1}{2}\begin{pmatrix} 3^k + 1 & 3^k - 1 \\ 3^k - 1 & 3^k + 1 \end{pmatrix} .
+```
+
+(Para $k = 1$ sale $A$, compruébenlo.) Con $k = 10$, $`3^{10} = 59049`$
+y las columnas son $(29525, 29524)$ y $(29524, 29525)$: las dos casi
+paralelas a $(1, 1)$, o sea a $\mathbf{v}_0$. La información sobre
+$\mathbf{v}_1$ no ha desaparecido del todo: la resta de las dos columnas
+es $(1, -1)$ para todo $k$. Pero es la diferencia de dos números
+enormes y casi iguales. Con números de punto flotante, en cuanto
+$`3^k`$ pasa de unos $`10^{16}`$ el redondeo se la come (cancelación
+catastrófica, unidad 06): con $k = 35$ la resta ya da $(4, -4)$, y
+desde $k = 37$ da $(0, 0)$.
+
+Con la matriz de prueba pasa lo mismo. La parte 3a de [`qr.py`](qr.py)
+calcula $`A^{10}`$ y normaliza sus columnas: las cuatro son
 $`(0.4444, 0.4822, 0.5172, 0.5500)`$, el eigenvector dominante, repetido
 cuatro veces. (Además está el problema del desbordamiento, como en la
 potencia sin normalizar.)
 
+La lección: no basta con normalizar cada columna. Eso arregla el
+desbordamiento, pero no que todas apunten al mismo lado. Hay que
+impedir que las columnas se alineen.
+
 ### Iteración simultánea: ortonormalizando
 
 Con un solo vector bastaba normalizar. Con varios hay que, además,
-**quitarle a cada columna lo que tenga de las otras**: ortogonalizar.
-Eso es justo lo que hace Gram-Schmidt, o sea, una descomposición QR.
-La **iteración simultánea** (o *iteración ortogonal*) es: empezando
-con $`\mathcal{Q}^{(0)} = I`$, para $k = 1, 2, \ldots$
+**quitarle a cada columna lo que tenga de las anteriores**:
+ortogonalizar. Eso es justo lo que hace Gram-Schmidt, o sea, una
+descomposición QR: las columnas de la $Q$ son ortonormales, y las
+normas y componentes que se quitaron quedan guardadas en la $R$.
+
+Para no confundir estas matrices con las del método QR (siguiente
+sección), las de la iteración simultánea llevan una **raya abajo**:
+$`\underline{Q}^{(k)}`$ y $`\underline{R}^{(k)}`$. La raya es solo parte
+del nombre, no una operación.
+
+La **iteración simultánea** (o *iteración ortogonal*) empieza con
+$`\underline{Q}^{(0)} = I`$ y, para $k = 1, 2, \ldots$, hace dos pasos:
+
+1. **Multiplicar** por $A$ las columnas ortonormales que ya tenemos:
+   $`Z^{(k)} = A\,\underline{Q}^{(k-1)}`$.
+2. **Ortonormalizar** el resultado con una descomposición QR:
+   $`Z^{(k)} = \underline{Q}^{(k)}\,\underline{R}^{(k)}`$.
+
+En fórmulas:
 
 ```math
-Z^{(k)} = A\,\mathcal{Q}^{(k-1)},
+Z^{(k)} = A\,\underline{Q}^{(k-1)},
 \qquad
-Z^{(k)} = \mathcal{Q}^{(k)} R^{(k)} .
+Z^{(k)} = \underline{Q}^{(k)}\,\underline{R}^{(k)} .
 ```
+
+Para la siguiente iteración solo se usa $`\underline{Q}^{(k)}`$;
+$`\underline{R}^{(k)}`$ no hace falta para el algoritmo, pero la vamos a
+necesitar para entender qué calcula.
 
 Compárenlo con la potencia normalizada,
 $`\mathbf{z}^{(k)} = A\mathbf{q}^{(k-1)}`$,
 $`\mathbf{q}^{(k)} = \mathbf{z}^{(k)}/\|\mathbf{z}^{(k)}\|`$: es lo
 mismo con matrices en vez de vectores, y "ortonormalizar" en vez de
-"normalizar". (La $\mathcal{Q}$ caligráfica es solo un nombre: la
-matriz ortogonal que sale de descomponer $`Z^{(k)}`$. La razón de la
-letra rara se ve en la siguiente sección.)
+"normalizar". De hecho, la descomposición QR de una matriz con una
+sola columna **es** normalizar: $`\mathbf{z} = \mathbf{q}\,R_{00}`$ con
+$`R_{00} = \|\mathbf{z}\|`$.
 
-Definamos también el producto (en orden inverso) de todas las $R$:
+**Por qué funciona.** La primera columna de $`\underline{Q}^{(k)}`$ no
+cambia con Gram-Schmidt más que por la normalización: hace el método de
+la potencia normalizado y tiende a $\mathbf{v}_0$. A la segunda columna
+Gram-Schmidt le quita su componente en la dirección de la primera (que
+ya es casi $\mathbf{v}_0$), así que en ella ya no puede dominar
+$\mathbf{v}_0$: domina lo que sigue, $\mathbf{v}_1$. A la tercera se le
+quitan las componentes en las direcciones de las dos primeras, y
+domina $\mathbf{v}_2$. Y así sucesivamente: cada columna hace la
+potencia en el espacio que le dejan las anteriores.
+
+**La relación con las potencias de A.** Juntemos las $`\underline{R}`$
+de todas las iteraciones en un producto, la más nueva a la izquierda:
+$`\underline{R}^{(k)}\underline{R}^{(k-1)}\cdots\underline{R}^{(2)}\underline{R}^{(1)}`$.
+Se cumple
 
 ```math
-\mathcal{R}^{(k)} = R^{(k)} R^{(k-1)} \cdots R^{(2)} R^{(1)} ,
-\qquad \mathcal{R}^{(0)} = I .
+A^k = \underline{Q}^{(k)}\;\underline{R}^{(k)}\underline{R}^{(k-1)}\cdots\underline{R}^{(2)}\underline{R}^{(1)} .
 ```
+
+Veamos las primeras $k$ una por una.
+
+- $k = 1$: como $`\underline{Q}^{(0)} = I`$, $`Z^{(1)} = A`$, y el paso
+  2 dice $`A = \underline{Q}^{(1)}\underline{R}^{(1)}`$.
+- $k = 2$: usamos el caso $k = 1$ para la segunda $A$, luego el paso 1
+  y luego el paso 2:
+
+  ```math
+  A^2 = A\,A
+  = A\,\underline{Q}^{(1)}\underline{R}^{(1)}
+  = Z^{(2)}\,\underline{R}^{(1)}
+  = \underline{Q}^{(2)}\underline{R}^{(2)}\underline{R}^{(1)} .
+  ```
+
+- En general, si ya vale para $k - 1$, lo mismo:
+
+  ```math
+  A^k = A\,A^{k-1}
+  = A\,\underline{Q}^{(k-1)}\;\underline{R}^{(k-1)}\cdots\underline{R}^{(1)}
+  = Z^{(k)}\;\underline{R}^{(k-1)}\cdots\underline{R}^{(1)}
+  = \underline{Q}^{(k)}\underline{R}^{(k)}\;\underline{R}^{(k-1)}\cdots\underline{R}^{(1)} .
+  ```
 
 El producto de matrices triangulares superiores es triangular superior
-(problema 4.2), así que $`\mathcal{R}^{(k)}`$ lo es. Entonces se
-cumple algo notable:
+(problema 4.2 de [1]), así que
+$`\underline{R}^{(k)}\cdots\underline{R}^{(1)}`$ lo es. Entonces la
+fórmula dice que $`\underline{Q}^{(k)}`$ es la $Q$ de la
+**descomposición QR de $`A^k`$**. Ortonormalizar en cada paso da lo
+mismo que calcular $`A^k`$ y ortonormalizar sus columnas al final (como
+en la potencia, donde normalizar en cada paso o solo al final da la
+misma dirección), pero sin desbordamiento y sin la cancelación
+catastrófica del primer intento.
+
+**El ejemplo, ortonormalizado.** Con la matriz de $2\times 2$ de
+arriba, $`\underline{Q}^{(k)}`$ son las columnas de $`A^k`$
+ortonormalizadas. La primera es la primera columna de $`A^k`$
+normalizada,
 
 ```math
-A^k = \mathcal{Q}^{(k)}\mathcal{R}^{(k)} .
+\mathbf{q}_0 = \frac{1}{\sqrt{(3^k+1)^2 + (3^k-1)^2}}\begin{pmatrix} 3^k + 1 \\ 3^k - 1 \end{pmatrix}
+\;\longrightarrow\; \frac{1}{\sqrt{2}}\begin{pmatrix} 1 \\ 1 \end{pmatrix} = \mathbf{v}_0 .
 ```
 
-(Cuidado: $`A^k`$ es una potencia; $`\mathcal{Q}^{(k)}`$ es el número
-de iteración.) Es decir, la iteración simultánea va construyendo la
-**descomposición QR de las potencias** de $A$. Se prueba por inducción.
-Para $k = 0$ es $I = I\cdot I$. Si vale para $k - 1$:
+La segunda tiene que ser perpendicular a la primera y, en dos
+dimensiones, eso deja una sola dirección (Gram-Schmidt escoge el signo):
 
 ```math
-A^k = A\,A^{k-1}
-= A\,\mathcal{Q}^{(k-1)}\mathcal{R}^{(k-1)}
-= Z^{(k)}\mathcal{R}^{(k-1)}
-= \mathcal{Q}^{(k)} R^{(k)}\mathcal{R}^{(k-1)}
-= \mathcal{Q}^{(k)}\mathcal{R}^{(k)} .
+\mathbf{q}_1 = \frac{1}{\sqrt{(3^k+1)^2 + (3^k-1)^2}}\begin{pmatrix} -(3^k - 1) \\ 3^k + 1 \end{pmatrix}
+\;\longrightarrow\; \frac{1}{\sqrt{2}}\begin{pmatrix} -1 \\ 1 \end{pmatrix} = -\mathbf{v}_1 .
 ```
 
-(Se usó la hipótesis, luego las dos ecuaciones de la iteración, y al
-final la definición de $`\mathcal{R}^{(k)}`$.)
+La segunda columna encontró a $\mathbf{v}_1$ (el signo no importa: un
+eigenvector multiplicado por $-1$ sigue siendo eigenvector). Lo que en
+el primer intento era la resta de dos números enormes, aquí se hace en
+cada iteración, cuando las columnas todavía no son casi paralelas.
 
-¿Qué tiene que ver con los eigenvectores? Si $A$ es simétrica, sus
-eigenvectores son ortonormales y $`\mathcal{Q}^{(k)}`$ tiende a la matriz
-de eigenvectores. Si no es simétrica (nuestro caso), los
-eigenvectores no son ortogonales, y $`\mathcal{Q}^{(k)}`$ tiende al
-"factor ortogonal" $\tilde{Q}$ de la matriz de eigenvectores: la
-descomposición QR $V = \tilde{Q}U$, con $U$ triangular superior
-(problema 4.32).
+**Los eigenvectores.** Si $A$ es simétrica, sus eigenvectores son
+ortonormales y $`\underline{Q}^{(k)}`$ tiende (salvo signos) a la matriz
+de eigenvectores, como en el ejemplo. Si no es simétrica (el caso de la
+matriz de prueba), los eigenvectores no son ortogonales y no pueden ser
+las columnas de una matriz ortogonal. Lo que pasa entonces es que
+$`\underline{Q}^{(k)}`$ tiende al "factor ortogonal" $\tilde{Q}$ de la
+matriz de eigenvectores $V$: el de su descomposición QR,
+$V = \tilde{Q}U$, con $U$ triangular superior (problema 4.32).
 
 **Los eigenvalores.** En la potencia, el eigenvalor salía del cociente
 de Rayleigh $`[\mathbf{q}^{(k)}]^T A\mathbf{q}^{(k)}`$. La
 generalización a $n$ vectores es
 
 ```math
-A^{(k)} = [\mathcal{Q}^{(k)}]^T A\,\mathcal{Q}^{(k)} ,
+A^{(k)} = [\underline{Q}^{(k)}]^T A\,\underline{Q}^{(k)} .
 ```
 
-una **transformación de similitud ortogonal**: $`A^{(k)}`$ tiene los
-mismos eigenvalores que $A$. Y cuando $`\mathcal{Q}^{(k)} \to \tilde{Q}`$:
+(El elemento $j$ de su diagonal es $`\mathbf{q}_j^T A\mathbf{q}_j`$, el
+cociente de Rayleigh de la columna $j$.) Es una **transformación de
+similitud ortogonal**: $`A^{(k)}`$ tiene los mismos eigenvalores que
+$A$. Y cuando $`\underline{Q}^{(k)} \to \tilde{Q}`$:
 
 ```math
 A^{(k)} \to \tilde{Q}^T A\tilde{Q}
@@ -1039,14 +1165,15 @@ inversa de una triangular superior también lo es), así que es
 **triangular superior**, con $\Lambda$ en la diagonal: los
 eigenvalores se leen de la diagonal de $`A^{(k)}`$. Esta es la
 descomposición de Schur que buscábamos. Si $A$ es simétrica, $`A^{(k)}`$
-tiende a una matriz **diagonal**.
+tiende a una matriz **diagonal**. (En el ejemplo de $2\times 2$,
+$`A^{(k)}`$ tiende a la matriz diagonal con $3$ y $1$.)
 
 Resumiendo, la iteración simultánea da
 
 ```math
-A^k = \mathcal{Q}^{(k)}\mathcal{R}^{(k)},
+A^k = \underline{Q}^{(k)}\;\underline{R}^{(k)}\underline{R}^{(k-1)}\cdots\underline{R}^{(1)},
 \qquad
-A^{(k)} = [\mathcal{Q}^{(k)}]^T A\,\mathcal{Q}^{(k)} .
+A^{(k)} = [\underline{Q}^{(k)}]^T A\,\underline{Q}^{(k)} .
 ```
 
 La primera tiene que ver con los eigenvectores y la segunda con los
@@ -1056,7 +1183,11 @@ iteraciones o vigilar cuánto cambia $`A^{(k)}`$.
 ### El método QR: algoritmo
 
 El método QR es sorprendentemente simple. Empezando con
-$`A^{(0)} = A`$, para $k = 1, 2, \ldots$
+$`A^{(0)} = A`$, para $k = 1, 2, \ldots$ hace dos pasos:
+
+1. **Descomponer** la matriz de la iteración anterior:
+   $`A^{(k-1)} = Q^{(k)} R^{(k)}`$.
+2. **Multiplicar en orden inverso**: $`A^{(k)} = R^{(k)} Q^{(k)}`$.
 
 ```math
 A^{(k-1)} = Q^{(k)} R^{(k)},
@@ -1064,70 +1195,127 @@ A^{(k-1)} = Q^{(k)} R^{(k)},
 A^{(k)} = R^{(k)} Q^{(k)} .
 ```
 
-Se descompone, y se **multiplica en orden inverso**. Y otra vez, y
-otra vez. (Ahora la $Q$ es normal, no caligráfica.)
+Y otra vez, y otra vez. Ojo: estas $`Q^{(k)}`$ y $`R^{(k)}`$, **sin
+raya**, no son las de la iteración simultánea. Aquí se descompone
+$`A^{(k-1)}`$, allá se descomponía $`Z^{(k)}`$. Vamos a ver que están
+relacionadas, y que al final los dos métodos calculan la misma
+$`A^{(k)}`$.
 
-Dicho así parece magia. Pero es **exactamente la iteración
-simultánea**, solo que calcula primero $`A^{(k)}`$ en vez de
-$`\mathcal{Q}^{(k)}`$. Para verlo, definimos las mismas
-$`\mathcal{R}^{(k)}`$ de antes y
-
-```math
-\mathcal{Q}^{(k)} = Q^{(1)} Q^{(2)} \cdots Q^{(k-1)} Q^{(k)} ,
-\qquad \mathcal{Q}^{(0)} = I ,
-```
-
-(en el orden **contrario** al de las $R$). El producto de matrices
-ortogonales es ortogonal (problema 4.2), así que $`\mathcal{Q}^{(k)}`$
-lo es. Hay que probar las mismas dos relaciones de antes.
-
-**Segunda relación,** $`A^{(k)} = [\mathcal{Q}^{(k)}]^T A\,\mathcal{Q}^{(k)}`$.
-Para $k = 0$ es $`A^{(0)} = A`$. Multiplicando la primera ecuación del
-método por $`[Q^{(k)}]^T`$ (que es la inversa de $`Q^{(k)}`$):
-$`R^{(k)} = [Q^{(k)}]^T A^{(k-1)}`$. Sustituyendo en la segunda:
+**Primero: no hay magia.** Como $`Q^{(k)}`$ es ortogonal,
+$`[Q^{(k)}]^TQ^{(k)} = I`$. Multiplicando el paso 1 por $`[Q^{(k)}]^T`$
+por la izquierda, $`R^{(k)} = [Q^{(k)}]^T A^{(k-1)}`$, y sustituyendo
+en el paso 2:
 
 ```math
-A^{(k)} = [Q^{(k)}]^T A^{(k-1)} Q^{(k)} .
+A^{(k)} = [Q^{(k)}]^T A^{(k-1)}\, Q^{(k)} .
 ```
 
-Cada paso del método QR es una transformación de similitud ortogonal.
-Usando la hipótesis de inducción para $`A^{(k-1)}`$:
+Cada paso del método QR es una **transformación de similitud
+ortogonal**: $`A^{(k)}`$ tiene los mismos eigenvalores que
+$`A^{(k-1)}`$, que tiene los mismos que $`A^{(k-2)}`$, y así hasta $A$.
+
+**Las primeras iteraciones, una por una.** Usando lo anterior y que la
+transpuesta de un producto es el producto de las transpuestas en orden
+inverso, $`(BC)^T = C^TB^T`$:
+
+- $k = 1$: $`A^{(1)} = [Q^{(1)}]^T A\, Q^{(1)}`$.
+- $k = 2$: sustituimos $`A^{(1)}`$,
+
+  ```math
+  A^{(2)} = [Q^{(2)}]^T A^{(1)}\, Q^{(2)}
+  = [Q^{(2)}]^T [Q^{(1)}]^T A\, Q^{(1)} Q^{(2)}
+  = [Q^{(1)} Q^{(2)}]^T A\, Q^{(1)} Q^{(2)} .
+  ```
+
+- $k = 3$: igual,
+  $`A^{(3)} = [Q^{(3)}]^T A^{(2)}\, Q^{(3)} = [Q^{(1)}Q^{(2)}Q^{(3)}]^T A\, Q^{(1)}Q^{(2)}Q^{(3)}`$.
+
+En cada iteración, la $Q$ nueva se agrega **a la derecha** del
+producto. En general:
 
 ```math
-A^{(k)} = [Q^{(k)}]^T [\mathcal{Q}^{(k-1)}]^T A\,\mathcal{Q}^{(k-1)} Q^{(k)}
-= [\mathcal{Q}^{(k)}]^T A\,\mathcal{Q}^{(k)} ,
+A^{(k)} = [Q^{(1)} Q^{(2)} \cdots Q^{(k-1)} Q^{(k)}]^T\, A\; Q^{(1)} Q^{(2)} \cdots Q^{(k-1)} Q^{(k)} .
 ```
 
-donde se usó que la transpuesta de un producto es el producto de las
-transpuestas en orden inverso. Por eso las $Q$ se multiplican en ese
-orden.
+El producto de matrices ortogonales es ortogonal (problema 4.2), así
+que $`Q^{(1)}Q^{(2)}\cdots Q^{(k)}`$ lo es. Comparen con la iteración
+simultánea, $`A^{(k)} = [\underline{Q}^{(k)}]^T A\,\underline{Q}^{(k)}`$:
+es la misma fórmula si $`\underline{Q}^{(k)} = Q^{(1)}Q^{(2)}\cdots Q^{(k)}`$.
+Eso es lo que vamos a probar.
 
-**Primera relación,** $`A^k = \mathcal{Q}^{(k)}\mathcal{R}^{(k)}`$. Para
-$k = 0$ es $I = I\cdot I$. Si vale para $k - 1$:
+**Los dos métodos son el mismo.** Queremos ver que, para todo $k$,
 
 ```math
-A^k = A\,A^{k-1}
-= A\,\mathcal{Q}^{(k-1)}\mathcal{R}^{(k-1)}
-= \mathcal{Q}^{(k-1)} A^{(k-1)}\mathcal{R}^{(k-1)}
-= \mathcal{Q}^{(k-1)} Q^{(k)} R^{(k)}\mathcal{R}^{(k-1)}
-= \mathcal{Q}^{(k)}\mathcal{R}^{(k)} .
+\underline{Q}^{(k)} = Q^{(1)} Q^{(2)} \cdots Q^{(k-1)} Q^{(k)},
+\qquad
+\underline{R}^{(k)} = R^{(k)} .
 ```
 
-En el tercer paso se usó la segunda relación (ya probada) para $k-1$,
-multiplicada por $`\mathcal{Q}^{(k-1)}`$ por la izquierda:
-$`A\,\mathcal{Q}^{(k-1)} = \mathcal{Q}^{(k-1)}A^{(k-1)}`$. En el cuarto, la
-primera ecuación del método QR.
+La herramienta es que la descomposición QR es **única** (con la
+diagonal de $R$ positiva, que es lo que da Gram-Schmidt): si logramos
+escribir $`Z^{(k)} = PR`$ con $P$ ortogonal y $R$ triangular superior
+con diagonal positiva, entonces forzosamente $`\underline{Q}^{(k)} = P`$
+y $`\underline{R}^{(k)} = R`$.
 
-Así que los dos métodos cumplen las mismas relaciones; con
-$`\mathcal{Q}^{(0)} = I`$ dan, paso a paso, las mismas matrices. ¿Por qué
-preferir el método QR? La iteración simultánea se concentra en los
-eigenvectores ($`\mathcal{Q}^{(k)}`$ sale directo); para tener
-$`A^{(k)}`$ hay que hacer dos productos de matrices extra. El método
-QR calcula directamente $`A^{(k)}`$, de cuya diagonal salen los
-eigenvalores; para tener $`\mathcal{Q}^{(k)}`$ habría que ir
-acumulando el producto (problema 4.35). Y ya no hay magia: la segunda
-ecuación, $`A^{(k)} = R^{(k)}Q^{(k)}`$, **es** una transformación de
-similitud ortogonal.
+- $k = 1$: $`Z^{(1)} = A\,\underline{Q}^{(0)} = A`$ y $`A^{(0)} = A`$.
+  Los dos métodos descomponen la misma matriz, así que
+  $`\underline{Q}^{(1)} = Q^{(1)}`$ y $`\underline{R}^{(1)} = R^{(1)}`$.
+- $k = 2$: $`Z^{(2)} = A\,\underline{Q}^{(1)} = A\,Q^{(1)}`$. Ahora el
+  truco: escribimos la $A$ como $`Q^{(1)}R^{(1)}`$ y reconocemos
+  $`R^{(1)}Q^{(1)} = A^{(1)}`$, que el método QR descompone como
+  $`Q^{(2)}R^{(2)}`$:
+
+  ```math
+  Z^{(2)} = A\,Q^{(1)}
+  = Q^{(1)} R^{(1)} Q^{(1)}
+  = Q^{(1)} A^{(1)}
+  = Q^{(1)} Q^{(2)} R^{(2)} .
+  ```
+
+  $`Q^{(1)}Q^{(2)}`$ es ortogonal y $`R^{(2)}`$ es triangular superior:
+  es la descomposición QR de $`Z^{(2)}`$. Así que
+  $`\underline{Q}^{(2)} = Q^{(1)}Q^{(2)}`$ y $`\underline{R}^{(2)} = R^{(2)}`$.
+- En general, si ya vale para $k - 1$, entonces
+  $`Z^{(k)} = A\,Q^{(1)}\cdots Q^{(k-1)}`$. Multiplicando la fórmula
+  de $`A^{(k-1)}`$ por $`Q^{(1)}\cdots Q^{(k-1)}`$ por la izquierda
+  (con una matriz ortogonal $P$, $`PP^T = I`$) queda
+  $`A\,Q^{(1)}\cdots Q^{(k-1)} = Q^{(1)}\cdots Q^{(k-1)}\,A^{(k-1)}`$, y
+  con el paso 1 del método QR:
+
+  ```math
+  Z^{(k)} = A\,Q^{(1)} \cdots Q^{(k-1)}
+  = Q^{(1)} \cdots Q^{(k-1)}\, A^{(k-1)}
+  = Q^{(1)} \cdots Q^{(k-1)}\, Q^{(k)} R^{(k)} ,
+  ```
+
+  que otra vez es una descomposición QR de $`Z^{(k)}`$.
+
+Con esto, la relación con las potencias de $A$ de la iteración
+simultánea se escribe con las matrices del método QR:
+
+```math
+A^k = Q^{(1)} Q^{(2)} \cdots Q^{(k-1)} Q^{(k)}\; R^{(k)} R^{(k-1)} \cdots R^{(2)} R^{(1)} .
+```
+
+Fíjense en el orden: las $Q$ van de la más vieja a la más nueva y las
+$R$ al revés, y se encuentran en el centro, en $`Q^{(k)}R^{(k)}`$. Para
+$k = 2$ se puede ver directamente:
+$`A^2 = Q^{(1)}R^{(1)}\,Q^{(1)}R^{(1)} = Q^{(1)}A^{(1)}R^{(1)} = Q^{(1)}Q^{(2)}R^{(2)}R^{(1)}`$.
+
+**¿Por qué preferir el método QR?** Los dos calculan lo mismo, pero
+cada uno da directo una cosa distinta:
+
+| | Iteración simultánea | Método QR |
+|---|---|---|
+| Se descompone | $`Z^{(k)} = A\,\underline{Q}^{(k-1)}`$ | $`A^{(k-1)}`$ |
+| Sale directo | $`\underline{Q}^{(k)}`$ (eigenvectores) | $`A^{(k)} = R^{(k)}Q^{(k)}`$ (eigenvalores) |
+| Lo otro cuesta | $`A^{(k)} = [\underline{Q}^{(k)}]^TA\,\underline{Q}^{(k)}`$: dos productos más | ir acumulando $`Q^{(1)}Q^{(2)}\cdots Q^{(k)}`$ (problema 4.35) |
+
+Si solo queremos los eigenvalores, el método QR hace un producto de
+matrices por iteración y la iteración simultánea tres
+($`A\,\underline{Q}^{(k-1)}`$ y los dos de $`A^{(k)}`$). Y ya no hay
+magia: el segundo paso, $`A^{(k)} = R^{(k)}Q^{(k)}`$, **es** una
+transformación de similitud ortogonal.
 
 Tal como está, el método QR es poco eficiente. En la práctica se
 combina con desplazamientos (como en la potencia inversa) y con otros
@@ -1137,8 +1325,9 @@ La parte 3b de [`qr.py`](qr.py) corre los dos métodos lado a lado y
 compara las diagonales de $`A^{(k)}`$: coinciden hasta
 $`\sim 10^{-13}`$. (Los elementos de arriba de la diagonal difieren
 más, $`\sim 10^{-4}`$: la iteración simultánea usa
-$`[\mathcal{Q}^{(k)}]^T`$ como si fuera la inversa, y con Gram-Schmidt
-clásico $Q$ no es del todo ortogonal.)
+$`[\underline{Q}^{(k)}]^T`$ como si fuera la inversa de
+$`\underline{Q}^{(k)}`$, y con Gram-Schmidt clásico la $Q$ no es del
+todo ortogonal.)
 
 ### Implementación
 
@@ -1207,7 +1396,7 @@ baja el costo de cada iteración de $`O(n^3)`$ a $`O(n^2)`$.
 ## Todos los eigenvalores y eigenvectores
 
 `metodo_qr` da todos los eigenvalores. Para tener también los
-eigenvectores podríamos acumular $`\mathcal{Q}^{(k)}`$, pero para una
+eigenvectores podríamos acumular $`Q^{(1)}Q^{(2)}\cdots Q^{(k)}`$, pero para una
 matriz no simétrica eso da el factor ortogonal $\tilde{Q}$, no los
 eigenvectores. Mejor usamos lo que ya tenemos: con una buena
 estimación del eigenvalor, la **potencia inversa con desplazamiento**
@@ -1264,8 +1453,8 @@ del redondeo.)
 - Programen la iteración simultánea como función (problema 4.33),
   parecida a `potencia`. Prueben primero la versión sin ortonormalizar
   y vean cómo todas las columnas acaban en $\mathbf{v}_0$.
-- Modifiquen `metodo_qr` para que también acumule
-  $`\mathcal{Q}^{(k)}`$ (problema 4.35). Con la matriz simétrica $S$,
+- Modifiquen `metodo_qr` para que también acumule el producto
+  $`Q^{(1)}Q^{(2)}\cdots Q^{(k)}`$ (problema 4.35). Con la matriz simétrica $S$,
   comparen sus columnas con los eigenvectores de `eigenpares`.
 - Agreguen a `metodo_qr` un criterio de paro: por ejemplo, que la
   parte de abajo de la diagonal sea menor que una tolerancia.
