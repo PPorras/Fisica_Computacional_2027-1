@@ -46,7 +46,6 @@ se programan desde cero.
 
 ## Motivación: ejemplos de física
 
-
 **Momentos principales de inercia.** Para un cuerpo rígido que rota
 alrededor de un eje arbitrario, el tensor de inercia es
 
@@ -76,7 +75,6 @@ tiempo, $H\psi = E\psi$, es un problema de eigenvalores: en una base
 finita, $H$ es una matriz y las energías son sus eigenvalores. El
 proyecto de espines ([`simulaciones/espines/`](../../simulaciones/espines/))
 es un ejemplo.
-
 
 ## El problema de eigenvalores
 
@@ -140,7 +138,6 @@ error") vimos qué tan sensible es un sistema lineal a cambios en sus
 datos, con el número de condición $\kappa(A)$ y las normas de
 matrices. Aquí hacemos lo mismo para los eigenvalores y los
 eigenvectores.
-
 
 ### Número de condición para eigenvalores simples
 
@@ -1074,26 +1071,31 @@ A^k = \underline{Q}^{(k)}\;\underline{R}^{(k)}\underline{R}^{(k-1)}\cdots\underl
 
 Veamos las primeras $k$ una por una.
 
-- $k = 1$: como $`\underline{Q}^{(0)} = I`$, $`Z^{(1)} = A`$, y el paso
-  2 dice $`A = \underline{Q}^{(1)}\underline{R}^{(1)}`$.
-- $k = 2$: usamos el caso $k = 1$ para la segunda $A$, luego el paso 1
-  y luego el paso 2:
+**Para $k = 1$:** como $`\underline{Q}^{(0)} = I`$, $`Z^{(1)} = A`$, y el paso
+2 dice $`A = \underline{Q}^{(1)}\underline{R}^{(1)}`$.
 
-  ```math
-  A^2 = A\,A
-  = A\,\underline{Q}^{(1)}\underline{R}^{(1)}
-  = Z^{(2)}\,\underline{R}^{(1)}
-  = \underline{Q}^{(2)}\underline{R}^{(2)}\underline{R}^{(1)} .
-  ```
+**Para $k = 2$:** usamos el caso $k = 1$ para la segunda $A$, luego el paso 1
+y luego el paso 2:
 
-- En general, si ya vale para $k - 1$, lo mismo:
+```math
+\begin{aligned}
+A^2 &= A\,A \\
+&= A\,\underline{Q}^{(1)}\underline{R}^{(1)} \\
+&= Z^{(2)}\,\underline{R}^{(1)} \\
+&= \underline{Q}^{(2)}\underline{R}^{(2)}\underline{R}^{(1)} .
+\end{aligned}
+```
 
-  ```math
-  A^k = A\,A^{k-1}
-  = A\,\underline{Q}^{(k-1)}\;\underline{R}^{(k-1)}\cdots\underline{R}^{(1)}
-  = Z^{(k)}\;\underline{R}^{(k-1)}\cdots\underline{R}^{(1)}
-  = \underline{Q}^{(k)}\underline{R}^{(k)}\;\underline{R}^{(k-1)}\cdots\underline{R}^{(1)} .
-  ```
+**En general,** si ya vale para $k - 1$, lo mismo:
+
+```math
+\begin{aligned}
+A^k &= A\,A^{k-1} \\
+&= A\,\underline{Q}^{(k-1)}\;\underline{R}^{(k-1)}\cdots\underline{R}^{(1)} \\
+&= Z^{(k)}\;\underline{R}^{(k-1)}\cdots\underline{R}^{(1)} \\
+&= \underline{Q}^{(k)}\underline{R}^{(k)}\;\underline{R}^{(k-1)}\cdots\underline{R}^{(1)} .
+\end{aligned}
+```
 
 El producto de matrices triangulares superiores es triangular superior
 (problema 4.2 de [1]), así que
@@ -1151,11 +1153,13 @@ similitud ortogonal**: $`A^{(k)}`$ tiene los mismos eigenvalores que
 $A$. Y cuando $`\underline{Q}^{(k)} \to \tilde{Q}`$:
 
 ```math
-A^{(k)} \to \tilde{Q}^T A\tilde{Q}
-= \tilde{Q}^T A V U^{-1}
-= \tilde{Q}^T V \Lambda U^{-1}
-= \tilde{Q}^T \tilde{Q} U \Lambda U^{-1}
-= U \Lambda U^{-1} .
+\begin{aligned}
+A^{(k)} &\to \tilde{Q}^T A\tilde{Q} \\
+&= \tilde{Q}^T A V U^{-1} \\
+&= \tilde{Q}^T V \Lambda U^{-1} \\
+&= \tilde{Q}^T \tilde{Q} U \Lambda U^{-1} \\
+&= U \Lambda U^{-1} .
+\end{aligned}
 ```
 
 (Se usó $`\tilde{Q} = VU^{-1}`$, luego $AV = V\Lambda$, luego otra vez
@@ -1218,17 +1222,26 @@ $`A^{(k-1)}`$, que tiene los mismos que $`A^{(k-2)}`$, y así hasta $A$.
 transpuesta de un producto es el producto de las transpuestas en orden
 inverso, $`(BC)^T = C^TB^T`$:
 
-- $k = 1$: $`A^{(1)} = [Q^{(1)}]^T A\, Q^{(1)}`$.
-- $k = 2$: sustituimos $`A^{(1)}`$,
+**Para $k = 1$:** $`A^{(1)} = [Q^{(1)}]^T A\, Q^{(1)}`$.
 
-  ```math
-  A^{(2)} = [Q^{(2)}]^T A^{(1)}\, Q^{(2)}
-  = [Q^{(2)}]^T [Q^{(1)}]^T A\, Q^{(1)} Q^{(2)}
-  = [Q^{(1)} Q^{(2)}]^T A\, Q^{(1)} Q^{(2)} .
-  ```
+**Para $k = 2$:** sustituimos $`A^{(1)}`$,
 
-- $k = 3$: igual,
-  $`A^{(3)} = [Q^{(3)}]^T A^{(2)}\, Q^{(3)} = [Q^{(1)}Q^{(2)}Q^{(3)}]^T A\, Q^{(1)}Q^{(2)}Q^{(3)}`$.
+```math
+\begin{aligned}
+A^{(2)} &= [Q^{(2)}]^T A^{(1)}\, Q^{(2)} \\
+&= [Q^{(2)}]^T [Q^{(1)}]^T A\, Q^{(1)} Q^{(2)} \\
+&= [Q^{(1)} Q^{(2)}]^T A\, Q^{(1)} Q^{(2)} .
+\end{aligned}
+```
+
+**Para $k = 3$:** igual,
+
+```math
+\begin{aligned}
+A^{(3)} &= [Q^{(3)}]^T A^{(2)}\, Q^{(3)} \\
+&= [Q^{(1)} Q^{(2)} Q^{(3)}]^T A\, Q^{(1)} Q^{(2)} Q^{(3)} .
+\end{aligned}
+```
 
 En cada iteración, la $Q$ nueva se agrega **a la derecha** del
 producto. En general:
@@ -1257,38 +1270,44 @@ escribir $`Z^{(k)} = PR`$ con $P$ ortogonal y $R$ triangular superior
 con diagonal positiva, entonces forzosamente $`\underline{Q}^{(k)} = P`$
 y $`\underline{R}^{(k)} = R`$.
 
-- $k = 1$: $`Z^{(1)} = A\,\underline{Q}^{(0)} = A`$ y $`A^{(0)} = A`$.
-  Los dos métodos descomponen la misma matriz, así que
-  $`\underline{Q}^{(1)} = Q^{(1)}`$ y $`\underline{R}^{(1)} = R^{(1)}`$.
-- $k = 2$: $`Z^{(2)} = A\,\underline{Q}^{(1)} = A\,Q^{(1)}`$. Ahora el
-  truco: escribimos la $A$ como $`Q^{(1)}R^{(1)}`$ y reconocemos
-  $`R^{(1)}Q^{(1)} = A^{(1)}`$, que el método QR descompone como
-  $`Q^{(2)}R^{(2)}`$:
+**Para $k = 1$:** $`Z^{(1)} = A\,\underline{Q}^{(0)} = A`$ y $`A^{(0)} = A`$.
+Los dos métodos descomponen la misma matriz, así que
+$`\underline{Q}^{(1)} = Q^{(1)}`$ y $`\underline{R}^{(1)} = R^{(1)}`$.
 
-  ```math
-  Z^{(2)} = A\,Q^{(1)}
-  = Q^{(1)} R^{(1)} Q^{(1)}
-  = Q^{(1)} A^{(1)}
-  = Q^{(1)} Q^{(2)} R^{(2)} .
-  ```
+**Para $k = 2$:** $`Z^{(2)} = A\,\underline{Q}^{(1)} = A\,Q^{(1)}`$. Ahora el
+truco: escribimos la $A$ como $`Q^{(1)}R^{(1)}`$ y reconocemos
+$`R^{(1)}Q^{(1)} = A^{(1)}`$, que el método QR descompone como
+$`Q^{(2)}R^{(2)}`$:
 
-  $`Q^{(1)}Q^{(2)}`$ es ortogonal y $`R^{(2)}`$ es triangular superior:
-  es la descomposición QR de $`Z^{(2)}`$. Así que
-  $`\underline{Q}^{(2)} = Q^{(1)}Q^{(2)}`$ y $`\underline{R}^{(2)} = R^{(2)}`$.
-- En general, si ya vale para $k - 1$, entonces
-  $`Z^{(k)} = A\,Q^{(1)}\cdots Q^{(k-1)}`$. Multiplicando la fórmula
-  de $`A^{(k-1)}`$ por $`Q^{(1)}\cdots Q^{(k-1)}`$ por la izquierda
-  (con una matriz ortogonal $P$, $`PP^T = I`$) queda
-  $`A\,Q^{(1)}\cdots Q^{(k-1)} = Q^{(1)}\cdots Q^{(k-1)}\,A^{(k-1)}`$, y
-  con el paso 1 del método QR:
+```math
+\begin{aligned}
+Z^{(2)} &= A\,Q^{(1)} \\
+&= Q^{(1)} R^{(1)} Q^{(1)} \\
+&= Q^{(1)} A^{(1)} \\
+&= Q^{(1)} Q^{(2)} R^{(2)} .
+\end{aligned}
+```
 
-  ```math
-  Z^{(k)} = A\,Q^{(1)} \cdots Q^{(k-1)}
-  = Q^{(1)} \cdots Q^{(k-1)}\, A^{(k-1)}
-  = Q^{(1)} \cdots Q^{(k-1)}\, Q^{(k)} R^{(k)} ,
-  ```
+$`Q^{(1)}Q^{(2)}`$ es ortogonal y $`R^{(2)}`$ es triangular superior:
+es la descomposición QR de $`Z^{(2)}`$. Así que
+$`\underline{Q}^{(2)} = Q^{(1)}Q^{(2)}`$ y $`\underline{R}^{(2)} = R^{(2)}`$.
 
-  que otra vez es una descomposición QR de $`Z^{(k)}`$.
+**En general,** si ya vale para $k - 1$, entonces
+$`Z^{(k)} = A\,Q^{(1)}\cdots Q^{(k-1)}`$. Multiplicando la fórmula
+de $`A^{(k-1)}`$ por $`Q^{(1)}\cdots Q^{(k-1)}`$ por la izquierda
+(con una matriz ortogonal $P$, $`PP^T = I`$) queda
+$`A\,Q^{(1)}\cdots Q^{(k-1)} = Q^{(1)}\cdots Q^{(k-1)}\,A^{(k-1)}`$, y
+con el paso 1 del método QR:
+
+```math
+\begin{aligned}
+Z^{(k)} &= A\,Q^{(1)} \cdots Q^{(k-1)} \\
+&= Q^{(1)} \cdots Q^{(k-1)}\, A^{(k-1)} \\
+&= Q^{(1)} \cdots Q^{(k-1)}\, Q^{(k)} R^{(k)} ,
+\end{aligned}
+```
+
+que otra vez es una descomposición QR de $`Z^{(k)}`$.
 
 Con esto, la relación con las potencias de $A$ de la iteración
 simultánea se escribe con las matrices del método QR:
