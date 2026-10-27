@@ -2,8 +2,8 @@
 """Descomposición QR, iteración simultánea y método QR.
 
 Ver README.md, sección "Método QR" y "Todos los eigenvalores y
-eigenvectores". Las funciones transpuesta, mat_mat, descomposicion_qr,
-metodo_qr y eigenpares viven en fiscomp/algebra_lineal.py. Este script:
+eigenvectores". Las funciones descomposicion_qr, metodo_qr y eigenpares
+viven en fiscomp/algebra_lineal.py. Este script:
 
 1. Descompone la matriz de prueba del libro en Q R y mide qué tan bien
    se reconstruye A y qué tan ortogonal sale Q.
@@ -19,12 +19,9 @@ metodo_qr y eigenpares viven en fiscomp/algebra_lineal.py. Este script:
    comprobados con el residuo, la traza y el determinante.
 """
 
+from fiscomp.matrices import Identity, Matrix
 from fiscomp.algebra_lineal import (
-    identidad,
-    resta,
     residuo_eigen,
-    transpuesta,
-    mat_mat,
     normalizar,
     norma_frobenius,
     descomposicion_lu,
@@ -43,15 +40,15 @@ def formatear(x):
 def parte_de_abajo(A):
     """Norma de Frobenius de lo que está abajo de la diagonal: cero si A es
     triangular superior."""
-    n = len(A)
-    return norma_frobenius([[A[i][j] if i > j else 0.0 for j in range(n)] for i in range(n)])
+    n = A.rows
+    return norma_frobenius(Matrix([[A[i][j] if i > j else 0.0 for j in range(n)] for i in range(n)]))
 
 
 def fuera_de_la_diagonal(A):
     """Norma de Frobenius de todo lo que no está en la diagonal: cero si A
     es diagonal."""
-    n = len(A)
-    return norma_frobenius([[A[i][j] if i != j else 0.0 for j in range(n)] for i in range(n)])
+    n = A.rows
+    return norma_frobenius(Matrix([[A[i][j] if i != j else 0.0 for j in range(n)] for i in range(n)]))
 
 
 n, val = 4, 21
@@ -66,8 +63,8 @@ print(f"{'n':>3} {'||A - Q R||':>12} {'||Q^T Q - I||':>14}")
 for m in [4, 6, 8]:
     B, _ = crear_prueba(m, val)
     Q, R = descomposicion_qr(B)
-    error_A = norma_frobenius(resta(B, mat_mat(Q, R)))
-    error_Q = norma_frobenius(resta(mat_mat(transpuesta(Q), Q), identidad(m)))
+    error_A = norma_frobenius(B - Q * R)
+    error_Q = norma_frobenius(Q.transpose() * Q - Identity(m))
     print(f"{m:>3} {error_A:12.1e} {error_Q:14.1e}")
 print("Q R reconstruye A casi al épsilon de la máquina, pero Q pierde la")
 print("ortogonalidad muy rápido: el redondeo le hace daño a Gram-Schmidt clásico.")
@@ -88,10 +85,10 @@ print("comparten es el producto (el determinante).")
 ###############################################
 
 print("\n--- 3a. Iteración simultánea sin ortonormalizar: Z = A^10, columnas normalizadas ---")
-Z = identidad(n)
+Z = Identity(n)
 for k in range(10):
-    Z = mat_mat(A, Z)
-for j, columna in enumerate(transpuesta(Z)):
+    Z = A * Z
+for j, columna in enumerate(Z.transpose().data):
     print(f"columna {j}: {formatear(normalizar(columna))}")
 print("Las cuatro columnas son (casi) el mismo vector: el eigenvector dominante v_0.")
 
@@ -99,16 +96,16 @@ print("\n--- 3b. Iteración simultánea con QR contra el método QR ---")
 print("Iteración simultánea: Z = A Q, Z = Q R; luego A^(k) = Q^T A Q.")
 print("Método QR:            A^(k-1) = Q R, A^(k) = R Q.")
 print(f"{'k':>3} {'diagonal de A^(k) (método QR)':^60} {'dif. diagonales':>16}")
-Q_sim = identidad(n)
-A_k = [renglon[:] for renglon in A]
+Q_sim = Identity(n)
+A_k = A
 for k in range(1, 7):
     # Iteración simultánea
-    Z = mat_mat(A, Q_sim)
+    Z = A * Q_sim
     Q_sim, _ = descomposicion_qr(Z)
-    A_sim = mat_mat(mat_mat(transpuesta(Q_sim), A), Q_sim)
+    A_sim = Q_sim.transpose() * A * Q_sim
     # Método QR
     Q, R = descomposicion_qr(A_k)
-    A_k = mat_mat(R, Q)
+    A_k = R * Q
     diagonal = [A_k[i][i] for i in range(n)]
     diferencia = max(abs(A_sim[i][i] - A_k[i][i]) for i in range(n))
     print(f"{k:>3} {formatear(diagonal)} {diferencia:16.1e}")
@@ -122,24 +119,24 @@ print("clásico no es del todo ortogonal y Q^T ya no es exactamente su inversa.)
 
 print("\n--- 4. Método QR: A^(k) se vuelve triangular superior ---")
 print(f"{'k':>3} {'abajo de la diagonal':>21}")
-A_k = [renglon[:] for renglon in A]
+A_k = A
 for k in range(1, 9):
     Q, R = descomposicion_qr(A_k)
-    A_k = mat_mat(R, Q)
+    A_k = R * Q
     print(f"{k:>3} {parte_de_abajo(A_k):21.1e}")
 print("A^(8):")
-for renglon in A_k:
+for renglon in A_k.data:
     print("  " + "  ".join(f"{a:11.3e}" for a in renglon))
 print("Cada iteración divide lo de abajo de la diagonal por ~300: el peor cociente")
 print("|lambda_(i+1) / lambda_i| de la matriz de prueba es ~3e-3, igual que en la")
 print("potencia.")
 
 print("\nCon la matriz simétrica S = A + A^T, A^(k) debería volverse diagonal:")
-S = [[A[i][j] + A[j][i] for j in range(n)] for i in range(n)]
-S_k = [renglon[:] for renglon in S]
+S = A + A.transpose()
+S_k = S
 for k in range(1, 9):
     Q, R = descomposicion_qr(S_k)
-    S_k = mat_mat(R, Q)
+    S_k = R * Q
 abajo = parte_de_abajo(S_k)
 arriba = (fuera_de_la_diagonal(S_k) ** 2 - abajo**2) ** 0.5
 print(f"  después de 8 iteraciones: abajo de la diagonal {abajo:.1e},"

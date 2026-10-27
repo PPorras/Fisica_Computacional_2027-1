@@ -43,7 +43,7 @@ def eigenvalores_qr(H, kmax: int = 500):
     absolutos distintos, y ninguno es cero. Al final se le suma s.
     (Los eigenvalores repetidos de verdad no le estorban a QR.)
 
-    H: matriz n x n (lista de listas). kmax: iteraciones de metodo_qr;
+    H: Matrix de n x n. kmax: iteraciones de metodo_qr;
     con eigenvalores muy juntos hacen falta muchas.
     Regresa la lista de eigenvalores, de menor a mayor.
     """
@@ -125,7 +125,7 @@ def eigenvalores_por_barrido(H, puntos: int = 2000, rondas: int = 6):
     Como H es simétrica, sus eigenvalores son reales y cumplen
     |lambda| <= ||H||_inf, así que basta barrer ese intervalo. (Se
     agranda un poquito para no caer justo en un eigenvalor en el borde.)
-    H: lista de listas. Regresa una lista ordenada de menor a mayor.
+    H: Matrix. Regresa una lista ordenada de menor a mayor.
     """
     cota = 1.001 * norma_infinito(H) + 1e-12
     intervalos = barrido_de_signo(H, -cota, cota, puntos)
@@ -153,7 +153,7 @@ def eigenvalores_dos_espines(H):
 
     En la base (arriba-arriba, arriba-abajo, abajo-arriba, abajo-abajo),
     H[0][0] y H[3][3] están solos en su renglón y columna (son
-    eigenvalores), y el resto es un bloque 2x2. H: lista de listas.
+    eigenvalores), y el resto es un bloque 2x2. H: Matrix.
     Regresa los 4 eigenvalores ordenados.
     """
     menor, mayor = eigenvalores_bloque_2x2(H[1][1], H[1][2], H[2][2])

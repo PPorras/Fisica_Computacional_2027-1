@@ -17,7 +17,7 @@ Cramer). Con LU, la inversa y kappa(A) de una matriz de cualquier
 tamaño están en eliminacion_gaussiana_lu.py.
 """
 
-from fiscomp.matrices import Matrix
+from fiscomp.matrices import Identity, Matrix
 from fiscomp.algebra_lineal import (
     residuo,
     norma_infinito,
@@ -42,10 +42,10 @@ def inversa_2x2(A):
                            [-A10,  A00]]
     """
     det = determinante_2x2(A)
-    return [
+    return Matrix([
         [A[1][1] / det, -A[0][1] / det],
         [-A[1][0] / det, A[0][0] / det],
-    ]
+    ])
 
 
 def resolver_2x2(A, b):
@@ -69,7 +69,7 @@ def numero_condicion(A, norma):
 # El sistema de Kahan (ec. 4.15 del libro)
 ###############################################
 
-A = [[1.2969, 0.8648], [0.2161, 0.1441]]
+A = Matrix([[1.2969, 0.8648], [0.2161, 0.1441]])
 b = [0.8642, 0.1440]
 
 print("Sistema de Kahan, (A|b):")
@@ -88,7 +88,7 @@ print("El residuo de x~ es ~1e-8 y sin embargo x~ no tiene ni una cifra correcta
 
 # 2. A priori: perturbar un solo elemento
 print("\n--- 2. A priori: perturbar un solo elemento de A ---")
-A_pert = [[1.2970, 0.8648], [0.2161, 0.1441]]  # A00 cambia en ~0.008 %
+A_pert = Matrix([[1.2970, 0.8648], [0.2161, 0.1441]])  # A00 cambia en ~0.008 %
 x_pert = resolver_2x2(A_pert, b)
 print(f"A00: {A[0][0]} -> {A_pert[0][0]}  "
       f"(cambio relativo {abs(A_pert[0][0] - A[0][0]) / A[0][0]:.1e})")
@@ -103,7 +103,7 @@ print(f"det(A) = {determinante_2x2(A):.3e},  ||A||_inf = {norma_infinito(A):.4f}
 print("Aquí |det(A)| << ||A|| y el problema sí es mal condicionado, pero...")
 
 n = 20
-D = [[0.1 if i == j else 0.0 for j in range(n)] for i in range(n)]
+D = Identity(n) * 0.1
 det_D = 0.1**n  # D es diagonal: su determinante es el producto de la diagonal
 print(f"D = 0.1 * I ({n}x{n}):  det(D) = {det_D:.1e},  ||D||_inf = {norma_infinito(D)}")
 print("También |det(D)| << ||D||, y sin embargo D x = b se resuelve sin problema")
@@ -116,7 +116,7 @@ kappa_F = numero_condicion(A, norma_frobenius)
 print(f"kappa_inf(A) = {kappa_inf:.3e}")
 print(f"kappa_F(A)   = {kappa_F:.3e}")
 
-dA = [[A_pert[i][j] - A[i][j] for j in range(2)] for i in range(2)]
+dA = A_pert - A
 dx = [x_pert[i] - x_exacta[i] for i in range(2)]
 cambio_relativo_A = norma_infinito(dA) / norma_infinito(A)
 cambio_relativo_x = norma_infinito_vec(dx) / norma_infinito_vec(x_exacta)

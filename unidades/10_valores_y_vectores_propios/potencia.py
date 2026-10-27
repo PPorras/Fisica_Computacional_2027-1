@@ -114,7 +114,7 @@ print("Entre más chico el cociente, más rápido converge.")
 ###############################################
 
 print("\n--- 4. Con -A, el eigenvalor dominante es negativo ---")
-menos_A = [[-a for a in renglon] for renglon in A]
+menos_A = A * -1
 q = normalizar([1.0] * n)
 for k in range(1, 6):
     q_nuevo = normalizar(mat_vec(menos_A, q))

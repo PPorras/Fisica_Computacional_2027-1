@@ -62,8 +62,8 @@ H = dos_espines(1.0, 2.0, 0.5)
 imprimir_matriz(H)
 print(f"¿Simétrica? {es_simetrica(H)}")
 
-imprimir_lista("QR         ", eigenvalores_qr(H.data))
-imprimir_lista("Bloque 2x2 ", eigenvalores_dos_espines(H.data))
+imprimir_lista("QR         ", eigenvalores_qr(H))
+imprimir_lista("Bloque 2x2 ", eigenvalores_dos_espines(H))
 
 ###############################################
 # 2. Tres espines
@@ -74,15 +74,15 @@ H = tres_espines(1.0, 2.0, 3.0, 0.5)
 imprimir_matriz(H)
 print(f"¿Simétrica? {es_simetrica(H)}")
 
-eigenvalores = eigenvalores_qr(H.data)
+eigenvalores = eigenvalores_qr(H)
 imprimir_lista("QR      ", eigenvalores)
-imprimir_lista("Barrido ", eigenvalores_por_barrido(H.data))
+imprimir_lista("Barrido ", eigenvalores_por_barrido(H))
 
 # Comprobaciones sin conocer la respuesta:
 # - La suma de los eigenvalores es la traza de H.
 # - Con los tres espines arriba (estado 0) o abajo (estado 7), H no
 #   mezcla con nada: E = -+(omega_I + omega_II + omega_III)/2 + 3 gamma/4.
-traza = sum(H.data[i][i] for i in range(H.rows))
+traza = sum(H[i][i] for i in range(H.rows))
 print(f"Suma de eigenvalores = {sum(eigenvalores):.2e}, traza de H = {traza:.2e}")
 print(f"Todos arriba: exacta = {-6.0 / 2 + 3 * 0.5 / 4}, calculada = {eigenvalores[0]:.12f}")
 print(f"Todos abajo:  exacta = {6.0 / 2 + 3 * 0.5 / 4}, calculada = {eigenvalores[-1]:.12f}")
@@ -93,35 +93,35 @@ print(f"Todos abajo:  exacta = {6.0 / 2 + 3 * 0.5 / 4}, calculada = {eigenvalore
 
 print("\n--- 3a. Sin interacción (gamma = 0): H es diagonal ---")
 H = tres_espines(1.0, 2.0, 3.0, 0.0)
-imprimir_lista("Diagonal ordenada ", sorted(H.data[i][i] for i in range(H.rows)))
+imprimir_lista("Diagonal ordenada ", sorted(H[i][i] for i in range(H.rows)))
 try:
-    metodo_qr(H.data)
+    metodo_qr(H)
 except ZeroDivisionError:
     print("metodo_qr(H):       ZeroDivisionError")
-imprimir_lista("eigenvalores_qr(H)", eigenvalores_qr(H.data))
+imprimir_lista("eigenvalores_qr(H)", eigenvalores_qr(H))
 print("Con omega_I + omega_II = omega_III, los estados arriba-arriba-abajo y")
 print("abajo-abajo-arriba tienen energía 0: H es singular, y Gram-Schmidt divide")
 print("entre R_jj = 0. Con el desplazamiento, H - s I ya no es singular.")
 
 print("\n--- 3b. Sin campo (omega = 0): niveles degenerados ---")
 H = tres_espines(0.0, 0.0, 0.0, 0.5)
-imprimir_lista("metodo_qr(H), ordenados", sorted(metodo_qr(H.data)))
-imprimir_multiplicidades("eigenvalores_qr(H)     ", eigenvalores_qr(H.data))
-print(f"El barrido encuentra {len(eigenvalores_por_barrido(H.data))} de 8.")
+imprimir_lista("metodo_qr(H), ordenados", sorted(metodo_qr(H)))
+imprimir_multiplicidades("eigenvalores_qr(H)     ", eigenvalores_qr(H))
+print(f"El barrido encuentra {len(eigenvalores_por_barrido(H))} de 8.")
 print("Sin desplazar, QR no puede separar +3 gamma/4 de -3 gamma/4 (mismo valor")
 print("absoluto) y da números que no son eigenvalores. El barrido no ve raíces de")
 print("multiplicidad par. Desplazado, QR da los 8.")
 
 print("\nEl espín total: eigenvalores de S^2 = S(S + 1), tres espines:")
-imprimir_multiplicidades("  S^2", eigenvalores_qr(espin_total_cuadrado(3).data))
+imprimir_multiplicidades("  S^2", eigenvalores_qr(espin_total_cuadrado(3)))
 print("  15/4 = 3.75 (S = 3/2) 4 veces: un cuadruplete, M = -3/2, ..., 3/2.")
 print("  3/4 = 0.75 (S = 1/2) 4 veces: DOS dobletes, M = -1/2, 1/2 cada uno.")
 print("  Sin campo, H = (gamma/2)(S^2 - 9/4): E = 3 gamma/4 para S = 3/2 y")
 print("  E = -3 gamma/4 para S = 1/2. El cuadruplete y los dos dobletes.")
 
 print("\nDos espines sin campo (gamma = 0.5):")
-imprimir_multiplicidades("  H  ", eigenvalores_qr(dos_espines(0.0, 0.0, 0.5).data))
-imprimir_multiplicidades("  S^2", eigenvalores_qr(espin_total_cuadrado(2).data))
+imprimir_multiplicidades("  H  ", eigenvalores_qr(dos_espines(0.0, 0.0, 0.5)))
+imprimir_multiplicidades("  S^2", eigenvalores_qr(espin_total_cuadrado(2)))
 print("  El triplete (S = 1, S^2 = 2) en gamma/4 y el singulete (S = 0) en -3 gamma/4.")
 
 ###############################################
@@ -131,7 +131,7 @@ print("  El triplete (S = 1, S^2 = 2) en gamma/4 y el singulete (S = 0) en -3 ga
 print("\n--- 4. eigenpares (QR + potencia inversa) con tres espines ---")
 H = tres_espines(1.0, 2.0, 3.0, 0.5)
 try:
-    eigenpares(H.data)
+    eigenpares(H)
 except ZeroDivisionError:
     print("eigenpares(H): ZeroDivisionError")
 print("H no mezcla estados con distinto número de espines hacia arriba (bloques")
@@ -162,7 +162,7 @@ with open(ruta, "w") as archivo:
     archivo.write("# omega_I  E_0..E_3 (QR)  E_arriba_arriba  E_bloque_menor  E_bloque_mayor  E_abajo_abajo\n")
     for k in range(101):
         omega = 0.02 * k
-        H = dos_espines(omega, 2 * omega, gamma).data
+        H = dos_espines(omega, 2 * omega, gamma)
         menor, mayor = eigenvalores_bloque_2x2(H[1][1], H[1][2], H[2][2])
         escribir_renglon(archivo, omega, eigenvalores_qr(H) + [H[0][0], menor, mayor, H[3][3]])
 print(f"\nEnergías de dos espines guardadas en {ruta.name}")
@@ -175,7 +175,7 @@ with open(ruta, "w") as archivo:
     for k in range(81):
         omega = 0.025 * k
         H = tres_espines(omega, 2 * omega, 3 * omega, gamma)
-        escribir_renglon(archivo, omega, eigenvalores_qr(H.data))
+        escribir_renglon(archivo, omega, eigenvalores_qr(H))
 tiempo_tres = (time.perf_counter() - inicio) / 81
 print(f"Energías de tres espines guardadas en {ruta.name} ({tiempo_tres:.3f} s por punto)")
 
@@ -188,7 +188,7 @@ with open(ruta, "w") as archivo:
     for k in range(81):
         omega = 0.025 * k
         H = hamiltoniano([omega, 2 * omega, 3 * omega, 4 * omega], gamma)
-        escribir_renglon(archivo, omega, eigenvalores_qr(H.data))
+        escribir_renglon(archivo, omega, eigenvalores_qr(H))
 tiempo_cuatro = (time.perf_counter() - inicio) / 81
 print(f"Energías de cuatro espines guardadas en {ruta.name} ({tiempo_cuatro:.3f} s por punto)")
 

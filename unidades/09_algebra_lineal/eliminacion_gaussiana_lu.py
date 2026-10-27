@@ -49,7 +49,7 @@ def imprimir_vector(nombre, x):
 
 def imprimir_aumentada(A, b):
     """Imprime la matriz aumentada (A|b), un renglón por línea."""
-    for renglon, b_i in zip(A, b):
+    for renglon, b_i in zip(A.data, b):
         print("  " + " ".join(f"{a:7.2f}" for a in renglon) + f" | {b_i:7.2f}")
 
 
@@ -57,7 +57,7 @@ def imprimir_aumentada(A, b):
 # 1. El ejemplo 3x3, paso a paso
 ###############################################
 
-A_ejemplo = [[2.0, 1.0, 1.0], [1.0, 1.0, -2.0], [5.0, 10.0, 5.0]]
+A_ejemplo = Matrix([[2.0, 1.0, 1.0], [1.0, 1.0, -2.0], [5.0, 10.0, 5.0]])
 b_ejemplo = [8.0, -2.0, 10.0]
 
 print("--- 1. Eliminación gaussiana, paso a paso ---")
@@ -65,7 +65,7 @@ print("Matriz aumentada inicial:")
 imprimir_aumentada(A_ejemplo, b_ejemplo)
 
 # Es el mismo ciclo que eliminacion_gaussiana, con un print en medio.
-A = [renglon[:] for renglon in A_ejemplo]
+A = A_ejemplo.copy()
 b = b_ejemplo[:]
 n = len(b)
 for j in range(n - 1):
@@ -88,11 +88,11 @@ imprimir_vector("Con eliminacion_gaussiana:  x", eliminacion_gaussiana(A_ejemplo
 print("\n--- 2. Descomposición LU del ejemplo ---")
 L, U = descomposicion_lu(A_ejemplo)
 print("L (los coeficientes de la eliminación):")
-print(Matrix(L))
+print(L)
 print("U (lo que queda de A al final de la eliminación):")
-print(Matrix(U))
+print(U)
 print("L U (debe ser igual a A):")
-print(Matrix(L) * Matrix(U))
+print(L * U)
 imprimir_vector("Con resolver_lu: x", resolver_lu(L, U, b_ejemplo))
 
 ###############################################
@@ -125,7 +125,7 @@ print("\n--- 4. Inversa, número de condición y determinante ---")
 # cada k: n sistemas con la misma A, una sola LU (ver README.md).
 A_inv = inversa(A)
 print("A^-1 A (debe ser la identidad):")
-for renglon in (Matrix(A_inv) * Matrix(A)).data:
+for renglon in (A_inv * A).data:
     print("  " + " ".join(f"{a:10.2e}" for a in renglon))
 kappa = norma_infinito(A) * norma_infinito(A_inv)
 print(f"kappa(A) = ||A||_inf ||A^-1||_inf = {kappa:.2e}")
@@ -142,7 +142,7 @@ print(f"det del ejemplo 3x3 = {determinante(A_ejemplo)} (2 * 0.5 * 40)")
 def eliminacion_contando(A, b):
     """Igual que la fase de eliminación de eliminacion_gaussiana, pero
     cuenta operaciones. Regresa el número de operaciones."""
-    A = [renglon[:] for renglon in A]
+    A = A.copy()
     b = b[:]
     n = len(b)
     operaciones = 0
@@ -160,8 +160,8 @@ def eliminacion_contando(A, b):
 
 def lu_contando(A):
     """Igual que descomposicion_lu, pero cuenta operaciones."""
-    U = [renglon[:] for renglon in A]
-    n = len(A)
+    U = A.copy()
+    n = A.rows
     operaciones = 0
     for j in range(n - 1):
         for i in range(j + 1, n):
@@ -192,7 +192,7 @@ print("\n--- 6. Resolver m sistemas con la misma A (n = 100) ---")
 n, m = 100, 20
 # Matriz con diagonal dominante: no necesita pivoteo y es rápida de
 # construir (crear_prueba calcula n^2 raíces con raiz_cuadrada).
-A = [[float(n) if i == j else 1.0 / (i + j + 1) for j in range(n)] for i in range(n)]
+A = Matrix([[float(n) if i == j else 1.0 / (i + j + 1) for j in range(n)] for i in range(n)])
 lados_derechos = [[float(k + i) for i in range(n)] for k in range(m)]
 
 inicio = time.perf_counter()
@@ -216,7 +216,7 @@ print(f"Predicción con flops: m (2n^3/3) / (2n^3/3 + 2 m n^2) = "
 ###############################################
 
 print("\n--- 7. Un cero en la diagonal ---")
-A = [[0.0, -1.0], [1.0, 1.0]]
+A = Matrix([[0.0, -1.0], [1.0, 1.0]])
 b = [1.0, 2.0]
 print("A = [[0, -1], [1, 1]], b = [1, 2]; la solución es x = [3, -1] y det(A) = 1.")
 try:

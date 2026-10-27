@@ -21,12 +21,9 @@ A = crear_prueba(4, 21) - I (como el libro):
 
 import random
 
+from fiscomp.matrices import Identity, Matrix
 from fiscomp.algebra_lineal import (
     mat_vec,
-    identidad,
-    resta,
-    transpuesta,
-    mat_mat,
     producto_punto,
     norma_euclidea,
     norma_frobenius,
@@ -46,13 +43,13 @@ def formatear(x):
 
 def producto_svd(U, sigmas, V_T):
     """U S V^T, con S la matriz diagonal de los sigmas."""
-    US = [[U_ij * sigma for U_ij, sigma in zip(renglon, sigmas)] for renglon in U]
-    return mat_mat(US, V_T)
+    US = Matrix([[U_ij * sigma for U_ij, sigma in zip(renglon, sigmas)] for renglon in U.data])
+    return US * V_T
 
 
 n, val = 4, 21
 A, b = crear_prueba(n, val)
-A = resta(A, identidad(n))
+A = A - Identity(n)
 
 ###############################################
 # 1. Los eigenvalores de H
@@ -60,11 +57,11 @@ A = resta(A, identidad(n))
 
 print("--- 1. Eigenvalores de H = [[0, A^T], [A, 0]] con el método QR ---")
 H = matriz_h(A)
-print(f"H es de {len(H)} x {len(H)} y simétrica: {H == transpuesta(H)}")
+print(f"H es de {H.rows} x {H.cols} y simétrica: {H.data == H.transpose().data}")
 print("Sin desplazamiento (diagonal de H^(k)):")
 print("  " + formatear(metodo_qr(H)))
 desplazamiento = 1.0
-H_desplazada = resta(H, [[desplazamiento * I_ij for I_ij in renglon] for renglon in identidad(2 * n)])
+H_desplazada = H - Identity(2 * n) * desplazamiento
 eigenvalores_h = [lam + desplazamiento for lam in metodo_qr(H_desplazada)]
 print(f"Con desplazamiento s = {desplazamiento} (diagonal de (H - s I)^(k), más s):")
 print("  " + formatear(eigenvalores_h))
@@ -80,15 +77,15 @@ print("lento porque quedan muy juntos: -sigma - 1 ~ -2 para los tres más chicos
 print("\n--- 2. svd(A): A = U S V^T ---")
 U, sigmas, V_T = svd(A)
 print(f"valores singulares: {formatear(sigmas)}")
-print(f"||A - U S V^T||  = {norma_frobenius(resta(A, producto_svd(U, sigmas, V_T))):.1e}")
-print(f"||U^T U - I||    = {norma_frobenius(resta(mat_mat(transpuesta(U), U), identidad(n))):.1e}")
-print(f"||V^T V - I||    = {norma_frobenius(resta(mat_mat(V_T, transpuesta(V_T)), identidad(n))):.1e}")
+print(f"||A - U S V^T||  = {norma_frobenius(A - producto_svd(U, sigmas, V_T)):.1e}")
+print(f"||U^T U - I||    = {norma_frobenius(U.transpose() * U - Identity(n)):.1e}")
+print(f"||V^T V - I||    = {norma_frobenius(V_T * V_T.transpose() - Identity(n)):.1e}")
 print("El error ~1e-10 no es el épsilon de la máquina: sigma_2 y sigma_3 están a")
 print("~3e-5 de distancia, y un eigenvector de H con un vecino tan cercano es")
 print("sensible (sección \"Sensibilidad de los eigenvectores\"): eps ||H|| / 3e-5 ~ 1e-10.")
 
 print("\nA v_i = sigma_i u_i (las columnas de V y U):")
-columnas_u = transpuesta(U)
+columnas_u = U.transpose().data
 for i in range(n):
     Av = mat_vec(A, V_T[i])  # v_i, la columna i de V, es el renglón i de V^T
     r = [Av_j - sigmas[i] * u_j for Av_j, u_j in zip(Av, columnas_u[i])]
@@ -123,9 +120,9 @@ print(f"Número de condición: kappa_2(A) = sigma_0 / sigma_(n-1) = {sigmas[0] /
 ###############################################
 
 print("\n--- 4. A x = b con la SVD: S x' = b', con x' = V^T x, b' = U^T b ---")
-b_prima = mat_vec(transpuesta(U), b)
+b_prima = mat_vec(U.transpose(), b)
 x_prima = [b_i / sigma for b_i, sigma in zip(b_prima, sigmas)]
-x_svd = mat_vec(transpuesta(V_T), x_prima)
+x_svd = mat_vec(V_T.transpose(), x_prima)
 L, U_lu = descomposicion_lu(A)
 x_lu = resolver_lu(L, U_lu, b)
 print(f"  x (SVD): {formatear(x_svd)}")
@@ -144,7 +141,7 @@ producto = 1.0
 for sigma in sigmas_B:
     producto *= sigma
 print(f"valores singulares: {[f'{sigma:.6e}' for sigma in sigmas_B]}")
-print(f"||B - U S V^T|| = {norma_frobenius(resta(B, producto_svd(U_B, sigmas_B, V_T_B))):.1e}")
+print(f"||B - U S V^T|| = {norma_frobenius(B - producto_svd(U_B, sigmas_B, V_T_B)):.1e}")
 print(f"producto de sigma = {producto:.6e}   |det(B)| = {abs(determinante(B)):.6e}")
 print(f"v_2 . v_3 = {producto_punto(V_T_B[2], V_T_B[3]):.6f}  (debería ser 0)")
 print("Los valores singulares van de ~21 a ~1e-7. Con el desplazamiento s = 1, los")

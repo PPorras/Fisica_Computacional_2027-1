@@ -16,6 +16,7 @@ fiscomp/algebra_lineal.py. Este script:
 
 import time
 
+from fiscomp.matrices import Identity, Matrix
 from fiscomp.precision_numerica import error_relativo
 from fiscomp.algebra_lineal import (
     paso_jacobi,
@@ -34,7 +35,7 @@ def es_diagonal_dominante(A):
     """True si |A_ii| >= sum_{j != i} |A_ij| en todos los renglones."""
     return all(
         abs(renglon[i]) >= sum(abs(a) for j, a in enumerate(renglon) if j != i)
-        for i, renglon in enumerate(A)
+        for i, renglon in enumerate(A.data)
     )
 
 
@@ -45,7 +46,7 @@ def es_diagonal_dominante(A):
 n, val = 4, 21
 A, b = crear_prueba(n, val)
 # Como en el libro: sumamos val a la diagonal para hacerla dominante.
-A_dominante = [[A[i][j] + (val if i == j else 0.0) for j in range(n)] for i in range(n)]
+A_dominante = A + Identity(n) * val
 print(f"--- 1. Matriz de prueba + {val} I (diagonal dominante: {es_diagonal_dominante(A_dominante)}) ---")
 
 x = [0.0] * n
@@ -88,7 +89,7 @@ def tridiagonal(n):
     """Matriz n x n con 4 en la diagonal y -1 en las dos vecinas
     (diagonalmente dominante y rala: casi todos sus elementos son 0).
     Aparece al discretizar ecuaciones diferenciales (capítulo 8)."""
-    return [[4.0 if i == j else (-1.0 if abs(i - j) == 1 else 0.0) for j in range(n)] for i in range(n)]
+    return Matrix([[4.0 if i == j else (-1.0 if abs(i - j) == 1 else 0.0) for j in range(n)] for i in range(n)])
 
 
 print("\n--- 3. Tiempo: Jacobi contra eliminación gaussiana (matriz tridiagonal) ---")

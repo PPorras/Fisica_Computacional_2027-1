@@ -12,7 +12,8 @@ Incluye:
 - Creación de matrices a partir de listas de listas.
 - Suma, resta y multiplicación (escalar y matricial).
 - Transpuesta.
-- Métodos auxiliares para acceder a filas y columnas.
+- Métodos auxiliares para acceder a filas y columnas, y A[i][j] para
+  leer o cambiar un elemento.
 - La clase hija Identity, la matriz identidad de n x n.
 """
 
@@ -32,6 +33,10 @@ class Matrix:
 
     Methods
     -------
+    A[i]:
+        La fila i, así que A[i][j] es un elemento (para leerlo o cambiarlo).
+    A[i] = row:
+        Reemplaza la fila i.
     shape():
         Devuelve una tupla con la dimensión de la matriz (filas, columnas).
     get_row(i):
@@ -77,6 +82,36 @@ class Matrix:
     def __str__(self):
         """Representación bonita para impresión."""
         return "\n".join(["\t".join(map(str, row)) for row in self.data])
+
+    def __getitem__(self, i):
+        """
+        A[i] es la fila i (una lista), así que A[i][j] es el elemento
+        de la fila i, columna j, igual que con una lista de listas.
+
+        La fila es la misma lista que guarda self.data (no una copia),
+        así que A[i][j] = valor cambia la matriz. Los algoritmos de
+        fiscomp/algebra_lineal.py lo usan, siempre sobre una copia
+        (A.copy()) para no modificar la matriz que reciben.
+        """
+        return self.data[i]
+
+    def __setitem__(self, i, row):
+        """
+        A[i] = row reemplaza la fila i completa. Con esto, el
+        intercambio de dos filas se escribe A[j], A[k] = A[k], A[j],
+        igual que con una lista de listas (el pivoteo lo usa).
+
+        Raises
+        ------
+        ValueError
+            Si row no tiene self.cols elementos (la matriz dejaría de
+            ser rectangular).
+        """
+        if len(row) != self.cols:
+            raise ValueError(
+                f"la fila debe tener {self.cols} elementos, no {len(row)}."
+            )
+        self.data[i] = row
 
     def shape(self):
         """Devuelve la dimensión de la matriz como (filas, columnas)."""
@@ -189,12 +224,16 @@ class Matrix:
         if isinstance(other, Matrix):
             if self.cols != other.rows:
                 raise ValueError("Dimensiones incompatibles para multiplicación.")
+            # El elemento (i, j) es el producto punto de la fila i de
+            # self con la columna j de other. Las columnas de other son
+            # las filas de su transpuesta: se calculan una sola vez, y
+            # zip recorre las dos listas sin indexar elemento por
+            # elemento (es varias veces más rápido; el método QR hace
+            # cientos de estos productos).
+            other_cols = other.transpose().data
             result = [
-                [
-                    sum(self.data[i][k] * other.data[k][j] for k in range(self.cols))
-                    for j in range(other.cols)
-                ]
-                for i in range(self.rows)
+                [sum(a * b for a, b in zip(row, col)) for col in other_cols]
+                for row in self.data
             ]
             return Matrix(result)
 

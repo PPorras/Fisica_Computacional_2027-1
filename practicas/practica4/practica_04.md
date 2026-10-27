@@ -14,7 +14,7 @@ Hasta ahora tenemos dos piezas sueltas:
   `Matrix`, que sirve para *cualquier* matriz rectangular.
 - En [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py),
   las funciones `sustitucion_adelante(L, b)` y `sustitucion_atras(U, b)`,
-  que reciben una lista de listas y **confían** en que sea triangular y
+  que reciben una `Matrix` y **confían** en que sea triangular y
   sin ceros en la diagonal. Si se les pasa otra cosa, o regresan
   basura sin avisar, o truenan con un `ZeroDivisionError` que no dice
   qué pasó.
@@ -175,12 +175,13 @@ quien ya atrape `ValueError` la atrape también: una matriz singular
   `sustitucion_atras` según el tipo de `T`. Quien usa la clase ya no
   tiene que acordarse de cuál de las dos toca.
 - **`residuo(self, x)`**: el vector `b - T x`. Reutilicen la función
-  `residuo` que ya está en el archivo (recuerden que recibe listas de
-  listas: `self.T.data`).
+  `residuo` que ya está en el archivo (recibe una `Matrix`, así que
+  pueden pasarle `self.T` directamente).
 
 Pueden partir del código de las funciones `sustitucion_adelante` y
 `sustitucion_atras` que ya están en el archivo; lo nuevo es que ahora
-trabajan con `self.T.data` y `self.b`.
+trabajan con `self.T` y `self.b` (`self.T[i][j]` funciona igual que
+en esas funciones).
 
 ### El cero en la diagonal: `try` / `except`
 
@@ -352,7 +353,7 @@ rectas de referencia.
 ## Ejercicio 4 — Sistemas lineales con objetos: eliminación gaussiana y LU
 
 En [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py) ya
-están, como funciones sobre listas de listas, la eliminación
+están, como funciones que reciben una `Matrix`, la eliminación
 gaussiana, la descomposición LU, la inversa y el determinante
 (secciones "Eliminación gaussiana" y "Descomposición LU" de
 [las notas de la unidad 09](../../unidades/09_algebra_lineal/)). Ahora las

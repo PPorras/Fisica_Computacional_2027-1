@@ -49,7 +49,7 @@ def imprimir_vector(nombre, x):
 
 A, b = crear_prueba(4, 21)
 print("Matriz de prueba A:")
-print(Matrix(A))
+print(A)
 imprimir_vector("b", b)
 
 for nombre, T, resolver in [
@@ -96,7 +96,7 @@ def mat_vec_contando(A, x):
     """Igual que mat_vec, pero cuenta operaciones. Regresa (y, operaciones)."""
     y = []
     operaciones = 0
-    for renglon in A:
+    for renglon in A.data:
         suma = renglon[0] * x[0]
         operaciones += 1
         for j in range(1, len(x)):
@@ -125,8 +125,8 @@ for n in [250, 500, 1000, 2000]:
     # Aquí no usamos crear_prueba: calcular millones de raíces con
     # raiz_cuadrada (desde cero) tardaría más que la sustitución misma.
     # Cualquier L triangular con diagonal distinta de cero sirve.
-    L = [[2.0 if i == j else 1.0 / n for j in range(i + 1)] + [0.0] * (n - i - 1)
-         for i in range(n)]
+    L = Matrix([[2.0 if i == j else 1.0 / n for j in range(i + 1)] + [0.0] * (n - i - 1)
+                for i in range(n)])
     b = [1.0] * n
     tiempo = None
     for repeticion in range(5):  # nos quedamos con la más rápida de 5 corridas

@@ -24,10 +24,15 @@ matrices se escriben con mayúsculas ($A$, $L$, $U$) y los vectores en
 negritas minúsculas ($\mathbf{x}$, $\mathbf{b}$). Cuando hace falta,
 los dos índices de un elemento se separan con una coma: $A_{1,n-1}$.
 
-En el código, una matriz es una **lista de listas** (un renglón por
-sublista, `A[i][j]`) y un vector es una lista simple (`x[i]`). Es el
-mismo formato que guarda la clase `Matrix` de la práctica 2 en su
-atributo `.data`. En este tema **no usamos NumPy**: todos los métodos
+En el código, una matriz es un objeto de la clase `Matrix` de la
+práctica 2 ([`fiscomp/matrices.py`](../../fiscomp/matrices.py)) y un
+vector es una lista simple (`x[i]`). `Matrix` guarda los elementos en
+su atributo `.data`, una lista de listas (un renglón por sublista), y
+`A[i][j]` da el elemento del renglón `i`, columna `j`, igual que con
+una lista de listas: así el código se parece a las fórmulas. Para
+sumar, restar, multiplicar o transponer matrices se usan las
+operaciones de `Matrix` (`A + B`, `A - B`, `A * B`, `A.transpose()`)
+y la identidad es `Identity(n)`. En este tema **no usamos NumPy**: todos los métodos
 se programan desde cero.
 
 ## Motivación: ejemplos de física
@@ -702,7 +707,7 @@ En [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py):
 
 ```python
 def eliminacion_gaussiana(A, b):
-    A = [renglon[:] for renglon in A]
+    A = A.copy()
     b = b[:]
     n = len(b)
     for j in range(n - 1):
@@ -716,10 +721,11 @@ def eliminacion_gaussiana(A, b):
 
 Algunos detalles:
 
-- Las dos primeras líneas hacen **copias** de `A` y de `b`. Sin ellas,
-  la función modificaría las listas de quien la llama (las listas se
-  pasan por referencia), y después de resolver el sistema ya no
-  tendríamos la matriz original. Es ineficiente, pero más seguro.
+- Las dos primeras líneas hacen **copias** de `A` y de `b` (`A.copy()`
+  es el método de `Matrix` que copia todos sus renglones). Sin ellas,
+  la función modificaría la matriz y la lista de quien la llama (los
+  objetos se pasan por referencia), y después de resolver el sistema
+  ya no tendríamos la matriz original. Es ineficiente, pero más seguro.
 - Los dos ciclos externos son exactamente $j = 0, \ldots, n-2$ e
   $i = j+1, \ldots, n-1$. Aquí empieza a valer la pena haber numerado
   todo desde $0$.
@@ -951,9 +957,9 @@ En [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py):
 
 ```python
 def descomposicion_lu(A):
-    n = len(A)
-    U = [renglon[:] for renglon in A]
-    L = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+    n = A.rows
+    U = A.copy()
+    L = Identity(n).copy()
     for j in range(n - 1):
         for i in range(j + 1, n):
             coeficiente = U[i][j] / U[j][j]
@@ -973,7 +979,9 @@ def resolver_lu(L, U, b):
 - no hay $\mathbf{b}$: solo descomponemos la matriz;
 - a la matriz que se va modificando la llamamos `U` en vez de `A`;
 - cada coeficiente se guarda en `L[i][j]`, y `L` empieza como la
-  identidad para que su diagonal ya tenga los unos.
+  identidad para que su diagonal ya tenga los unos. (Es una copia de
+  `Identity(n)`: `copy()` regresa una `Matrix` común, y así no queda
+  una `Identity` que ya no es la identidad.)
 
 **Descomponer una sola vez.** Si la función que resuelve el sistema
 recibiera la matriz $A$ y la descompusiera adentro (como `lusolve` en
@@ -1066,18 +1074,17 @@ En [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py):
 
 ```python
 def inversa(A):
-    n = len(A)
+    n = A.rows
     L, U = descomposicion_lu(A)
-    columnas = []
-    for k in range(n):
-        e_k = [1.0 if i == k else 0.0 for i in range(n)]
-        columnas.append(resolver_lu(L, U, e_k))
-    # columnas[k][i] es el elemento (i, k) de la inversa: transponemos.
-    return [[columnas[k][i] for k in range(n)] for i in range(n)]
+    identidad = Identity(n)
+    columnas = [resolver_lu(L, U, identidad.get_col(k)) for k in range(n)]
+    # Cada columna de la inversa quedó como renglón: transponemos.
+    return Matrix(columnas).transpose()
 ```
 
 Ojo con el último paso: `columnas` guarda las columnas de $A^{-1}$ como
-si fueran renglones, así que hay que transponer.
+si fueran renglones, así que la `Matrix` que se arma con ellas es
+$`(A^{-1})^T`$ y hay que transponerla.
 
 Con $A^{-1}$ podemos calcular el número de condición de cualquier
 matriz, no solo de las $2\times 2$ de `analisis_de_error.py`. Para la
@@ -1144,7 +1151,7 @@ Está bien condicionado, con $`\kappa_\infty(A) = 4`$, y su solución
 es fácil de obtener a mano: $\mathbf{x} = (3, -1)$. Pero la
 eliminación gaussiana empieza (y termina) con el pivote $j = 0$, y el
 coeficiente $A_{10}/A_{00}$ divide entre $A_{00} = 0$. Con NumPy, el
-resultado es `[nan nan]` (*not a number*); con nuestras listas, Python
+resultado es `[nan nan]` (*not a number*); con `Matrix` y listas, Python
 levanta `ZeroDivisionError`.
 
 **Ejemplo 2: un cero escondido.** Si en el ejemplo $3\times 3$ de la
@@ -1265,7 +1272,7 @@ bloque nuevo al inicio de cada pivote:
 
 ```python
 def eliminacion_gaussiana_pivoteo(A, b):
-    A = [renglon[:] for renglon in A]
+    A = A.copy()
     b = b[:]
     n = len(b)
     for j in range(n - 1):
@@ -1291,9 +1298,11 @@ Algunos detalles:
   empate se queda el primero.
 - `if k != j`: intercambiar un renglón consigo mismo no hace nada.
 - El intercambio usa la asignación múltiple de Python,
-  `A[j], A[k] = A[k], A[j]`, sin variable temporal. Con listas de
-  listas esto intercambia los renglones completos de un golpe: lo que
-  se intercambia son las referencias a las dos sublistas. (Con NumPy
+  `A[j], A[k] = A[k], A[j]`, sin variable temporal. Esto intercambia
+  los renglones completos de un golpe: `A[k]` es la lista del renglón
+  `k`, y `A[j] = ...` reemplaza un renglón completo (`Matrix` define
+  para eso los métodos `__getitem__` y `__setitem__`). Lo que se
+  intercambia son las referencias a las dos sublistas. (Con NumPy
   hay que escribir `A[j,:].copy()`, porque un pedazo de un
   arreglo es una *vista* del original, y sin la copia se sobreescribe
   en vez de intercambiar. Con listas no hay ese problema.)
@@ -1549,7 +1558,7 @@ más $21I$.
   descomposición LU (`descomposicion_lu`, `resolver_lu`), la inversa y
   el determinante (`inversa`, `determinante`), el método de Jacobi
   (`paso_jacobi`, `cambio_relativo`, `jacobi`) y la matriz de prueba
-  (`crear_prueba`). Todo con listas de listas, sin NumPy. El
+  (`crear_prueba`). Todo con la clase `Matrix` y listas, sin NumPy. El
   mismo módulo tiene también los métodos de eigenvalores de la
   [unidad 10](../10_valores_y_vectores_propios/), que reutilizan LU.
 - [`analisis_de_error.py`](analisis_de_error.py): el ejemplo de Kahan

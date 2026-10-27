@@ -15,6 +15,7 @@ Este script:
    intercambia nada.
 """
 
+from fiscomp.matrices import Matrix
 from fiscomp.precision_numerica import error_relativo
 from fiscomp.algebra_lineal import (
     mat_vec,
@@ -43,7 +44,7 @@ def resolver_con_ambos(A, b):
 ###############################################
 
 print("--- 1a. Un cero en el primer pivote (solución exacta: [3, -1]) ---")
-A = [[0.0, -1.0], [1.0, 1.0]]
+A = Matrix([[0.0, -1.0], [1.0, 1.0]])
 b = [1.0, 2.0]
 # La inversa con LU tampoco funciona sin pivoteo: kappa se calcula a mano.
 # A^-1 = [[1, 1], [-1, 0]], así que kappa = ||A|| ||A^-1|| = 2 * 2 = 4.
@@ -51,14 +52,14 @@ print("  kappa_inf(A) = 4: un problema perfectamente bien condicionado.")
 resolver_con_ambos(A, b)
 
 print("\n--- 1b. Un cero escondido (solución exacta: [4, -2, 2]) ---")
-A = [[2.0, 1.0, 1.0], [2.0, 1.0, -4.0], [5.0, 10.0, 5.0]]
+A = Matrix([[2.0, 1.0, 1.0], [2.0, 1.0, -4.0], [5.0, 10.0, 5.0]])
 b = [8.0, -2.0, 10.0]
 print("  El primer pivote es 2, pero tras eliminar la columna 0 el")
 print("  elemento A_11 queda en 1 - 1*1 = 0.")
 resolver_con_ambos(A, b)
 
 print("\n--- 1c. Un pivote diminuto (solución exacta: ~[3, -1]) ---")
-A = [[1e-20, -1.0], [1.0, 1.0]]
+A = Matrix([[1e-20, -1.0], [1.0, 1.0]])
 b = [1.0, 2.0]
 # A^-1 = [[1, 1], [-1, 1e-20]] / (1 + 1e-20): kappa = 2 * 2 / (1 + 1e-20) ~ 4.
 # (inversa() da otra cosa: usa LU sin pivoteo y sufre el mismo problema.)
@@ -89,7 +90,7 @@ print("  diferencia entre los dos es solo el redondeo, que cae distinto.)")
 ###############################################
 
 print("\n--- 3. El ejemplo 1c con el segundo renglón multiplicado por 1e-20 ---")
-A = [[1e-20, -1.0], [1e-20, 1e-20]]
+A = Matrix([[1e-20, -1.0], [1e-20, 1e-20]])
 b = [1.0, 2e-20]
 print("  Son las mismas ecuaciones, así que la solución sigue siendo ~[3, -1].")
 print("  Pero ahora los dos candidatos a pivote miden 1e-20: no hay")
@@ -103,7 +104,7 @@ print("  contra el elemento más grande de su renglón, y sí intercambia.")
 ###############################################
 
 print("\n--- 4. Matriz diagonalmente dominante (solución exacta: [4, -2, 2]) ---")
-A = [[2.0, 1.0, 1.0], [5.0, 10.0, 5.0], [1.0, 1.0, -2.0]]
+A = Matrix([[2.0, 1.0, 1.0], [5.0, 10.0, 5.0], [1.0, 1.0, -2.0]])
 b = [8.0, 10.0, -2.0]
 x_sin = eliminacion_gaussiana(A, b)
 x_con = eliminacion_gaussiana_pivoteo(A, b)

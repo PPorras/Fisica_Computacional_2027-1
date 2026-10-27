@@ -1,4 +1,4 @@
-"""Álgebra lineal numérica, escrita desde cero con listas de listas.
+"""Álgebra lineal numérica, escrita desde cero con la clase Matrix.
 
 Ver unidades/09_algebra_lineal/README.md para la teoría de sistemas
 lineales (normas, número de condición, sustituciones, eliminación
@@ -8,11 +8,15 @@ SVD.
 
 Convenciones:
 
-- Una matriz es una lista de listas rectangular, un renglón por
-  sublista: A[i][j] es el elemento del renglón i, columna j (índices
-  desde 0, como en [1] y en Python). Si tienen una Matrix
-  (fiscomp/matrices.py), pasen su atributo .data.
+- Una matriz es una Matrix (fiscomp/matrices.py). A[i][j] es el
+  elemento del renglón i, columna j (índices desde 0, como en [1] y
+  en Python), y A.rows, A.cols son sus dimensiones. Las funciones que
+  regresan una matriz regresan una Matrix.
 - Un vector es una lista simple de números: x[i].
+- Para las operaciones que ya tiene Matrix se usa Matrix: A * B (el
+  producto de matrices), A - B, A.transpose(), Identity(n).
+- Ninguna función modifica las matrices que recibe: las que necesitan
+  cambiar elementos trabajan sobre una copia (A.copy()).
 
 Aquí vive lo que se reutiliza en el resto del tema: las sustituciones
 para matrices triangulares, la eliminación gaussiana (con y sin
@@ -27,6 +31,7 @@ en cada docstring, el nombre de la función equivalente en [1].
 """
 
 from fiscomp.funciones_especiales import raiz_cuadrada
+from fiscomp.matrices import Identity, Matrix
 
 ###############################################
 # Producto matriz-vector y residuo
@@ -36,18 +41,18 @@ from fiscomp.funciones_especiales import raiz_cuadrada
 def mat_vec(A, x):
     """Producto matriz-vector y = A x, con y[i] = sum_j A[i][j] x[j].
 
-    A: matriz n x m (lista de listas).
+    A: Matrix de n x m.
     x: vector de m componentes (lista).
     Regresa una lista de n componentes. Cuesta 2n^2 - n operaciones
     de punto flotante cuando A es cuadrada (ver las notas de la unidad 09).
     """
-    if len(A[0]) != len(x):
+    if A.cols != len(x):
         raise ValueError(
-            f"dimensiones incompatibles: A tiene {len(A[0])} columnas "
+            f"dimensiones incompatibles: A tiene {A.cols} columnas "
             f"y x tiene {len(x)} componentes"
         )
     y = []
-    for renglon in A:
+    for renglon in A.data:
         suma = 0.0
         for a_ij, x_j in zip(renglon, x):
             suma += a_ij * x_j
@@ -61,32 +66,10 @@ def residuo(A, x, b):
     Si x es la solución exacta de A x = b, r es el vector cero. Un
     residuo chico NO garantiza que x esté cerca de la solución
     exacta (ver el ejemplo de Kahan en las notas de la unidad 09).
+    A: Matrix; x, b: listas.
     """
     Ax = mat_vec(A, x)
     return [b_i - Ax_i for b_i, Ax_i in zip(b, Ax)]
-
-
-###############################################
-# Matrices auxiliares
-###############################################
-
-
-def identidad(n: int):
-    """Matriz identidad n x n, como lista de listas. (Para la versión
-    con la clase Matrix, ver Identity en fiscomp/matrices.py.)"""
-    return [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
-
-
-def resta(A, B):
-    """Resta de matrices del mismo tamaño: (A - B)[i][j] = A[i][j] - B[i][j]."""
-    return [[a - b for a, b in zip(renglon_A, renglon_B)] for renglon_A, renglon_B in zip(A, B)]
-
-
-def menos_lambda_identidad(A, lam: float):
-    """A - lambda I, la matriz desplazada de la potencia inversa, la SVD
-    y el polinomio característico det(A - lambda I). A: matriz n x n."""
-    n = len(A)
-    return [[A[i][j] - (lam if i == j else 0.0) for j in range(n)] for i in range(n)]
 
 
 ###############################################
@@ -105,16 +88,30 @@ def norma_infinito_vec(x):
 
 
 def norma_frobenius(A):
-    """Norma de Frobenius de una matriz: sqrt(sum_i sum_j |A_ij|^2)."""
-    return sum(abs(a_ij) ** 2 for renglon in A for a_ij in renglon) ** 0.5
+    """Norma de Frobenius de una Matrix: sqrt(sum_i sum_j |A_ij|^2)."""
+    return sum(abs(a_ij) ** 2 for renglon in A.data for a_ij in renglon) ** 0.5
 
 
 def norma_infinito(A):
-    """Norma infinito de una matriz (máxima suma de renglón):
+    """Norma infinito de una Matrix (máxima suma de renglón):
 
         max_i sum_j |A_ij|
     """
-    return max(sum(abs(a_ij) for a_ij in renglon) for renglon in A)
+    return max(sum(abs(a_ij) for a_ij in renglon) for renglon in A.data)
+
+
+###############################################
+# Desplazar una matriz
+###############################################
+
+
+def menos_lambda_identidad(A, lam: float):
+    """A - lambda I, la matriz desplazada de la potencia inversa, la SVD
+    y el polinomio característico det(A - lambda I).
+
+    A: Matrix de n x n. Regresa una Matrix nueva (A no cambia).
+    """
+    return A - Identity(A.rows) * lam
 
 
 ###############################################
@@ -123,15 +120,17 @@ def norma_infinito(A):
 
 
 def triangular_inferior(A):
-    """Copia de A con ceros arriba de la diagonal (como numpy.tril)."""
-    n = len(A)
-    return [[A[i][j] if j <= i else 0.0 for j in range(n)] for i in range(n)]
+    """Copia de A con ceros arriba de la diagonal (como numpy.tril).
+    A: Matrix de n x n. Regresa una Matrix."""
+    n = A.rows
+    return Matrix([[A[i][j] if j <= i else 0.0 for j in range(n)] for i in range(n)])
 
 
 def triangular_superior(A):
-    """Copia de A con ceros abajo de la diagonal (como numpy.triu)."""
-    n = len(A)
-    return [[A[i][j] if j >= i else 0.0 for j in range(n)] for i in range(n)]
+    """Copia de A con ceros abajo de la diagonal (como numpy.triu).
+    A: Matrix de n x n. Regresa una Matrix."""
+    n = A.rows
+    return Matrix([[A[i][j] if j >= i else 0.0 for j in range(n)] for i in range(n)])
 
 
 def sustitucion_adelante(L, b):
@@ -139,8 +138,8 @@ def sustitucion_adelante(L, b):
 
         x_i = (b_i - sum_{j=0}^{i-1} L_ij x_j) / L_ii,  i = 0, 1, ..., n-1
 
-    L: matriz n x n triangular inferior (solo se leen los elementos
-       de la diagonal y de abajo de ella).
+    L: Matrix de n x n triangular inferior (solo se leen los
+       elementos de la diagonal y de abajo de ella).
     b: vector de n componentes.
     Regresa la solución x como lista. Cuesta n^2 operaciones.
     """
@@ -159,8 +158,8 @@ def sustitucion_atras(U, b):
 
         x_i = (b_i - sum_{j=i+1}^{n-1} U_ij x_j) / U_ii,  i = n-1, ..., 1, 0
 
-    U: matriz n x n triangular superior (solo se leen los elementos
-       de la diagonal y de arriba de ella).
+    U: Matrix de n x n triangular superior (solo se leen los
+       elementos de la diagonal y de arriba de ella).
     b: vector de n componentes.
     Regresa la solución x como lista. Cuesta n^2 operaciones.
     """
@@ -191,13 +190,13 @@ def eliminacion_gaussiana(A, b):
     (en A y en b), hasta que A queda triangular superior. Luego,
     sustitución hacia atrás.
 
-    A: matriz n x n (lista de listas). b: vector de n componentes.
+    A: Matrix de n x n. b: vector de n componentes.
     No modifica A ni b: trabaja sobre copias. Sin pivoteo: si algún
     pivote A_jj vale cero, levanta ZeroDivisionError (ver las notas de la unidad 09).
     Cuesta 2n^3/3 + 3n^2/2 - 13n/6 operaciones la eliminación, más n^2
     la sustitución hacia atrás.
     """
-    A = [renglon[:] for renglon in A]
+    A = A.copy()
     b = b[:]
     n = len(b)
     for j in range(n - 1):
@@ -218,13 +217,15 @@ def descomposicion_lu(A):
     usaron para eliminar se guardan en L (triangular inferior, con
     unos en la diagonal): L_ij = coeficiente que anuló a A_ij.
 
-    A: matriz n x n (lista de listas); no se modifica.
-    Regresa (L, U), dos listas de listas. Sin pivoteo, como
+    A: Matrix de n x n; no se modifica.
+    Regresa (L, U), dos Matrix. Sin pivoteo, como
     eliminacion_gaussiana. Cuesta 2n^3/3 + n^2/2 - 7n/6 operaciones.
     """
-    n = len(A)
-    U = [renglon[:] for renglon in A]
-    L = [[1.0 if i == j else 0.0 for j in range(n)] for i in range(n)]
+    n = A.rows
+    U = A.copy()
+    # copy() regresa una Matrix común: L empieza siendo la identidad,
+    # pero se le van a cambiar elementos y ya no lo será.
+    L = Identity(n).copy()
     for j in range(n - 1):
         for i in range(j + 1, n):
             coeficiente = U[i][j] / U[j][j]
@@ -249,7 +250,6 @@ def resolver_lu(L, U, b):
     return sustitucion_atras(U, y)
 
 
-
 def inversa(A):
     """Matriz inversa con LU: la columna k de A^-1 es la solución de
 
@@ -259,18 +259,15 @@ def inversa(A):
     sistemas con la misma A: una sola descomposición LU y n pares de
     sustituciones. Cuesta ~2n^3/3 + 2n^3 = 8n^3/3 operaciones.
 
-    A: matriz n x n (lista de listas); no se modifica.
-    Regresa A^-1 como lista de listas. Sin pivoteo (ver
-    descomposicion_lu).
+    A: Matrix de n x n; no se modifica.
+    Regresa A^-1 como Matrix. Sin pivoteo (ver descomposicion_lu).
     """
-    n = len(A)
+    n = A.rows
     L, U = descomposicion_lu(A)
-    columnas = []
-    for k in range(n):
-        e_k = [1.0 if i == k else 0.0 for i in range(n)]
-        columnas.append(resolver_lu(L, U, e_k))
-    # columnas[k][i] es el elemento (i, k) de la inversa: transponemos.
-    return [[columnas[k][i] for k in range(n)] for i in range(n)]
+    identidad = Identity(n)
+    columnas = [resolver_lu(L, U, identidad.get_col(k)) for k in range(n)]
+    # Cada columna de la inversa quedó como renglón: transponemos.
+    return Matrix(columnas).transpose()
 
 
 def determinante(A):
@@ -279,13 +276,13 @@ def determinante(A):
 
         det(A) = U_00 U_11 ... U_(n-1)(n-1).
 
-    Cuesta ~2n^3/3 operaciones (contra ~n! con cofactores). Sin
-    pivoteo: si aparece un pivote cero levanta ZeroDivisionError,
-    aunque A no sea singular.
+    A: Matrix de n x n. Cuesta ~2n^3/3 operaciones (contra ~n! con
+    cofactores). Sin pivoteo: si aparece un pivote cero levanta
+    ZeroDivisionError, aunque A no sea singular.
     """
     _, U = descomposicion_lu(A)
     producto = 1.0
-    for i in range(len(U)):
+    for i in range(U.rows):
         producto *= U[i][i]
     return producto
 
@@ -306,10 +303,10 @@ def eliminacion_gaussiana_pivoteo(A, b):
     no es singular) y los coeficientes nunca pasan de 1 en valor
     absoluto.
 
-    A: matriz n x n (lista de listas). b: vector de n componentes.
+    A: Matrix de n x n. b: vector de n componentes.
     No modifica A ni b. Regresa la solución x.
     """
-    A = [renglon[:] for renglon in A]
+    A = A.copy()
     b = b[:]
     n = len(b)
     for j in range(n - 1):
@@ -341,7 +338,7 @@ def paso_jacobi(A, b, x):
         x_nuevo_i = (b_i - sum_{j != i} A_ij x_j) / A_ii
 
     Todas las componentes nuevas se calculan con el x *anterior*.
-    Regresa una lista nueva (no modifica x).
+    A: Matrix de n x n. Regresa una lista nueva (no modifica x).
     """
     n = len(b)
     x_nuevo = []
@@ -371,8 +368,8 @@ def jacobi(A, b, kmax=50, tol=1e-6):
     """Resuelve A x = b con el método iterativo de Jacobi, empezando en
     x = 0, hasta que cambio_relativo sea menor que tol.
 
-    A: matriz n x n (lista de listas), con diagonal sin ceros. Converge
-       seguro si A es diagonalmente dominante.
+    A: Matrix de n x n, con diagonal sin ceros. Converge seguro si A
+       es diagonalmente dominante.
     kmax: número máximo de iteraciones (entero); tol: tolerancia.
     Regresa (x, k): la solución y el número de iteraciones que tomó,
     o (None, kmax) si no convergió.
@@ -416,6 +413,7 @@ def cociente_rayleigh(A, x):
 
     Si x es un eigenvector de A, da exactamente su eigenvalor; si x
     está cerca de un eigenvector, da una buena aproximación.
+    A: Matrix de n x n; x: lista.
     """
     return producto_punto(x, mat_vec(A, x)) / producto_punto(x, x)
 
@@ -430,11 +428,11 @@ def potencia(A, kmax=6):
     empezando con q = (1, 1, ..., 1) normalizado. Al final, el
     eigenvalor es el cociente de Rayleigh de q.
 
-    A: matriz n x n (lista de listas). kmax: se hacen kmax - 1
-    iteraciones, sin criterio de paro (como en [1]).
+    A: Matrix de n x n. kmax: se hacen kmax - 1 iteraciones, sin
+    criterio de paro (como en [1]).
     Regresa (eigenvalor, eigenvector), con el eigenvector de norma 1.
     """
-    q = normalizar([1.0] * len(A))
+    q = normalizar([1.0] * A.rows)
     for k in range(1, kmax):
         z = mat_vec(A, q)
         q = normalizar(z)
@@ -455,8 +453,8 @@ def potencia_inversa(A, desplazamiento=20.0, kmax=200, tol=1e-8):
     porque con un eigenvalor de A - s I negativo el signo de q alterna
     en cada iteración y el criterio de paro nunca se cumpliría.
 
-    A: matriz n x n (lista de listas). desplazamiento: número real s;
-    no debe ser exactamente un eigenvalor (A - s I sería singular).
+    A: Matrix de n x n. desplazamiento: número real s; no debe ser
+    exactamente un eigenvalor (A - s I sería singular).
     kmax: número máximo de iteraciones (entero); tol: tolerancia.
     Regresa (eigenvalor, eigenvector, k): el eigenvalor (cociente de
     Rayleigh con la A original), el eigenvector de norma 1 y el número
@@ -465,7 +463,7 @@ def potencia_inversa(A, desplazamiento=20.0, kmax=200, tol=1e-8):
     ZeroDivisionError (ver cambio_relativo).
     """
     L, U = descomposicion_lu(menos_lambda_identidad(A, desplazamiento))
-    q = normalizar([1.0] * len(A))
+    q = normalizar([1.0] * A.rows)
     for k in range(1, kmax):
         z = resolver_lu(L, U, q)
         q_nuevo = normalizar(z)
@@ -483,7 +481,7 @@ def potencia_inversa(A, desplazamiento=20.0, kmax=200, tol=1e-8):
 
 def residuo_eigen(A, eigenvalor: float, v):
     """||A v - lambda v|| / ||v|| (norma euclídea): cero si (lambda, v)
-    es un eigenpar exacto."""
+    es un eigenpar exacto. A: Matrix; v: lista."""
     Av = mat_vec(A, v)
     r = [Av_i - eigenvalor * v_i for Av_i, v_i in zip(Av, v)]
     return norma_euclidea(r) / norma_euclidea(v)
@@ -492,21 +490,6 @@ def residuo_eigen(A, eigenvalor: float, v):
 ###############################################
 # Eigenvalores: método QR
 ###############################################
-
-
-def transpuesta(A):
-    """Transpuesta de una matriz: (A^T)[i][j] = A[j][i]. También sirve
-    para pasar de "lista de renglones" a "lista de columnas".
-    """
-    return [list(columna) for columna in zip(*A)]
-
-
-def mat_mat(A, B):
-    """Producto de matrices C = A B, con C[i][j] = sum_k A[i][k] B[k][j].
-    Para matrices n x n cuesta ~2n^3 operaciones.
-    """
-    B_T = transpuesta(B)
-    return [[producto_punto(renglon, columna) for columna in B_T] for renglon in A]
 
 
 def descomposicion_qr(A):
@@ -519,15 +502,14 @@ def descomposicion_qr(A):
         R_jj = ||a'_j||
         q_j  = a'_j / R_jj
 
-    A: matriz n x n (lista de listas) con columnas linealmente
-    independientes; si no lo son (A singular), algún R_jj vale cero y
-    levanta ZeroDivisionError. Regresa (Q, R), las dos como listas de
-    listas.
+    A: Matrix de n x n con columnas linealmente independientes; si no
+    lo son (A singular), algún R_jj vale cero y levanta
+    ZeroDivisionError. Regresa (Q, R), dos Matrix.
     """
-    n = len(A)
-    columnas = transpuesta(A)
+    n = A.rows
+    columnas = A.transpose().data  # las columnas de A son los renglones de A^T
     q = []  # columnas de Q, ya ortonormales
-    R = [[0.0] * n for _ in range(n)]
+    R = [[0.0] * n for _ in range(n)]  # se llena como lista y al final se hace Matrix
     for j in range(n):
         a_prima = columnas[j][:]
         for i in range(j):
@@ -535,7 +517,8 @@ def descomposicion_qr(A):
             a_prima = [a - R[i][j] * q_i for a, q_i in zip(a_prima, q[i])]
         R[j][j] = norma_euclidea(a_prima)
         q.append([a / R[j][j] for a in a_prima])
-    return transpuesta(q), R
+    # Cada columna de Q quedó como renglón: transponemos.
+    return Matrix(q).transpose(), Matrix(R)
 
 
 def metodo_qr(A, kmax=100):
@@ -548,20 +531,20 @@ def metodo_qr(A, kmax=100):
     A^(k) tiene los mismos eigenvalores que A y tiende a una matriz
     triangular superior, así que los eigenvalores se leen de su diagonal.
 
-    A: matriz n x n (lista de listas) con eigenvalores reales, de
-    valores absolutos distintos (con lambda y -lambda no converge) y
-    sin ninguno igual a cero (A singular: descomposicion_qr divide
-    entre cero). Las dos cosas se arreglan aplicándolo a A - s I con un
-    desplazamiento s (ver svd y simulaciones/espines).
+    A: Matrix de n x n con eigenvalores reales, de valores absolutos
+    distintos (con lambda y -lambda no converge) y sin ninguno igual a
+    cero (A singular: descomposicion_qr divide entre cero). Las dos
+    cosas se arreglan aplicándolo a A - s I con un desplazamiento s
+    (ver svd y simulaciones/espines).
     kmax: se hacen kmax - 1 iteraciones, sin criterio de paro (como en
     [1]); con eigenvalores muy juntos hacen falta muchas.
     Regresa la lista de la diagonal de A^(k).
     """
-    A_k = [renglon[:] for renglon in A]
+    A_k = A
     for k in range(1, kmax):
         Q, R = descomposicion_qr(A_k)
-        A_k = mat_mat(R, Q)
-    return [A_k[i][i] for i in range(len(A))]
+        A_k = R * Q
+    return [A_k[i][i] for i in range(A.rows)]
 
 
 def eigenpares(A, eps=1e-12):
@@ -570,10 +553,10 @@ def eigenpares(A, eps=1e-12):
     potencia_inversa, que da el eigenvector (y refina el eigenvalor).
     Al desplazamiento se le suma eps para que A - s I no sea singular.
 
-    A: matriz n x n (lista de listas) con las mismas condiciones que
-    metodo_qr, eigenvalores distintos (con uno repetido, la potencia
-    inversa da el mismo eigenvector varias veces) y eigenvectores sin
-    componentes cero (ver potencia_inversa).
+    A: Matrix de n x n con las mismas condiciones que metodo_qr,
+    eigenvalores distintos (con uno repetido, la potencia inversa da
+    el mismo eigenvector varias veces) y eigenvectores sin componentes
+    cero (ver potencia_inversa).
     Regresa (eigenvalores, eigenvectores): una lista de n números y una
     lista de n vectores de norma 1; eigenvectores[i] es el de
     eigenvalores[i]. ([1] los regresa como columnas de una matriz.)
@@ -602,10 +585,10 @@ def matriz_h(A):
     A con los dos signos), y el eigenvector de +sigma_i es (v_i, u_i)
     / sqrt(2): arriba el vector singular derecho, abajo el izquierdo.
 
-    A: matriz n x n (lista de listas). Regresa H como lista de listas.
+    A: Matrix de n x n. Regresa H como Matrix.
     """
-    n = len(A)
-    H = [[0.0] * (2 * n) for _ in range(2 * n)]
+    n = A.rows
+    H = Matrix([[0.0] * (2 * n) for _ in range(2 * n)])
     for i in range(n):
         for j in range(n):
             H[n + i][j] = A[i][j]  # bloque de abajo a la izquierda: A
@@ -627,15 +610,15 @@ def svd(A, desplazamiento=1.0, eps=1e-12):
        refina sigma). Los primeros n elementos de w, por sqrt(2), son
        v_i; los últimos n, por sqrt(2), son u_i.
 
-    A: matriz n x n (lista de listas) con valores singulares distintos
-    y no muy separados en órdenes de magnitud (limitación de metodo_qr).
+    A: Matrix de n x n con valores singulares distintos y no muy
+    separados en órdenes de magnitud (limitación de metodo_qr).
     desplazamiento: número real s, el corrimiento del paso 2.
     eps: como en eigenpares, para que H - sigma I no sea singular.
-    Regresa (U, sigmas, V_T): U como lista de listas, la lista de los
-    valores singulares y V^T como lista de listas. ([1] regresa los
-    valores singulares como una matriz diagonal.)
+    Regresa (U, sigmas, V_T): U como Matrix, la lista de los valores
+    singulares y V^T como Matrix. ([1] regresa los valores singulares
+    como una matriz diagonal.)
     """
-    n = len(A)
+    n = A.rows
     H = matriz_h(A)
     eigenvalores_h = [lam + desplazamiento for lam in metodo_qr(menos_lambda_identidad(H, desplazamiento))]
     sigmas_qr = sorted([lam for lam in eigenvalores_h if lam >= 0], reverse=True)
@@ -647,8 +630,9 @@ def svd(A, desplazamiento=1.0, eps=1e-12):
         sigmas.append(sigma)
         columnas_v.append([raiz_cuadrada(2.0) * w_i for w_i in w[:n]])
         columnas_u.append([raiz_cuadrada(2.0) * w_i for w_i in w[n:]])
-    # Las columnas de V son los renglones de V^T: columnas_v ya es V^T.
-    return transpuesta(columnas_u), sigmas, columnas_v
+    # Las columnas de V son los renglones de V^T: con columnas_v ya
+    # está V^T. Las de U quedaron como renglones: transponemos.
+    return Matrix(columnas_u).transpose(), sigmas, Matrix(columnas_v)
 
 
 ###############################################
@@ -658,8 +642,9 @@ def svd(A, desplazamiento=1.0, eps=1e-12):
 
 def crear_prueba(n, val):
     """Matriz de prueba de [1] (testcreate): A_ij = sqrt(val + n i + j),
-    y b_j = (A_0j)^2.1. No es simétrica. Regresa (A, b).
+    y b_j = (A_0j)^2.1. No es simétrica. Regresa (A, b), con A una
+    Matrix y b una lista.
     """
-    A = [[raiz_cuadrada(val + n * i + j) for j in range(n)] for i in range(n)]
+    A = Matrix([[raiz_cuadrada(val + n * i + j) for j in range(n)] for i in range(n)])
     b = [a_0j**2.1 for a_0j in A[0]]
     return A, b

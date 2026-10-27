@@ -317,7 +317,7 @@ de muchos espines usa además que $H$ es casi toda ceros (se dice que es
   principal; imprime los resultados y las comprobaciones (incluyendo
   los casos límite, el espín total y por qué falla `eigenpares`),
   guarda los datos de las gráficas en `datos/` y estima el caso de
-  diez espines. Tarda unos 30 segundos, casi todo en los cuatro
+  diez espines. Tarda unos 40 segundos, casi todo en los cuatro
   espines.
 - [`graficar_dos_espines.gp`](graficar_dos_espines.gp) y
   [`graficar_tres_espines.gp`](graficar_tres_espines.gp): los dos

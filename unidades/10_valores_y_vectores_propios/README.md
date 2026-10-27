@@ -31,10 +31,14 @@ Usamos "eigenvalor" y "valor propio" como sinónimos (igual
 "eigenvector" y "vector propio"); "eigenpar" es un eigenvalor junto
 con su eigenvector.
 
-En el código, una matriz es una **lista de listas** (un renglón por
-sublista, `A[i][j]`) y un vector es una lista simple (`x[i]`). Es el
-mismo formato que guarda la clase `Matrix` de la práctica 2 en su
-atributo `.data`. En este tema **no usamos NumPy**: todos los métodos
+En el código, como en la [unidad 09](../09_algebra_lineal/), una
+matriz es un objeto de la clase `Matrix` de la práctica 2
+([`fiscomp/matrices.py`](../../fiscomp/matrices.py)), con `A[i][j]`
+para el elemento del renglón `i`, columna `j`, y un vector es una
+lista simple (`x[i]`). Los productos, restas y transpuestas de
+matrices son las operaciones de `Matrix` (`A * B`, `A - B`,
+`A.transpose()`), y la identidad es `Identity(n)`. En este tema **no
+usamos NumPy**: todos los métodos
 se programan desde cero.
 
 ## Motivación: ejemplos de física
@@ -470,7 +474,7 @@ agregamos tres funciones auxiliares, `producto_punto`, `normalizar`
 
 ```python
 def potencia(A, kmax=6):
-    q = normalizar([1.0] * len(A))
+    q = normalizar([1.0] * A.rows)
     for k in range(1, kmax):
         z = mat_vec(A, q)
         q = normalizar(z)
@@ -608,10 +612,9 @@ eigenvector que buscamos.)
 
 ```python
 def potencia_inversa(A, desplazamiento=20.0, kmax=200, tol=1e-8):
-    n = len(A)
-    A_desplazada = [[A[i][j] - (desplazamiento if i == j else 0.0) for j in range(n)] for i in range(n)]
+    A_desplazada = A - Identity(A.rows) * desplazamiento
     L, U = descomposicion_lu(A_desplazada)
-    q = normalizar([1.0] * n)
+    q = normalizar([1.0] * A.rows)
     for k in range(1, kmax):
         z = resolver_lu(L, U, q)
         q_nuevo = normalizar(z)
@@ -818,17 +821,15 @@ $[-1, 1]$ salen (múltiplos de) los **polinomios de Legendre**
 
 ### Implementación
 
-Como nuestras matrices son listas de **renglones** y Gram-Schmidt
-trabaja con **columnas**, primero agregamos a
-[`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py) la
-`transpuesta` (las columnas de $A$ son los renglones de $A^T$) y el
-producto de matrices `mat_mat` (que también necesitamos para el
-método QR). Con ellas:
+Una `Matrix` guarda sus elementos por **renglones** y Gram-Schmidt
+trabaja con **columnas**, así que usamos la transpuesta: las columnas
+de $A$ son los renglones de $A^T$ (`A.transpose().data`). En
+[`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py):
 
 ```python
 def descomposicion_qr(A):
-    n = len(A)
-    columnas = transpuesta(A)
+    n = A.rows
+    columnas = A.transpose().data
     q = []  # columnas de Q, ya ortonormales
     R = [[0.0] * n for _ in range(n)]
     for j in range(n):
@@ -838,14 +839,15 @@ def descomposicion_qr(A):
             a_prima = [a - R[i][j] * q_i for a, q_i in zip(a_prima, q[i])]
         R[j][j] = norma_euclidea(a_prima)
         q.append([a / R[j][j] for a in a_prima])
-    return transpuesta(q), R
+    return Matrix(q).transpose(), Matrix(R)
 ```
 
 Es una traducción directa de las fórmulas: `a_prima` empieza siendo
 una copia de $\mathbf{a}_j$ y se le van restando las componentes; el
 ciclo interno no se ejecuta para $j = 0$. Al final, `q` es la lista de
-columnas de $Q$, y la transponemos para regresar $Q$ como lista de
-renglones. No hay `kmax` ni tolerancia: es un método directo.
+columnas de $Q$: armamos con ella una `Matrix` y la transponemos para
+que las columnas queden como columnas. `R` se llena como lista de
+listas y al final se convierte en `Matrix`. No hay `kmax` ni tolerancia: es un método directo.
 
 ¿Cómo sabemos si funciona? Con dos pruebas. La obvia,
 $`\|A - QR\|`$, que debe ser cero. Y otra: en aritmética exacta $Q$ es
@@ -855,9 +857,9 @@ de prueba (norma de Frobenius):
 
 | $n$ | $`\|A - QR\|`$ | $`\|Q^TQ - I\|`$ |
 |---|---|---|
-| 4 | $`1.3\times 10^{-15}`$ | $`7.3\times 10^{-3}`$ |
-| 6 | $`2.5\times 10^{-15}`$ | $2.4$ |
-| 8 | $`6.2\times 10^{-15}`$ | $4.5$ |
+| 4 | $`8.9\times 10^{-16}`$ | $`7.3\times 10^{-3}`$ |
+| 6 | $0$ | $2.4$ |
+| 8 | $`1.5\times 10^{-15}`$ | $4.5$ |
 
 $QR$ reconstruye $A$ al nivel del épsilon de la máquina, pero $Q$
 **deja de ser ortogonal** muy rápido: ya para $n = 6$ no se parece en
@@ -1140,21 +1142,24 @@ clásico $Q$ no es del todo ortogonal.)
 
 ### Implementación
 
-Con `descomposicion_qr` y `mat_mat`, el método QR es casi trivial:
+Con `descomposicion_qr` y el producto de matrices, el método QR es
+casi trivial:
 
 ```python
 def metodo_qr(A, kmax=100):
-    A_k = [renglon[:] for renglon in A]
+    A_k = A
     for k in range(1, kmax):
         Q, R = descomposicion_qr(A_k)
-        A_k = mat_mat(R, Q)
-    return [A_k[i][i] for i in range(len(A))]
+        A_k = R * Q
+    return [A_k[i][i] for i in range(A.rows)]
 ```
 
 Se hace un número fijo de iteraciones, y por eso no
 hace falta guardar los superíndices: `A_k`, `Q` y `R` se van
-reemplazando. Se copia `A` al principio para no modificar la matriz
-de quien llama a la función.
+reemplazando. `A_k = A` no copia la matriz, pero no hace falta: nunca
+se cambia un elemento de `A_k`, solo se reemplaza `A_k` completa por la
+`Matrix` nueva que regresa `R * Q`, y la `A` de quien llama a la
+función queda intacta.
 
 La parte 4 de [`qr.py`](qr.py) lo corre paso a paso con la matriz de
 prueba. La diagonal converge a los cuatro eigenvalores que encontramos
@@ -1232,8 +1237,8 @@ Detalles:
 - Los eigenvalores que regresa son los de la potencia inversa
   (cociente de Rayleigh), no los de QR: QR solo da el punto de partida.
 - Regresa una **lista de eigenvectores** (`eigenvectores[i]` es el de
-  `eigenvalores[i]`), que con listas de listas es lo más cómodo. Con
-  NumPy sería más natural regresarlos como columnas de una matriz.
+  `eigenvalores[i]`), porque nuestros vectores son listas. Con NumPy
+  sería más natural regresarlos como columnas de una matriz.
 - `eigenpares` es tan corta porque usa todo lo anterior:
   `metodo_qr` usa `descomposicion_qr`, y `potencia_inversa` usa
   `descomposicion_lu` y las sustituciones.
@@ -1552,9 +1557,9 @@ la hace `svd(A)`:
 
 ```python
 def svd(A, desplazamiento=1.0, eps=1e-12):
-    n = len(A)
+    n = A.rows
     H = matriz_h(A)
-    H_desplazada = [[H[i][j] - (desplazamiento if i == j else 0.0) for j in range(2 * n)] for i in range(2 * n)]
+    H_desplazada = H - Identity(2 * n) * desplazamiento
     eigenvalores_h = [lam + desplazamiento for lam in metodo_qr(H_desplazada)]
     sigmas_qr = sorted([lam for lam in eigenvalores_h if lam >= 0], reverse=True)
     sigmas = []
@@ -1565,7 +1570,7 @@ def svd(A, desplazamiento=1.0, eps=1e-12):
         sigmas.append(sigma)
         columnas_v.append([raiz_cuadrada(2.0) * w_i for w_i in w[:n]])
         columnas_u.append([raiz_cuadrada(2.0) * w_i for w_i in w[n:]])
-    return transpuesta(columnas_u), sigmas, columnas_v
+    return Matrix(columnas_u).transpose(), sigmas, Matrix(columnas_v)
 ```
 
 Conceptualmente es eso: eigenvalores de $H$ y luego eigenvectores. Los
@@ -1685,8 +1690,7 @@ la SVD sale correcta también para estas matrices [1].
 - [`fiscomp/algebra_lineal.py`](../../fiscomp/algebra_lineal.py): los
   métodos de la potencia (`producto_punto`, `normalizar`,
   `cociente_rayleigh`, `potencia`, `potencia_inversa`) y el método QR
-  (`transpuesta`, `mat_mat`, `descomposicion_qr`, `metodo_qr`,
-  `eigenpares`) y la SVD (`matriz_h`, `svd`). Es el mismo módulo de la unidad 09: la potencia
+  (`descomposicion_qr`, `metodo_qr`, `eigenpares`) y la SVD (`matriz_h`, `svd`). Es el mismo módulo de la unidad 09: la potencia
   inversa usa `descomposicion_lu` y `resolver_lu`, y todos los
   ejemplos usan su matriz de prueba (`crear_prueba`).
 - [`condicion_eigenvalores.py`](condicion_eigenvalores.py): el número
