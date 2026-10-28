@@ -1020,7 +1020,10 @@ normas y componentes que se quitaron quedan guardadas en la $R$.
 Para no confundir estas matrices con las del método QR (siguiente
 sección), las de la iteración simultánea llevan una **raya abajo**:
 $`\underline{Q}^{(k)}`$ y $`\underline{R}^{(k)}`$. La raya es solo parte
-del nombre, no una operación.
+del nombre, no una operación. En concreto, $`\underline{Q}^{(k)}`$ es la
+matriz cuyas columnas son los $n$ vectores ortonormales que tenemos
+después de $k$ iteraciones, y $`\underline{R}^{(k)}`$ es la matriz triangular superior que
+sale junto con ella al ortonormalizar.
 
 La **iteración simultánea** (o *iteración ortogonal*) empieza con
 $`\underline{Q}^{(0)} = I`$ y, para $k = 1, 2, \ldots$, hace dos pasos:
